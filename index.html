@@ -56,6 +56,17 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #views .dot:hover{background:rgba(255,255,255,.7);transform:scale(1.25)}
 #views .dot[aria-pressed="true"]{background:var(--brass);border-color:var(--gold)}
 #views .dot:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+#share{position:fixed;left:20px;bottom:calc(52px + env(safe-area-inset-bottom,0px));z-index:6;
+  display:flex;align-items:flex-end;gap:12px}
+#qr{display:block;width:76px;height:76px;padding:7px;border:1px solid rgba(232,223,200,.28);
+  background:rgba(14,18,24,.45);transition:background .25s,border-color .25s}
+#qr:hover{background:rgba(14,18,24,.75);border-color:var(--gold)}
+#qr svg{display:block;width:100%;height:100%}
+#who{display:flex;flex-direction:column;gap:3px;padding-bottom:3px}
+#who .name{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.78)}
+#mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
+#mail:hover{color:var(--brass)}
+@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} }
 #stamp{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
   font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);
   pointer-events:none;line-height:1.7}
@@ -101,6 +112,18 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
   <button class="dot" data-view="2" aria-label="View three" title="View three"></button>
 </div>
 <div id="stamp"></div>
+
+<!-- Share and contact. The QR is inline SVG made from the site's own address,
+     so there is no image file and no service rendering it. -->
+<div id="share">
+  <a id="qr" href="https://ianingram.github.io/ingram-manor/" aria-label="Link to this page">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" class="segno"><path class="qrline" stroke="#e8dfc8" d="M2 2.5h7m1 0h1m4 0h2m2 0h1m4 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m2 0h2m1 0h1m2 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h4m3 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h4m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h2m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h4m3 0h1m3 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h2m1 0h1m1 0h2m-20 1h1m2 0h6m1 0h3m1 0h1m1 0h6m2 0h1m1 0h3m-29 1h3m2 0h1m3 0h1m1 0h9m3 0h2m1 0h2m-23 1h2m2 0h1m3 0h1m1 0h2m5 0h1m1 0h1m1 0h1m-26 1h4m2 0h3m4 0h1m2 0h2m4 0h1m1 0h1m2 0h1m-29 1h2m1 0h2m1 0h6m4 0h1m3 0h1m1 0h2m4 0h1m-27 1h4m1 0h2m1 0h2m1 0h1m1 0h4m3 0h7m-28 1h1m2 0h4m1 0h1m5 0h1m2 0h3m1 0h1m3 0h1m1 0h1m-29 1h3m9 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m-29 1h2m2 0h4m2 0h1m2 0h3m4 0h1m2 0h1m1 0h1m-26 1h4m4 0h1m1 0h4m1 0h1m2 0h4m2 0h1m1 0h2m-28 1h4m2 0h5m4 0h2m2 0h4m1 0h2m2 0h1m-29 1h2m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m6 0h1m1 0h3m-27 1h3m2 0h3m2 0h1m2 0h1m1 0h1m1 0h2m1 0h8m-20 1h4m2 0h2m1 0h2m1 0h1m3 0h2m-26 1h7m1 0h5m1 0h3m2 0h2m1 0h1m1 0h2m-26 1h1m5 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h4m2 0h7m1 0h1m-28 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h5m1 0h2m6 0h1m-29 1h1m1 0h3m1 0h1m2 0h5m1 0h2m1 0h1m1 0h2m1 0h2m1 0h3m-29 1h1m5 0h1m2 0h1m5 0h1m6 0h5m1 0h1m-29 1h7m1 0h1m2 0h2m6 0h2m2 0h1"/></svg>
+  </a>
+  <div id="who">
+    <span class="name">Ian Ingram</span>
+    <a id="mail" href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a>
+  </div>
+</div>
 <div id="hint">drag to look &middot; click a ship</div>
 <div id="tip"></div>
 
@@ -122,19 +145,19 @@ import * as THREE from 'three';
 
 /* ================================================================ the four */
 const PROJECTS = [
-  { id:'amenti', title:'Amenti Interface', kind:'platform', emblem:'\u2625',
+  { id:'amenti', neon: 0xffd23a, title:'Amenti Interface', kind:'platform', emblem:'\u2625',
     url:'',
     blurb:'The Library of Legends. An AI-powered platform built on a database of historical figures \u2014 live chat with authentic historical characters, grounded in high quality primary source data.' },
-  { id:'gannlab', title:'GannLab', kind:'research', emblem:'\u2691',
+  { id:'gannlab', neon: 0x35e6ff, title:'GannLab', kind:'research', emblem:'\u2691',
     url:'https://ianingram.github.io/GannLab/',
     blurb:'Fifty-nine pre-registered trading-hypothesis experiments, their run files, and an honest account of what survived. Mostly nothing did. The failures are the content.' },
-  { id:'chess', title:'Treasure Chess', kind:'game', emblem:'\u265E',
+  { id:'chess', neon: 0xff2bd6, title:'Treasure Chess', kind:'game', emblem:'\u265E',
     url:'',
     blurb:'Sea-battle chess played with a roster of historical characters. Fleets hold a wedge until the first move, then sail into the back rank. Every piece is somebody.' },
-  { id:'x', title:'X', kind:'unannounced', emblem:'\u2715',
+  { id:'x', neon: 0x7cff4f, title:'X', kind:'unannounced', emblem:'\u2715',
     url:'',
     blurb:'Not named yet. The hull is in the water and the rest follows.' },
-  { id:'amentilive', title:'Amenti.live', kind:'live', emblem:'\u2609',
+  { id:'amentilive', neon: 0xff7a18, title:'Amenti.live', kind:'live', emblem:'\u2609',
     url:'',
     blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' }
 ];
@@ -234,12 +257,25 @@ function sailTexture(p) {
     ctx.fillText(p.emblem, W / 2, 250);                  // the emblem above
     ctx.font = '600 58px ui-monospace, Menlo, monospace';
     words.forEach((w, i) => ctx.fillText(w, W / 2, 430 + i * 72));
-    ctx.lineWidth = 5;                                   // the frame around the name
-    ctx.strokeRect(46, 344, W - 92, 124 + (words.length - 1) * 72);
-    ctx.lineWidth = 2;                                   // a stitched inner rule
-    ctx.setLineDash([9, 7]);
-    ctx.strokeRect(62, 360, W - 124, 92 + (words.length - 1) * 72);
+    /* the border runs round the whole sail rather than boxing the name: a
+       heavy rule inset from the edge, a stitched rule inside it, and a
+       corner mark at each turn, so the cloth is framed the way a banner is. */
+    const M = 26;                                        // inset from the edge
+    ctx.lineWidth = 6;
+    ctx.strokeRect(M, M + 22, W - M * 2, H - M * 2 - 30);
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 8]);
+    ctx.strokeRect(M + 14, M + 36, W - (M + 14) * 2, H - (M + 14) * 2 - 30);
     ctx.setLineDash([]);
+    ctx.lineWidth = 4;                                   // corner marks
+    const cS = 34, x0 = M, y0 = M + 22, x1 = W - M, y1 = H - M - 8;
+    for (const [px, py, sx, sy] of [[x0,y0,1,1],[x1,y0,-1,1],[x0,y1,1,-1],[x1,y1,-1,-1]]) {
+      ctx.beginPath();
+      ctx.moveTo(px + sx * cS, py + sy * 10);
+      ctx.lineTo(px + sx * 10, py + sy * 10);
+      ctx.lineTo(px + sx * 10, py + sy * cS);
+      ctx.stroke();
+    }
   });
 
   const map = new THREE.CanvasTexture(cloth);
@@ -247,6 +283,83 @@ function sailTexture(p) {
   const emissive = new THREE.CanvasTexture(glow);
   emissive.colorSpace = THREE.SRGBColorSpace;
   return { map, emissive };
+}
+
+/* ------------------------------------------------- gilding and inlay
+   The hull sides carry scrollwork: gold couched in a running arabesque
+   along the topsides with silver inlaid inside the scrolls, the way a
+   ceremonial hull is finished. Drawn onto a transparent canvas and hung on
+   thin panels just outboard of the planking, so the hull geometry itself is
+   untouched and the whole thing costs two quads a side.
+
+   Every hull gets its own, so no two are the same run of scrolls. */
+function gildTexture(seed) {
+  const W = 512, H = 128;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  let n = seed || 7;
+  const rnd = () => (n = (n * 16807) % 2147483647) / 2147483647;
+
+  const GOLD = '#d9b458', GOLD_HI = '#f7e3a4', GOLD_LO = '#8a6a22', SILVER = '#cfd6dc';
+
+  /* the two rules the scrollwork runs between */
+  for (const y of [16, H - 16]) {
+    x.strokeStyle = GOLD; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke();
+    x.strokeStyle = GOLD_HI; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(0, y - 1.5); x.lineTo(W, y - 1.5); x.stroke();
+  }
+
+  /* a repeating scroll: a wave with a curl at each crest, and a leaf below */
+  const step = 64;
+  for (let i = 0; i < W / step + 1; i++) {
+    const ox = i * step, up = i % 2 === 0;
+    const midY = H / 2;
+    x.strokeStyle = GOLD; x.lineWidth = 3.4; x.lineCap = 'round';
+    x.beginPath();
+    x.moveTo(ox, midY);
+    x.bezierCurveTo(ox + step * 0.22, midY + (up ? -30 : 30),
+                    ox + step * 0.62, midY + (up ? -34 : 34),
+                    ox + step, midY);
+    x.stroke();
+    /* the curl */
+    x.lineWidth = 2.4;
+    x.beginPath();
+    const cxp = ox + step * 0.5, cyp = midY + (up ? -26 : 26);
+    x.arc(cxp, cyp, 9, up ? 0.5 : 3.6, up ? 4.6 : 7.7);
+    x.stroke();
+    /* silver inlaid in the eye of the curl */
+    x.fillStyle = SILVER;
+    x.beginPath(); x.arc(cxp, cyp, 3.4, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = GOLD_LO; x.lineWidth = 1;
+    x.beginPath(); x.arc(cxp, cyp, 3.4, 0, Math.PI * 2); x.stroke();
+    /* a small silver lozenge between scrolls */
+    const lx = ox + step, ly = midY + (up ? 16 : -16);
+    x.fillStyle = SILVER;
+    x.beginPath();
+    x.moveTo(lx, ly - 5); x.lineTo(lx + 4, ly); x.lineTo(lx, ly + 5); x.lineTo(lx - 4, ly);
+    x.closePath(); x.fill();
+    x.strokeStyle = GOLD; x.lineWidth = 1.2; x.stroke();
+    /* a leaf off the stem */
+    x.strokeStyle = GOLD; x.lineWidth = 2;
+    x.beginPath();
+    x.moveTo(ox + step * 0.5, midY + (up ? -6 : 6));
+    x.quadraticCurveTo(ox + step * (0.5 + (rnd() - 0.5) * 0.3), midY + (up ? 14 : -14),
+                       ox + step * 0.78, midY + (up ? 6 : -6));
+    x.stroke();
+  }
+
+  /* a few loose studs, silver, along both rails */
+  for (let i = 0; i < 26; i++) {
+    x.fillStyle = i % 3 ? SILVER : GOLD_HI;
+    const sx = (i + 0.5) * (W / 26);
+    for (const sy of [16, H - 16]) { x.beginPath(); x.arc(sx, sy, 1.8, 0, Math.PI * 2); x.fill(); }
+  }
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 /* ================================================================== a ship
@@ -350,6 +463,73 @@ function buildShip(p) {
     ship.add(t);
   }
 
+  /* the gilding, on both topsides and across the transom */
+  const gild = new THREE.MeshStandardMaterial({
+    map: gildTexture(Math.floor(Math.random() * 99999)),
+    transparent: true, roughness: 0.34, metalness: 0.65,
+    emissive: 0x3a2c08, emissiveIntensity: 0.28, side: THREE.DoubleSide });
+  for (const zSign of [-1, 1]) {
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(HULL_L * 0.9, HULL_H * 0.66), gild);
+    panel.position.set(0, HULL_H * 0.58, zSign * (HULL_W / 2 + 0.06));
+    panel.rotation.y = zSign > 0 ? 0 : Math.PI;
+    ship.add(panel);
+  }
+  const transom = new THREE.Mesh(
+    new THREE.PlaneGeometry(HULL_W * 0.86, HULL_H * 0.6), gild);
+  transom.rotation.y = Math.PI / 2;
+  transom.position.set(HULL_L / 2 + 0.06, HULL_H * 0.58, 0);
+  ship.add(transom);
+
+  /* a silver strake at the waterline, under all the gold */
+  const silverMat = new THREE.MeshStandardMaterial({
+    color: 0xc6ced6, roughness: 0.3, metalness: 0.85 });
+  for (const zSign of [-1, 1]) {
+    const strake = new THREE.Mesh(
+      new THREE.BoxGeometry(HULL_L * 0.94, HULL_H * 0.045, HULL_W * 0.03), silverMat);
+    strake.position.set(0, HULL_H * 0.16, zSign * (HULL_W * 0.44));
+    ship.add(strake);
+  }
+
+  /* more gold: a second stripe low on the hull, a band round the top of the
+     stateroom, capping at the four corners of the sheer, and the rails
+     themselves picked out. Kept thin — on a hull this size a wide band reads
+     as paint rather than as brass. */
+  const lowY = HULL_H * 0.42;
+  for (const zSign of [-1, 1]) {
+    const lo = new THREE.Mesh(
+      new THREE.BoxGeometry(HULL_L * 0.9, trimT * 0.6, trimW * 0.8), goldMat);
+    lo.position.set(0, lowY, zSign * (HULL_W / 2 + trimW * 0.2));
+    ship.add(lo);
+  }
+  /* the band around the stateroom, and a moulding under it */
+  const roomBand = new THREE.Mesh(
+    new THREE.BoxGeometry(roomD * 1.02, trimT * 0.8, roomW * 1.02), goldMat);
+  roomBand.position.set(roomX, roomY + roomH / 2 - trimT, 0);
+  ship.add(roomBand);
+  const roomSill = new THREE.Mesh(
+    new THREE.BoxGeometry(roomD * 1.02, trimT * 0.5, roomW * 1.02), goldMat);
+  roomSill.position.set(roomX, roomY - roomH / 2 + trimT, 0);
+  ship.add(roomSill);
+  /* corner posts at the sheer, where the trim meets */
+  for (const xS of [-1, 1]) for (const zS of [-1, 1]) {
+    const corner = new THREE.Mesh(
+      new THREE.BoxGeometry(trimW * 1.4, trimT * 2.6, trimW * 1.4), goldMat);
+    corner.position.set(xS * HULL_L * 0.48, trimY, zS * HULL_W * 0.5);
+    ship.add(corner);
+  }
+  /* the rails, in brass rather than timber */
+  for (const zSign of [-1, 1]) {
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(HULL_L * 0.92, railR * 0.5, railR * 1.4), goldMat);
+    cap.position.set(0, HULL_H + railH + railR * 0.5, zSign * HULL_W * 0.46);
+    ship.add(cap);
+  }
+  const bowCap = new THREE.Mesh(
+    new THREE.BoxGeometry(railR * 1.4, railR * 0.5, HULL_W * 0.92), goldMat);
+  bowCap.position.set(bowX, HULL_H + railH + railR * 0.5, 0);
+  ship.add(bowCap);
+
   /* mast, cap and yard */
   const mastH = sailH * 1.6, mastR = sailW * 0.04;
   const mastX = sailW * 0.06, deckTop = HULL_H * 1.10;
@@ -357,16 +537,23 @@ function buildShip(p) {
     new THREE.CylinderGeometry(mastR * 0.85, mastR, mastH, 12), mastMat);
   mast.position.set(mastX, deckTop + mastH / 2, 0);
   ship.add(mast);
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(mastR * 1.4, 8, 6), mastMat);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(mastR * 1.4, 8, 6), goldMat);
   cap.position.set(mastX, deckTop + mastH, 0);
   ship.add(cap);
-  const sailX = mastX - sailW * 0.06;
+  /* the cloth hangs clear of the spar: at 0.06 the ripple swung it through
+     the mast, which then showed as a bar down the middle of the banner */
+  const sailX = mastX - sailW * 0.2;
   const yardY = deckTop + mastH - sailH * 0.10;
   const yard = new THREE.Mesh(
     new THREE.CylinderGeometry(mastR * 0.85, mastR * 0.85, sailW * 1.25, 8), mastMat);
   yard.rotation.x = Math.PI / 2;
   yard.position.set(sailX, yardY, 0);
   ship.add(yard);
+  for (const zS of [-1, 1]) {                      // brass caps on the yard arms
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(mastR * 1.1, 8, 6), goldMat);
+    tip.position.set(sailX, yardY, zS * sailW * 0.625);
+    ship.add(tip);
+  }
 
   /* the sail, carrying the project's banner where the constellation was */
   const clothW = sailW * 1.15, clothH = sailH * 1.125;
@@ -379,7 +566,12 @@ function buildShip(p) {
     color: 0xffffff, roughness: 0.82, metalness: 0,
     envMapIntensity: 0.35,                      // the sky is cold; keep it off the cloth
     emissive: 0xffe8a8, emissiveIntensity: 0.85, side: THREE.DoubleSide });
-  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(clothW, clothH, 12, 8), sailMat);
+  /* The sail is given enough divisions to bend, and its rest shape kept so
+     the ripple can be worked out from it each frame rather than accumulating
+     drift. It is stiff at the yard where it is laced and loose at the foot,
+     which is why the bottom corners move most. */
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(clothW, clothH, 18, 14), sailMat);
+  cloth.geometry.userData.rest = Float32Array.from(cloth.geometry.attributes.position.array);
   cloth.rotation.y = -Math.PI / 2;                  // athwartships, facing the bow
   cloth.position.set(sailX, yardY - clothH / 2, 0);
   ship.add(cloth);
@@ -401,19 +593,128 @@ function buildShip(p) {
   shadow.scale.z = 0.42;
   shadow.position.y = 0.06;
   ship.add(shadow);
-  const foam = new THREE.Mesh(
-    new THREE.RingGeometry(HULL_L * 0.28, HULL_L * 0.44, 28),
-    new THREE.MeshBasicMaterial({ color: 0xdff2f7, transparent: true, opacity: 0.3,
-      depthWrite: false, side: THREE.DoubleSide }));
-  foam.rotation.x = -Math.PI / 2;
-  foam.scale.z = 0.46;
-  foam.position.y = 0.09;
-  ship.add(foam);
-  ship.userData.foam = foam;
+
+
+  /* ------------------------------------------------- it does not float
+     The hull rides above the water rather than in it. Three things sell
+     that: fins raked down and outboard at the stern, thruster glow under
+     the keel pointing at the sea, and a pool of light on the surface
+     beneath. Nothing touches the water, so the eye reads a gap. */
+  const finMat = new THREE.MeshStandardMaterial({
+    color: 0x2a2620, roughness: 0.42, metalness: 0.7, side: THREE.DoubleSide });
+  for (const zS of [-1, 1]) {
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(HULL_L * 0.3, HULL_H * 0.07, HULL_W * 0.52), finMat);
+    fin.position.set(HULL_L * 0.28, -HULL_H * 0.26, zS * HULL_W * 0.42);
+    fin.rotation.z = -0.42;                       // raked down towards the stern
+    fin.rotation.x = zS * 0.34;                   // and out, away from the hull
+    ship.add(fin);
+  }
+  /* a smaller pair forward, so the craft reads as balanced */
+  for (const zS of [-1, 1]) {
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(HULL_L * 0.16, HULL_H * 0.06, HULL_W * 0.34), finMat);
+    fin.position.set(-HULL_L * 0.3, -HULL_H * 0.2, zS * HULL_W * 0.38);
+    fin.rotation.z = -0.3;
+    fin.rotation.x = zS * 0.3;
+    ship.add(fin);
+  }
+
+  /* thruster wash under the keel */
+  function washTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(32, 32, 1, 32, 32, 32);
+    g.addColorStop(0.00, 'rgba(255,255,255,.95)');
+    g.addColorStop(0.25, 'rgba(255,255,255,.35)');
+    g.addColorStop(1.00, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  const washTex = washTexture();
+  const thrusters = [];
+  for (const dx of [-0.26, 0.02, 0.3]) {
+    const th = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: washTex, color: p.neon || 0x35e6ff, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, fog: false, opacity: 0.8 }));
+    th.scale.setScalar(HULL_W * 0.85);
+    th.position.set(dx * HULL_L, -HULL_H * 0.42, 0);
+    ship.add(th);
+    thrusters.push(th);
+  }
+  ship.userData.thrusters = thrusters;
+
+  /* the pool it throws on the water, and no foam — nothing is touching */
+  const pool = new THREE.Mesh(
+    new THREE.CircleGeometry(HULL_L * 0.42, 28),
+    new THREE.MeshBasicMaterial({ map: washTex, color: p.neon || 0x35e6ff,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      fog: false, opacity: 0.5 }));
+  pool.rotation.x = -Math.PI / 2;
+  pool.scale.z = 0.5;
+  ship.userData.pool = pool;
+
+  /* on-board lighting: a run of lamps along each rail and two at the stern */
+  const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff0c4, fog: false });
+  const glowMat = new THREE.MeshBasicMaterial({ color: p.neon || 0x35e6ff, transparent: true,
+    opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+  for (const zS of [-1, 1]) {
+    for (let i = 0; i < 7; i++) {
+      const lx = ((i + 0.5) / 7 - 0.5) * HULL_L * 0.84;
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(railR * 0.9, 6, 5), lampMat);
+      lamp.position.set(lx, HULL_H + railH * 1.15, zS * HULL_W * 0.46);
+      ship.add(lamp);
+    }
+    /* a lit strip under the rail, washing the deck */
+    const strip = new THREE.Mesh(
+      new THREE.BoxGeometry(HULL_L * 0.86, railR * 0.5, railR * 0.5), glowMat);
+    strip.position.set(0, HULL_H + railH * 0.45, zS * HULL_W * 0.44);
+    ship.add(strip);
+  }
+
+  /* ------------------------------------------------------------- neon
+     The ship's own edges, lit. Only the large forms are outlined — hull,
+     deck, sterncastle, forecastle — because tracing every rail post turns
+     the whole thing into a ball of light. Drawn on top without writing
+     depth, so the lines read as light rather than as wire, and pulsed
+     slowly from the ship's own phase so the fleet does not blink together. */
+  const neon = new THREE.Color(p.neon || 0x35e6ff);
+  const neonMat = new THREE.LineBasicMaterial({
+    color: neon, transparent: true, opacity: 0.9, depthWrite: false, fog: false });
+  const neonGlow = new THREE.LineBasicMaterial({
+    color: neon, transparent: true, opacity: 0.28, depthWrite: false, fog: false,
+    blending: THREE.AdditiveBlending });
+  const big = [];
+  ship.traverse(o => {
+    if (!o.isMesh || !o.geometry.attributes.position) return;
+    o.geometry.computeBoundingBox();
+    const bb = o.geometry.boundingBox, size = new THREE.Vector3();
+    bb.getSize(size);
+    /* big in two dimensions, not merely long: a rail or a trim strip is
+       long and thin, and outlining those lit up every batten on the ship. */
+    const dims = [size.x, size.y, size.z].sort((a, b) => b - a);
+    if (dims[0] > HULL_W * 0.55 && dims[1] > HULL_W * 0.45 && !o.material.map) big.push(o);
+  });
+  for (const o of big) {
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 25), neonMat);
+    e.position.copy(o.position); e.rotation.copy(o.rotation); e.scale.copy(o.scale);
+    e.renderOrder = 4;
+    ship.add(e);
+    /* a second pass, wider and fainter, to read as bloom without a shader */
+    const h = new THREE.LineSegments(e.geometry, neonGlow);
+    h.position.copy(o.position); h.rotation.copy(o.rotation);
+    h.scale.copy(o.scale).multiplyScalar(1.015);
+    h.renderOrder = 5;
+    ship.add(h);
+  }
+  ship.userData.neonMats = [neonMat, neonGlow];
 
   ship.rotation.y = Math.PI / 2;                    // bow and sail to the viewer
   ship.userData.sailMat = sailMat;
+  ship.userData.cloth = cloth;
   ship.userData.len = HULL_L;          // one ship length, for the hover
+  ship.userData.hoverH = HULL_H * 2.1; // how high above the sea it rides
   return ship;
 }
 
@@ -590,7 +891,9 @@ function fitCamera() {
   /* portrait needs a touch more room: a phone rotating mid-look should not
      clip a masthead against the edge. */
   const vp = (typeof VIEWS !== 'undefined' && VIEWS[view]) ? VIEWS[view].camera.pad : 0.9;
-  const pad = camera.aspect < 1 ? vp + 0.12 : vp;
+  /* closer in, but portrait is already tight: on a phone the fleet only just
+     fits at all, so it keeps most of its room. */
+  const pad = camera.aspect < 1 ? (vp + 0.12) * 0.97 : vp * 0.78;
   /* the eye sits low — a little above the deck line rather than above the
      mastheads — so the horizon crosses the hulls and the ships read as being
      ON the sea rather than seen from a balcony. */
@@ -809,7 +1112,7 @@ const PLANETS = [
      full moon behaves and the only way it is ever in the sky while the sky
      is dark enough to see it. Trailing just behind the sun, as it was, meant
      it set at the same time and was never once visible. */
-  { name: 'Moon',    color: 0xf4f4f0, size: 46, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
+  { name: 'Moon',    color: 0xf4f4f0, size: 38, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
   { name: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
   { name: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
   { name: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
@@ -881,11 +1184,33 @@ function paintMoon(phase) {                 // 0 new, 0.25 first quarter, 0.5 fu
   x.fillStyle = d > 0 ? '#12161f' : g;             // crescent shades, gibbous lights
   x.fill();
 
-  x.globalAlpha = 0.28;                            // maria, over the lit side only
-  x.fillStyle = '#9a978d';
-  for (const [mx, my, mr] of [[52,52,17],[78,58,11],[60,82,14],[86,84,8],[44,72,7]])
-    { x.beginPath(); x.arc(mx, my, mr, 0, Math.PI * 2); x.fill(); }
-  x.globalAlpha = 1;
+  /* Maria as soft overlapping patches, not five grey discs — hard circles at
+     this size read as a cartoon. Each fades to nothing at its edge, several
+     to a sea, so they run together as the real ones do. */
+  for (const [mx, my, mr] of [
+    [50,48,20],[58,44,13],[43,56,12], [76,56,14],[83,63,9],
+    [58,80,16],[49,86,10],[66,88,11], [86,84,8],[38,70,8]
+  ]) {
+    const sg = x.createRadialGradient(mx, my, mr * 0.15, mx, my, mr);
+    sg.addColorStop(0.00, 'rgba(126,126,124,.30)');
+    sg.addColorStop(0.55, 'rgba(132,132,128,.16)');
+    sg.addColorStop(1.00, 'rgba(132,132,128,0)');
+    x.fillStyle = sg;
+    x.beginPath(); x.arc(mx, my, mr, 0, Math.PI * 2); x.fill();
+  }
+  for (let i = 0; i < 110; i++) {                  // a dusting, so it is not glassy
+    const ang = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * R * 0.94;
+    x.fillStyle = `rgba(${Math.random() > 0.5 ? '255,255,252' : '140,138,132'},.07)`;
+    x.beginPath();
+    x.arc(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr, 0.8 + Math.random() * 2.2, 0, Math.PI * 2);
+    x.fill();
+  }
+  const limb = x.createRadialGradient(cx, cy, R * 0.55, cx, cy, R);   // limb darkening
+  limb.addColorStop(0.00, 'rgba(0,0,0,0)');
+  limb.addColorStop(0.82, 'rgba(24,26,32,.10)');
+  limb.addColorStop(1.00, 'rgba(24,26,32,.42)');
+  x.fillStyle = limb;
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.fill();
   x.restore();
 
   /* mask back to a disc. restore() above put back the old fill style, which
@@ -1167,7 +1492,11 @@ edges.renderOrder = -51;
 pyramid.add(edges);
 
 /* the capstone, floating clear of the apex */
-const CAP_R = PY_R * 0.17, CAP_H = PY_H * 0.17, CAP_GAP = PY_H * 0.16;
+/* Smaller, and sitting closer to the apex. At 17 per cent of the pyramid's
+   width, with a halo seven times its own radius, it read as a separate
+   object floating in front of the scene rather than the stone off the top
+   of that pyramid. */
+const CAP_R = PY_R * 0.0525, CAP_H = PY_H * 0.0575, CAP_GAP = PY_H * 0.03;
 /* The capstone is a group, not a single cone. A cone's base cap was either
    missing or invisible from below, so the stone read as a hollow shell with
    a bright rim and the sky showing through it. This way the four faces and
@@ -1222,7 +1551,7 @@ function haloTexture() {
 const halo = new THREE.Sprite(new THREE.SpriteMaterial({
   map: haloTexture(), transparent: true, depthWrite: false, depthTest: false,
   blending: THREE.AdditiveBlending, opacity: 0.8, fog: false }));
-halo.scale.setScalar(CAP_R * 7);
+halo.scale.setScalar(CAP_R * 3.4);
 /* centred on the stone, the halo bled under it and lit the very face that
    should be in shadow. Sitting it slightly high keeps the glow above. */
 halo.position.copy(capstone.position);
@@ -1251,7 +1580,7 @@ function beamTexture() {
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
-const BEAM_H = PY_H * 2.6;
+const BEAM_H = PY_H * 2.0;
 const beam = new THREE.Mesh(
   /* CylinderGeometry takes the TOP radius first: narrow above, wider where it
      leaves the capstone, so the shaft tapers to a point in the sky. */
@@ -1268,6 +1597,66 @@ pyramid.userData.cap = capstone;
 pyramid.userData.capEdges = capEdges;
 pyramid.userData.capY = capstone.position.y;
 scene.add(pyramid);
+
+/* ------------------------------------------------------------------- mist
+   Banks lying on the water: wide, very soft sprites drifting at different
+   depths and speeds, plus a thin band along the horizon that thickens and
+   thins. They pass in front of the ships and behind them, so the fleet sits
+   IN the air rather than against a backdrop, and they take the colour of
+   whatever the sky is doing. Eight quads and one texture. */
+function mistTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const x = c.getContext('2d');
+  for (let i = 0; i < 46; i++) {
+    const px = Math.random() * 256, py = 28 + (Math.random() - 0.5) * 34;
+    const r = 18 + Math.random() * 54;
+    const g = x.createRadialGradient(px, py, 1, px, py, r);
+    g.addColorStop(0.00, 'rgba(255,255,255,.085)');
+    g.addColorStop(0.55, 'rgba(255,255,255,.035)');
+    g.addColorStop(1.00, 'rgba(255,255,255,0)');
+    x.fillStyle = g;
+    x.beginPath(); x.ellipse(px, py, r, r * 0.42, 0, 0, Math.PI * 2); x.fill();
+  }
+  const fade = x.createLinearGradient(0, 0, 0, 64);   // no straight edges
+  fade.addColorStop(0.00, 'rgba(0,0,0,1)');
+  fade.addColorStop(0.30, 'rgba(0,0,0,0)');
+  fade.addColorStop(0.72, 'rgba(0,0,0,0)');
+  fade.addColorStop(1.00, 'rgba(0,0,0,1)');
+  x.globalCompositeOperation = 'destination-out';
+  x.fillStyle = fade;
+  x.fillRect(0, 0, 256, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
+}
+
+const mistTex = mistTexture();
+const MIST = [];
+for (let i = 0; i < 7; i++) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(260 + i * 46, 16 + (i % 3) * 7),
+    new THREE.MeshBasicMaterial({ map: mistTex.clone(), transparent: true, depthWrite: false,
+      fog: false, opacity: 0 }));
+  m.material.map.needsUpdate = true;
+  m.material.map.repeat.set(1.4 + i * 0.2, 1);
+  m.material.map.offset.x = Math.random();
+  m.position.set(0, 1.5 + (i % 3) * 2.4, 40 - i * 26);
+  m.renderOrder = 3;
+  m.userData = { drift: (i % 2 ? 1 : -1) * (0.004 + i * 0.0016),
+                 puff: 0.7 + i * 0.37, base: 0.30 + (i % 3) * 0.12 };
+  scene.add(m);
+  MIST.push(m);
+}
+const horizonMist = new THREE.Mesh(new THREE.PlaneGeometry(2200, 26),
+  new THREE.MeshBasicMaterial({ map: mistTex.clone(), transparent: true, depthWrite: false,
+    fog: false, opacity: 0 }));
+horizonMist.material.map.repeat.set(8, 1);
+horizonMist.position.set(0, 5, -520);
+horizonMist.renderOrder = 2;
+horizonMist.userData = { drift: 0.0015, puff: 0.31, base: 0.5 };
+scene.add(horizonMist);
+MIST.push(horizonMist);
 
 /* ================================================== the fleet, in formation
    A shallow V with its point towards the viewer, every bow turned to face
@@ -1338,9 +1727,16 @@ const refPale = fadeWithDepth(new THREE.MeshBasicMaterial({ color: 0xdfe8ea, tra
 
 for (const ship of ships) {
   const twin = ship.clone(true);
+  /* the reflection carries the craft's own colour rather than a shared grey:
+     five accents in the water, one under each ship */
+  const tint = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(ship.userData.project.neon || 0x35e6ff).multiplyScalar(0.55),
+    transparent: true, opacity: 0.30, depthWrite: false, fog: true,
+    clippingPlanes: [refClip] });
+  fadeWithDepth(tint);
   twin.traverse(o => {
     if (!o.isMesh) return;
-    o.material = (o.material && o.material.map) ? refPale : refDark;
+    o.material = (o.material && o.material.map) ? refPale : tint;
     o.renderOrder = 0;
     o.castShadow = o.receiveShadow = false;
   });
@@ -1380,6 +1776,7 @@ renderer.domElement.addEventListener('pointermove', ev => {
   const s = shipUnder(ev);
   if (s !== hovered) {
     hovered = s;
+    cardFor(s);                                  // the card follows the pointer
     renderer.domElement.style.cursor = s ? 'pointer' : 'grab';
   }
   if (s) {
@@ -1400,13 +1797,16 @@ renderer.domElement.addEventListener('pointerup', ev => {
     if (s) choose(s); else release();
   }
 });
-renderer.domElement.addEventListener('pointerleave', () => { dragging = false; tip.classList.remove('on'); });
+renderer.domElement.addEventListener('pointerleave', () => {
+  dragging = false; tip.classList.remove('on');
+  if (hovered) { hovered = null; cardFor(null); }
+});
 
-function choose(s) {
-  if (chosen === s) { release(); return; }
-  chosen = s;
-  hint.classList.add('gone');
-  const p = s.userData.project;
+/* The card follows the mouse rather than a click: point at a ship and it
+   rises, leave the fleet and it drops again. Clicking still holds a ship —
+   it comes forward and stays out while you read, and the card then stays up
+   even when the mouse wanders off. */
+function fillCard(p) {
   document.getElementById('cardKind').textContent = p.kind;
   document.getElementById('cardTitle').textContent = p.title;
   document.getElementById('cardBlurb').textContent = p.blurb;
@@ -1419,11 +1819,29 @@ function choose(s) {
   }
   card.classList.add('up');
   card.setAttribute('aria-hidden', 'false');
+  hint.classList.add('gone');
+}
+function hideCard() {
+  card.classList.remove('up');
+  card.setAttribute('aria-hidden', 'true');
+}
+/* dropping the card is delayed a moment, so crossing a gap between two ships
+   does not make it flicker */
+let dropTimer = null;
+function cardFor(s) {
+  if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+  if (s) { fillCard(s.userData.project); return; }
+  if (chosen) return;                       // a held ship keeps its card
+  dropTimer = setTimeout(() => { if (!chosen) hideCard(); dropTimer = null; }, 260);
+}
+function choose(s) {
+  if (chosen === s) { release(); return; }
+  chosen = s;
+  fillCard(s.userData.project);
 }
 function release() {
   chosen = null;
-  card.classList.remove('up');
-  card.setAttribute('aria-hidden', 'true');
+  cardFor(hovered);                         // fall back to whatever is hovered
 }
 
 const dots = [...document.querySelectorAll('#views .dot')];
@@ -1472,6 +1890,15 @@ addEventListener('resize', resize);
 resize();
 
 /* ================================================================== render */
+/* the sail's half height, worked out once per geometry */
+function clothHalf(g) {
+  if (g.userData.half === undefined) {
+    g.computeBoundingBox();
+    g.userData.half = g.boundingBox.max.y;
+  }
+  return g.userData.half;
+}
+
 const clock = new THREE.Clock();
 let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
 function frame() {
@@ -1588,7 +2015,11 @@ function frame() {
   /* the Moon works its way round: one full round of phases every eight days,
      which is quick enough to notice and slow enough not to strobe */
   const MOON_MONTH = 8;
-  const moonPhase = realSky ? realPhase : ((dayTime / DAY) / MOON_MONTH) % 1;
+  /* The phase is always tonight's real one, in every view. It used to run on
+     a synthetic cycle whenever the view was not the live sky, so the stamp
+     could read "full" while the glyph drew a quarter — two clocks for one
+     moon. Only its POSITION falls back to the arc when the sky is scripted. */
+  const moonPhase = moonPhaseNow(new Date());
   const moonLag = moonPhase * Math.PI * 2;
   if (Math.abs(moonPhase - lastMoonPhase) > 0.004) {
     lastMoonPhase = moonPhase;
@@ -1632,6 +2063,14 @@ function frame() {
     }
   }
 
+  for (const m of MIST) {                          // drift, breathe, take the sky's colour
+    const u = m.userData;
+    m.material.map.offset.x += u.drift * 0.016;
+    const breathe = 0.55 + 0.45 * Math.sin(t * 0.055 * u.puff + u.puff * 3);
+    m.material.opacity = u.base * breathe * (0.55 + dusk * 0.5);
+    m.material.color.copy(bandCol).lerp(new THREE.Color(0xffffff), 0.45);
+  }
+
   /* the glitter track lies between the viewer and the sun, and only when the
      sun is low enough to lay one */
   const lowSun = Math.max(0, 1 - Math.abs(alt) * 2.2) * Math.max(0, Math.sign(sunPos.z) * 0.5 + 0.5);
@@ -1660,15 +2099,77 @@ function frame() {
     const want = (s === hovered ? 1 : 0);
     s.userData.near = (s.userData.near || 0) + (want - (s.userData.near || 0)) * 0.08;
     s.userData.sailMat.emissiveIntensity = 0.85 + s.userData.near * 0.75;
+    /* the cloth working: two travelling waves across it plus a slow belly,
+       all scaled by how far down the sail a vertex sits, so the head stays
+       laced to the yard and the foot does the moving */
+    const cl = s.userData.cloth;
+    if (cl) {
+      const g = cl.geometry, rest = g.userData.rest, pos = g.attributes.position;
+      const hHalf = clothHalf(g);
+      for (let i = 0; i < pos.count; i++) {
+        const rx = rest[i * 3], ry = rest[i * 3 + 1];
+        const loose = Math.min(1, (hHalf - ry) / (hHalf * 2));     // 0 at the head, 1 at the foot
+        const w = Math.sin(rx * 0.9 - t * 2.1 + ph) * 0.42
+                + Math.sin(rx * 1.9 + ry * 0.7 - t * 3.3 + ph * 1.7) * 0.18
+                + Math.sin(t * 0.8 + ph) * 0.3;                    // the belly
+        /* one-sided: the cloth always bellies away from the spar, never
+           back through it, so the wave travels without the mast appearing */
+        pos.setZ(i, (0.5 + w * 0.5) * loose * loose);
+      }
+      pos.needsUpdate = true;
+      g.computeVertexNormals();
+    }
+
+    if (s.userData.neonMats) {                     // a slow throb, brighter on hover
+      const beatN = 0.72 + 0.28 * Math.sin(t * 1.15 + ph * 2.1);
+      s.userData.neonMats[0].opacity = (0.55 + s.userData.near * 0.4) * beatN;
+      s.userData.neonMats[1].opacity = (0.18 + s.userData.near * 0.22) * beatN;
+    }
+    /* ------------------------------------------------- station keeping
+       Each craft wanders around its own place in the formation on three
+       slow cycles that never line up, so the drift never repeats. It is
+       then pushed away from any neighbour that comes too close, and the
+       whole wander is damped to nothing while the mouse is on the fleet —
+       so pointing at a ship settles the formation rather than chasing a
+       moving target. */
+    const calm = Math.max(s.userData.near || 0, hovered ? 0.75 : 0, chosen ? 1 : 0);
+    const wander = 1 - calm;
+    s.userData.calm = calm;
+    const wx = (Math.sin(t * 0.21 + ph * 1.7) * 3.4 + Math.sin(t * 0.09 + ph) * 2.2) * wander;
+    const wy = (Math.sin(t * 0.27 + ph * 2.3) * 1.5 + Math.sin(t * 0.13 + ph * 0.6) * 0.9) * wander;
+    const wz = Math.sin(t * 0.17 + ph * 1.1) * 2.6 * wander;
+    s.userData.drift = { x: wx, y: wy, z: wz };
+
     /* a proper sea state: heave on two periods so it never repeats cleanly,
        roll, pitch, a slow yaw as the hull hunts around its anchor, and a
        surge back and forth along its own length. */
     const heave = Math.sin(t * 0.9 + ph) * 0.42 + Math.sin(t * 0.37 + ph * 1.7) * 0.22;
-    s.position.y += ((heave - 0.35 + lift) - s.position.y) * 0.06;
-    if (s.userData.foam) {
-      const b = 1 + Math.sin(t * 1.3 + ph) * 0.05;
-      s.userData.foam.scale.set(b, b * 0.46, b);
-      s.userData.foam.material.opacity = 0.22 + Math.sin(t * 1.1 + ph) * 0.08;
+    /* it hovers: the resting height is well clear of the water, and the
+       heave is the craft holding station on its field rather than a hull
+       riding a swell. */
+    const ride = (s.userData.hoverH || 4.4);
+    s.position.y += ((ride + heave * 0.55 + lift + wy) - s.position.y) * 0.06;
+    /* the pool of light it throws on the sea, which stays on the water while
+       the craft rises and falls above it, and dims as it climbs */
+    if (s.userData.pool) {
+      const pl = s.userData.pool;
+      if (!pl.parent) scene.add(pl);
+      pl.position.set(s.position.x, 0.12, s.position.z);
+      const gap = Math.max(0.1, s.position.y);
+      const spread = 1 + gap * 0.055;
+      pl.scale.set(spread * 1.35, 0.62 * spread, spread * 1.35);
+      /* brighter, and it wavers with the swell, so the accent colour is
+         clearly in the water rather than painted under the hull */
+      const flicker = 0.86 + 0.14 * Math.sin(t * 2.3 + ph * 1.9);
+      pl.material.opacity = (0.72 / spread) * flicker;
+    }
+    if (s.userData.thrusters) {                    // the wash under the keel
+      const th = 0.6 + 0.4 * Math.sin(t * 3.1 + ph * 2);
+      for (let k = 0; k < s.userData.thrusters.length; k++) {
+        const sp = s.userData.thrusters[k];
+        sp.material.opacity = 0.45 + th * 0.4;
+        sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + th * 0.5));
+      }
     }
     s.rotation.z = Math.sin(t * 0.7 + ph) * 0.075 + Math.sin(t * 0.23 + ph) * 0.03;   // roll
     s.rotation.x = Math.cos(t * 0.55 + ph) * 0.045;                                    // pitch
@@ -1691,8 +2192,8 @@ function frame() {
     const reach = (s.userData.len || 15) * 5;
     const wanted = (s === chosen ? 24 : 0) + s.userData.near * reach;
     const room = Math.max(0, CAM_HOME.z - 34 - home.z);
-    const tz = home.z + Math.min(wanted, room);
-    const tx = home.x + (s === chosen ? -home.x * 0.25 : 0);
+    const tz = home.z + Math.min(wanted, room) + wz;
+    const tx = home.x + (s === chosen ? -home.x * 0.25 : 0) + wx;
     s.position.z += (tz - s.position.z) * 0.045;
     s.position.x += (tx - s.position.x) * 0.045;
     s.position.x += Math.sin(t * 0.31 + ph) * 0.06;        // slow sideways set
@@ -1719,7 +2220,7 @@ function frame() {
   const glow = pyramid.userData.halo;
   glow.position.y = capY + CAP_H * 0.45;
   glow.material.opacity = 0.55 + beat * 0.42;
-  glow.scale.setScalar(CAP_R * (6.4 + beat * 1.3));
+  glow.scale.setScalar(CAP_R * (3.1 + beat * 0.7));
   /* the shaft rides the same beat, and stands on top of the capstone */
   const bm = pyramid.userData.beam;
   bm.position.y = capY + CAP_H / 2 + BEAM_H / 2;
@@ -1730,8 +2231,31 @@ function frame() {
   const draw = 0.20 + beat * 0.80;
   bm.scale.set(draw, 1, draw);
 
-  camera.position.x += ((CAM_HOME.x + Math.sin(yaw) * CAM_HOME.z * 0.3) - camera.position.x) * 0.05;
-  camera.position.y += ((CAM_HOME.y + (chosen ? 5 : 0) + pitch * 34) - camera.position.y) * 0.05;
+  /* keep their distance: any pair closer than a hull length and a half is
+     eased apart, along the line between them. Cheap at five craft, and it
+     is what stops the wander turning into a collision. */
+  const KEEP = 26;
+  for (let i = 0; i < ships.length; i++) {
+    for (let j = i + 1; j < ships.length; j++) {
+      const a = ships[i], b = ships[j];
+      const dx = b.position.x - a.position.x, dz = b.position.z - a.position.z;
+      const d = Math.hypot(dx, dz);
+      if (d > KEEP || d < 0.001) continue;
+      const push = (KEEP - d) / KEEP * 0.22 * (1 - Math.max(a.userData.calm || 0, b.userData.calm || 0));
+      const ux = dx / d, uz = dz / d;
+      a.position.x -= ux * push; a.position.z -= uz * push;
+      b.position.x += ux * push; b.position.z += uz * push;
+    }
+  }
+
+  /* a slow pass across the fleet and a gentle rise and fall, so the scene is
+     never quite still even with the mouse untouched. Two periods that do not
+     divide into one another, so it never returns to the same place. */
+  const driftX = Math.sin(t * 0.043) * CAM_HOME.z * 0.13 + Math.sin(t * 0.017) * CAM_HOME.z * 0.05;
+  const driftY = Math.sin(t * 0.031 + 1.3) * CAM_HOME.y * 0.5 + Math.sin(t * 0.011) * CAM_HOME.y * 0.22;
+
+  camera.position.x += ((CAM_HOME.x + driftX + Math.sin(yaw) * CAM_HOME.z * 0.3) - camera.position.x) * 0.05;
+  camera.position.y += ((CAM_HOME.y + driftY + (chosen ? 5 : 0) + pitch * 34) - camera.position.y) * 0.05;
   camera.position.z += ((CAM_HOME.z + (chosen ? 14 : 0)) - camera.position.z) * 0.05;
   camera.lookAt(0, CAM_HOME.y * (VIEWS[view].camera.look), chosen ? 8 : 0);
 
