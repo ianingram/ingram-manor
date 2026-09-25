@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<!--
+   REPO: ingram-manor/index.html
+   ==========================================================================
+   INGRAM MANOR LLC — the fleet
+   ==========================================================================
+   Three projects as three caravels, holding formation on the canal, bows to
+   the viewer. Hover a ship and it lifts on the swell and names itself.
+   Click and it comes forward while the card opens with the description and
+   the link.
+
+   The ships are the Treasure Chess caravels, ported out of the game: the
+   same tapered V-hull, the same railings and posts, stateroom, mast, yard
+   and gold trim, at the same proportions — everything driven off one sail
+   width, as in the original. What is left behind is what only matters in a
+   game: the piece glyphs, the constellation planes, the figure standing on
+   deck and the king's treasure hold. The sail carries the project's banner
+   where the constellation used to be.
+
+   Nothing is downloaded. No models, no textures, no licences — the fleet is
+   built in code from three primitives.
+
+   THE ONLY THING TO EDIT is the PROJECTS array at the top of the module:
+   title, kind, url, blurb, emblem. An empty url keeps the ship in formation
+   and shows "not yet launched" instead of a dead link.
+
+   No build step, no keys. Without WebGL the page shows the four as a plain
+   list rather than a blank blue rectangle.
+   ==========================================================================
+-->
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ingram Manor LLC</title>
+<meta name="description" content="Amenti, GannLab, Treasure Chess, Amenti.live, and one unannounced.">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<style>
+:root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--oak:#2a1d12;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}
+html,body{height:100%;margin:0;background:#8fc4d8;overflow:hidden;
+  font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+canvas{display:block;position:fixed;inset:0;touch-action:none}
+
+#brand{position:fixed;top:0;left:0;right:0;z-index:4;text-align:center;padding:20px 18px 0;pointer-events:none}
+#brand h1{margin:0;font-size:13px;letter-spacing:.34em;font-weight:400;color:var(--oak);
+  text-shadow:0 1px 0 rgba(255,255,255,.5)}
+#brand p{margin:.6em 0 0;font-size:11px;letter-spacing:.18em;color:#43606f}
+
+#views{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;z-index:6;
+  display:flex;gap:11px}
+#views .dot{width:11px;height:11px;padding:0;border-radius:50%;cursor:pointer;
+  border:1px solid rgba(20,30,38,.5);background:rgba(255,255,255,.32);
+  transition:background .25s,border-color .25s,transform .2s}
+#views .dot:hover{background:rgba(255,255,255,.7);transform:scale(1.25)}
+#views .dot[aria-pressed="true"]{background:var(--brass);border-color:var(--gold)}
+#views .dot:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+#stamp{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
+  font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);
+  pointer-events:none;line-height:1.7}
+#hint{position:fixed;left:0;right:0;bottom:22px;z-index:4;text-align:center;pointer-events:none;
+  font-size:11px;letter-spacing:.2em;color:#1d3340;opacity:.8;transition:opacity .4s}
+#hint.gone{opacity:0}
+
+#tip{position:fixed;z-index:5;pointer-events:none;transform:translate(-50%,-150%);
+  background:rgba(20,14,8,.92);border:1px solid var(--gold);padding:5px 11px;
+  font-size:11px;letter-spacing:.16em;color:var(--brass);opacity:0;transition:opacity .16s;white-space:nowrap}
+#tip.on{opacity:1}
+
+#card{position:fixed;inset:auto 0 0 0;z-index:6;transform:translateY(103%);
+  transition:transform .44s cubic-bezier(.22,.61,.36,1);
+  background:rgba(26,18,10,.97);border-top:2px solid var(--gold);
+  padding:24px 22px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -24px 70px rgba(0,0,0,.45)}
+#card.up{transform:translateY(0)}
+#card .inner{max-width:38rem;margin:0 auto}
+#card .kind{margin:0;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+#card h2{margin:.45em 0 0;font-size:21px;letter-spacing:.04em;color:var(--brass);font-weight:500}
+#card p.blurb{margin:.9em 0 1.4em;font:16px/1.62 Georgia,"Iowan Old Style",serif;color:#efe7d8}
+#card .go{display:inline-block;background:var(--gold);color:#1a1208;text-decoration:none;
+  padding:10px 17px;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+#card .go:hover{background:var(--brass)}
+#card .go[aria-disabled="true"]{background:transparent;color:#8b7d63;border:1px solid #4a3a22;cursor:default}
+#card .back{background:none;border:0;color:#8b7d63;font:inherit;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;cursor:pointer;margin-left:16px;padding:10px 0}
+#card .back:hover{color:var(--brass)}
+
+#fallback{position:fixed;inset:0;z-index:7;display:none;overflow:auto;background:#0c1a22;padding:12vh 22px 40px}
+#fallback .inner{max-width:38rem;margin:0 auto}
+#fallback h1{font-size:13px;letter-spacing:.3em;color:var(--gold);font-weight:400;margin:0 0 2em}
+#fallback article{margin:0 0 26px;border-top:1px solid #1d3442;padding-top:16px}
+#fallback a{color:var(--brass);text-decoration:none;font-size:16px}
+#fallback p{margin:.4em 0 0;font:15px/1.6 Georgia,serif;color:var(--dim)}
+@media (prefers-reduced-motion:reduce){#card{transition:none}}
+</style></head><body>
+
+<div id="brand" hidden><h1>INGRAM MANOR LLC</h1><p>five ships</p></div>
+<div id="views" role="group" aria-label="View">
+  <button class="dot" data-view="0" aria-label="View one" title="The fleet"></button>
+  <button class="dot" data-view="1" aria-label="View two" title="View two"></button>
+  <button class="dot" data-view="2" aria-label="View three" title="View three"></button>
+</div>
+<div id="stamp"></div>
+<div id="hint">drag to look &middot; click a ship</div>
+<div id="tip"></div>
+
+<div id="card" role="dialog" aria-labelledby="cardTitle" aria-hidden="true"><div class="inner">
+  <p class="kind" id="cardKind"></p>
+  <h2 id="cardTitle"></h2>
+  <p class="blurb" id="cardBlurb"></p>
+  <a class="go" id="cardGo" href="#">Open</a>
+  <button class="back" id="cardBack" type="button">Back to the fleet</button>
+</div></div>
+
+<div id="fallback"><div class="inner">
+  <h1>INGRAM MANOR LLC</h1>
+  <div id="fbList"></div>
+</div></div>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ================================================================ the four */
+const PROJECTS = [
+  { id:'amenti', title:'Amenti Interface', kind:'platform', emblem:'\u2625',
+    url:'',
+    blurb:'The Library of Legends. An AI-powered platform built on a database of historical figures \u2014 live chat with authentic historical characters, grounded in high quality primary source data.' },
+  { id:'gannlab', title:'GannLab', kind:'research', emblem:'\u2691',
+    url:'https://ianingram.github.io/GannLab/',
+    blurb:'Fifty-nine pre-registered trading-hypothesis experiments, their run files, and an honest account of what survived. Mostly nothing did. The failures are the content.' },
+  { id:'chess', title:'Treasure Chess', kind:'game', emblem:'\u265E',
+    url:'',
+    blurb:'Sea-battle chess played with a roster of historical characters. Fleets hold a wedge until the first move, then sail into the back rank. Every piece is somebody.' },
+  { id:'x', title:'X', kind:'unannounced', emblem:'\u2715',
+    url:'',
+    blurb:'Not named yet. The hull is in the water and the rest follows.' },
+  { id:'amentilive', title:'Amenti.live', kind:'live', emblem:'\u2609',
+    url:'',
+    blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' }
+];
+
+const card = document.getElementById('card');
+const cardGo = document.getElementById('cardGo');
+const tip = document.getElementById('tip');
+const hint = document.getElementById('hint');
+
+document.getElementById('fbList').innerHTML = PROJECTS.map(p =>
+  `<article><a href="${p.url || '#'}">${p.title}</a><p>${p.blurb}</p></article>`).join('');
+
+/* WebGL first: an old machine gets the list, not a blank rectangle. */
+function hasWebGL() {
+  try { const c = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+  } catch { return false; }
+}
+if (!hasWebGL()) {
+  document.getElementById('fallback').style.display = 'block';
+  throw new Error('no webgl - showing the list instead');
+}
+
+/* ================================================================ materials
+   The game's palette: dark oak, gold trim, bone canvas, lit lantern. */
+const oakMat    = new THREE.MeshStandardMaterial({ color: 0x3b2a1a, roughness: 0.86, metalness: 0.05 });
+const deckMat   = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.82, metalness: 0.04 });
+const goldMat   = new THREE.MeshStandardMaterial({ color: 0xd4af50, roughness: 0.35, metalness: 0.75 });
+const mastMat   = new THREE.MeshStandardMaterial({ color: 0x2e2118, roughness: 0.9 });
+const windowMat    = new THREE.MeshStandardMaterial({ color: 0x1a1208, roughness: 0.95 });
+const hullMat      = new THREE.MeshStandardMaterial({ color: 0x3b2a1a, roughness: 0.88, metalness: 0.05 });
+const stateroomMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 0.85, metalness: 0.04 });
+const lanternMat   = new THREE.MeshBasicMaterial({ color: 0xfce8a0 });
+
+/* the caravel hull from the game: a trapezoidal prism, beam wider at the
+   deck than at the keel, the keel shorter fore-and-aft than the deck line */
+function taperedHull(length, beamTop, beamBot, height, lengthBot) {
+  const hL = length / 2, hLb = lengthBot / 2, hBt = beamTop / 2, hBb = beamBot / 2;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    -hL, height, -hBt,   hL, height, -hBt,   hL, height, hBt,  -hL, height, hBt,
+    -hLb, 0, -hBb,      hLb, 0, -hBb,       hLb, 0, hBb,      -hLb, 0, hBb
+  ]), 3));
+  g.setIndex([0,2,1, 0,3,2, 4,5,6, 4,6,7, 0,1,5, 0,5,4, 3,7,6, 3,6,2, 0,4,7, 0,7,3, 1,2,6, 1,6,5]);
+  g.computeVertexNormals();
+  return g;
+}
+
+/* the banner sail: a canvas texture, the emblem above the project's name,
+   the way the game letters its sails */
+/* The sail carries the project's name in gold thread. Two canvases come out
+   of this: the cloth itself, and a second holding ONLY the embroidery, used
+   as the emissive map. That is what keeps the lettering legible at dusk —
+   the cloth darkens with the light, the gold does not, exactly as metal
+   thread behaves when it catches what little light is left. */
+function sailTexture(p) {
+  const W = 512, H = 768;
+  const cloth = document.createElement('canvas'); cloth.width = W; cloth.height = H;
+  const glow  = document.createElement('canvas'); glow.width = W;  glow.height = H;
+  const x = cloth.getContext('2d'), e = glow.getContext('2d');
+  e.fillStyle = '#000'; e.fillRect(0, 0, W, H);
+
+  x.fillStyle = '#fbfaf6'; x.fillRect(0, 0, W, H);      // bleached canvas
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(0,0,0,.05)');
+  g.addColorStop(0.35, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,.09)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.strokeStyle = 'rgba(120,110,95,.10)'; x.lineWidth = 2;
+  for (let i = 0; i < 9; i++) { x.beginPath(); x.moveTo(0, 84 * i + 40); x.lineTo(W, 84 * i + 40); x.stroke(); }
+  x.fillStyle = '#7a1f1f'; x.fillRect(0, 0, W, 28);      // the red head
+
+  /* embroidery: a dark couching line under bright thread, drawn onto both
+     canvases so the cloth shows the stitch and the glow map shows the gold */
+  function thread(draw) {
+    for (const [ctx, shadow, metal] of [[x, 'rgba(70,50,14,.55)', null], [e, null, null]]) {
+      if (shadow) {                                      // the dent the thread sits in
+        ctx.save(); ctx.translate(0, 3);
+        ctx.fillStyle = shadow; ctx.strokeStyle = shadow;
+        draw(ctx); ctx.restore();
+      }
+      const grad = ctx.createLinearGradient(0, 0, 0, H); // gold catches light unevenly
+      grad.addColorStop(0.00, '#8a6a1e');
+      grad.addColorStop(0.35, '#f0d071');
+      grad.addColorStop(0.52, '#fff3c4');
+      grad.addColorStop(0.70, '#e0b64c');
+      grad.addColorStop(1.00, '#9a7722');
+      ctx.fillStyle = grad; ctx.strokeStyle = grad;
+      draw(ctx);
+    }
+  }
+
+  const words = p.title.toUpperCase().split(' ');
+  thread(ctx => {
+    ctx.textAlign = 'center';
+    ctx.font = '150px Georgia, serif';
+    ctx.fillText(p.emblem, W / 2, 250);                  // the emblem above
+    ctx.font = '600 58px ui-monospace, Menlo, monospace';
+    words.forEach((w, i) => ctx.fillText(w, W / 2, 430 + i * 72));
+    ctx.lineWidth = 5;                                   // the frame around the name
+    ctx.strokeRect(46, 344, W - 92, 124 + (words.length - 1) * 72);
+    ctx.lineWidth = 2;                                   // a stitched inner rule
+    ctx.setLineDash([9, 7]);
+    ctx.strokeRect(62, 360, W - 124, 92 + (words.length - 1) * 72);
+    ctx.setLineDash([]);
+  });
+
+  const map = new THREE.CanvasTexture(cloth);
+  map.colorSpace = THREE.SRGBColorSpace;
+  const emissive = new THREE.CanvasTexture(glow);
+  emissive.colorSpace = THREE.SRGBColorSpace;
+  return { map, emissive };
+}
+
+/* ================================================================== a ship
+   The Treasure Chess caravel. Proportions are the game's: every dimension is
+   a multiple of the sail width, so the whole vessel scales from one number.
+   Kept — tapered V-hull, planked deck, railings with posts, the lowered
+   stateroom aft, mast with cap, yard, sail cloth, gold trim, stern lantern.
+   Dropped — the piece glyphs, the constellation plane, the chess piece on
+   deck and the king's treasure hold, none of which mean anything here.
+
+   The hull runs along X with the bow at -X, exactly as in the game, and the
+   sail hangs athwartships facing the bow. Turning the ship a quarter turn
+   puts both bow and sail square to the viewer. */
+const SAIL_W = 7.5;
+
+function buildShip(p) {
+  const ship = new THREE.Group();
+  const sailW = SAIL_W, sailH = sailW * (384 / 256);
+
+  const HULL_L = sailW * 2.0;
+  const HULL_W = sailW * 0.8;
+  const HULL_H = sailH * 0.32;
+
+  /* the hull: a trapezoidal prism, beam wider at the deck line than at the
+     keel, and the keel shorter fore and aft, which reads as a soft V */
+  function taperedHull(length, beamTop, beamBot, height, lengthBot) {
+    const hL = length / 2, hLb = lengthBot / 2, hBt = beamTop / 2, hBb = beamBot / 2;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+      -hL, height, -hBt,   hL, height, -hBt,   hL, height, hBt,  -hL, height, hBt,
+      -hLb, 0, -hBb,      hLb, 0, -hBb,       hLb, 0, hBb,      -hLb, 0, hBb
+    ]), 3));
+    g.setIndex([0,2,1, 0,3,2, 4,5,6, 4,6,7, 0,1,5, 0,5,4, 3,7,6, 3,6,2, 0,4,7, 0,7,3, 1,2,6, 1,6,5]);
+    g.computeVertexNormals();
+    return g;
+  }
+  ship.add(new THREE.Mesh(
+    taperedHull(HULL_L, HULL_W, HULL_W * 0.50, HULL_H, HULL_L * 0.88), hullMat));
+
+  /* deck */
+  const deckThk = HULL_H * 0.10, deckY = HULL_H + HULL_H * 0.05;
+  const deck = new THREE.Mesh(
+    new THREE.BoxGeometry(HULL_L * 0.95, deckThk, HULL_W * 0.94), deckMat);
+  deck.position.y = deckY;
+  ship.add(deck);
+
+  /* railings: a rail down each side on posts, and one across the bow */
+  const railH = HULL_H * 0.30, railR = sailW * 0.012;
+  for (const zSign of [-1, 1]) {
+    const rail = new THREE.Mesh(
+      new THREE.BoxGeometry(HULL_L * 0.92, railR * 0.6, railR * 1.2), mastMat);
+    rail.position.set(0, HULL_H + railH, zSign * HULL_W * 0.46);
+    ship.add(rail);
+    for (let i = 0; i < 11; i++) {
+      const post = new THREE.Mesh(
+        new THREE.BoxGeometry(railR * 1.4, railH, railR * 1.4), mastMat);
+      post.position.set(((i + 0.5) / 11 - 0.5) * HULL_L * 0.92,
+        HULL_H + railH / 2, zSign * HULL_W * 0.46);
+      ship.add(post);
+    }
+  }
+  const bowX = -HULL_L * 0.46;
+  const cross = new THREE.Mesh(
+    new THREE.BoxGeometry(railR * 1.2, railR * 0.6, HULL_W * 0.92), mastMat);
+  cross.position.set(bowX, HULL_H + railH, 0);
+  ship.add(cross);
+  for (const zSign of [-1, 1]) {
+    const corner = new THREE.Mesh(
+      new THREE.BoxGeometry(railR * 1.4, railH, railR * 1.4), mastMat);
+    corner.position.set(bowX, HULL_H + railH / 2, zSign * HULL_W * 0.46);
+    ship.add(corner);
+  }
+
+  /* the lowered stateroom aft, its windows and its lantern */
+  const roomD = HULL_L * 0.28, roomH = HULL_H * 1.05, roomW = HULL_W * 0.86;
+  const roomX = HULL_L / 2 - roomD / 2 + sailW * 0.02;
+  const roomY = HULL_H + HULL_H * 0.10 + roomH / 2;
+  const room = new THREE.Mesh(new THREE.BoxGeometry(roomD, roomH, roomW), stateroomMat);
+  room.position.set(roomX, roomY, 0);
+  ship.add(room);
+  for (const z of [-0.28, 0, 0.28]) {
+    const win = new THREE.Mesh(
+      new THREE.BoxGeometry(roomD * 0.05, roomH * 0.3, roomW * 0.16), windowMat);
+    win.position.set(roomX + roomD / 2, roomY + roomH * 0.05, z * roomW);
+    ship.add(win);
+  }
+  const lantern = new THREE.Mesh(new THREE.SphereGeometry(sailW * 0.035, 10, 8), lanternMat);
+  lantern.position.set(roomX + roomD * 0.3, roomY + roomH * 0.62, 0);
+  ship.add(lantern);
+
+  /* gold trim: a band at the sheer on all four sides */
+  const trimT = HULL_H * 0.06, trimW = HULL_W * 0.04, trimY = HULL_H - trimT * 0.5;
+  for (const zSign of [-1, 1]) {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(HULL_L * 0.99, trimT, trimW), goldMat);
+    t.position.set(0, trimY, zSign * (HULL_W / 2 + trimW * 0.3));
+    ship.add(t);
+  }
+  for (const xSign of [-1, 1]) {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(trimW, trimT, HULL_W * 0.99), goldMat);
+    t.position.set(xSign * (HULL_L / 2 + trimW * 0.3), trimY, 0);
+    ship.add(t);
+  }
+
+  /* mast, cap and yard */
+  const mastH = sailH * 1.6, mastR = sailW * 0.04;
+  const mastX = sailW * 0.06, deckTop = HULL_H * 1.10;
+  const mast = new THREE.Mesh(
+    new THREE.CylinderGeometry(mastR * 0.85, mastR, mastH, 12), mastMat);
+  mast.position.set(mastX, deckTop + mastH / 2, 0);
+  ship.add(mast);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(mastR * 1.4, 8, 6), mastMat);
+  cap.position.set(mastX, deckTop + mastH, 0);
+  ship.add(cap);
+  const sailX = mastX - sailW * 0.06;
+  const yardY = deckTop + mastH - sailH * 0.10;
+  const yard = new THREE.Mesh(
+    new THREE.CylinderGeometry(mastR * 0.85, mastR * 0.85, sailW * 1.25, 8), mastMat);
+  yard.rotation.x = Math.PI / 2;
+  yard.position.set(sailX, yardY, 0);
+  ship.add(yard);
+
+  /* the sail, carrying the project's banner where the constellation was */
+  const clothW = sailW * 1.15, clothH = sailH * 1.125;
+  /* sailTexture hands back two canvases: the cloth, and the gold thread on
+     its own. The thread goes in as the emissive map, so the lettering keeps
+     its light when the sun has gone and the cloth itself has gone dark. */
+  const sailTex = sailTexture(p);
+  const sailMat = new THREE.MeshStandardMaterial({
+    map: sailTex.map, emissiveMap: sailTex.emissive,
+    color: 0xffffff, roughness: 0.82, metalness: 0,
+    envMapIntensity: 0.35,                      // the sky is cold; keep it off the cloth
+    emissive: 0xffe8a8, emissiveIntensity: 0.85, side: THREE.DoubleSide });
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(clothW, clothH, 12, 8), sailMat);
+  cloth.rotation.y = -Math.PI / 2;                  // athwartships, facing the bow
+  cloth.position.set(sailX, yardY - clothH / 2, 0);
+  ship.add(cloth);
+
+  /* a pennant at the masthead */
+  const pen = new THREE.Mesh(new THREE.PlaneGeometry(sailW * 0.42, sailW * 0.1),
+    new THREE.MeshStandardMaterial({ color: 0xc4202c, side: THREE.DoubleSide, roughness: 0.9 }));
+  pen.rotation.y = -Math.PI / 2;
+  pen.position.set(mastX, deckTop + mastH - sailW * 0.1, sailW * 0.2);
+  ship.add(pen);
+
+  /* where the hull meets the sea: a soft dark patch and a ring of foam, so
+     the ship sits IN the water rather than on top of a blue sheet */
+  const shadow = new THREE.Mesh(
+    new THREE.CircleGeometry(HULL_L * 0.46, 24),
+    new THREE.MeshBasicMaterial({ color: 0x0a2430, transparent: true, opacity: 0.32,
+      depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.scale.z = 0.42;
+  shadow.position.y = 0.06;
+  ship.add(shadow);
+  const foam = new THREE.Mesh(
+    new THREE.RingGeometry(HULL_L * 0.28, HULL_L * 0.44, 28),
+    new THREE.MeshBasicMaterial({ color: 0xdff2f7, transparent: true, opacity: 0.3,
+      depthWrite: false, side: THREE.DoubleSide }));
+  foam.rotation.x = -Math.PI / 2;
+  foam.scale.z = 0.46;
+  foam.position.y = 0.09;
+  ship.add(foam);
+  ship.userData.foam = foam;
+
+  ship.rotation.y = Math.PI / 2;                    // bow and sail to the viewer
+  ship.userData.sailMat = sailMat;
+  ship.userData.len = HULL_L;          // one ship length, for the hover
+  return ship;
+}
+
+/* ------------------------------------------------------------------ views
+   Three dots, three views of the company. The whole day — dawn through dusk
+   to night and back — belongs to VIEW ONE; it is one place seen over time,
+   not three things.
+
+   Views two and three are empty slots. Each is a small object: a camera
+   framing, and a hook that runs when it is entered and left. Fill them in
+   and the dots do the rest. */
+const VIEWS = [
+  /* ONE — the fleet, and the whole day passing over it. */
+  { id: 'fleet', title: 'The fleet',
+    camera: { lift: 0.17, look: 2.8, pad: 0.9 },
+    from: null, rate: 1, drama: 0, live: true },
+
+  /* TWO — the sunset. It opens with the sun still well up and walks it down
+     to the horizon at a fifth of normal speed, so the sky turns through
+     mauve into pink and purple over a couple of minutes and stops just as
+     the sun touches the water. The eye drops a little, because a sunset is
+     something you look at across the sea rather than down onto. */
+  /* It opens in full daylight with the sun high, and runs the whole descent
+     through to the moment it goes under — blue, gold, orange, red, violet,
+     and gone. Starting it half-warm was why it looked stuck: there was no
+     blue to fall away from. */
+  { id: 'dusk', title: 'The sun going down',
+    camera: { lift: 0.12, look: 3.4, pad: 0.86 },
+    from: 0.02, rate: 0.42, until: 0.56, drama: 1 },
+
+  /* THREE — still to be decided. */
+  { id: 'three', title: 'View three',
+    camera: { lift: 0.17, look: 2.8, pad: 0.9 },
+    from: null, rate: 1 }
+];
+let view = 0, viewSince = 0;
+
+/* =================================================================== scene */
+const scene = new THREE.Scene();
+
+/* ------------------------------------------------------------------- sky
+   A painted gradient rather than a flat fill: deep at the zenith, paler as
+   it falls, warm just above the waterline. The same texture is handed to
+   the scene as its environment, which is what gives the water something to
+   reflect — metalness on its own only darkens a surface; it needs a sky. */
+const skyCanvas = document.createElement('canvas');
+skyCanvas.width = 32; skyCanvas.height = 256;
+
+/* The horizon warms and cools on a long cycle: cream at the coolest, then
+   yellow into orange and finally a pink that reaches some way up the sky.
+   The gradient is repainted into the same canvas a few times a second and
+   the texture marked dirty — far cheaper than a shader, and because this
+   texture is also the scene's environment, the water reflects whatever the
+   sky is doing at the time. */
+function paintSky(warmth, drama) {
+  const x = skyCanvas.getContext('2d');
+  const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const rgb = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+  /* three palettes: the sun well up, the sun on the horizon, and the sun
+     below it. warmth is the blend between day and the horizon colours,
+     night takes over once the sun has gone under. */
+  const day = {
+    zenith: [63, 127, 166], high: [121, 179, 205], mid: [168, 212, 228],
+    low: [203, 230, 236], band: [230, 223, 201], under: [127, 179, 198]
+  };
+  /* dusk proper: a deep blue creeping down from the zenith, violet under it,
+     pink through the middle, and orange into yellow at the water. */
+  /* Two dusks. The plain one is what the running day passes through. The
+     other is the same sunset with the range pulled wide open — a near-black
+     blue overhead, violet, hot pink, red, orange, and a white-gold line on
+     the water. View two blends towards it; view one never uses it. */
+  const edgeSoft = {
+    zenith: [22, 34, 86], high: [86, 68, 142], mid: [206, 104, 132],
+    low: [248, 138, 82], band: [255, 196, 64], under: [158, 88, 86]
+  };
+  const edgeWide = {
+    zenith: [4, 6, 34], high: [58, 22, 112], mid: [196, 32, 96],
+    low: [238, 74, 30], band: [255, 174, 58], under: [96, 26, 44]
+  };
+  const edge = {};
+  for (const k in edgeSoft) edge[k] = mix(edgeSoft[k], edgeWide[k], drama);
+  const night = {
+    zenith: [12, 20, 40], high: [22, 34, 60], mid: [40, 56, 84],
+    low: [58, 74, 100], band: [86, 92, 108], under: [26, 38, 56]
+  };
+  const below = Math.max(0, -warmth);              // how far under the sun is
+  /* the warm palette is held back until the sun is genuinely low, and then
+     comes on quickly — which is how dusk actually behaves, and it leaves a
+     long plateau of plain blue in the middle of the day. */
+  /* Nothing warm until the sun is genuinely on its way down. Widening this
+     band to fill the frame also meant the sky was a quarter pink at midday,
+     which is why the range looked stuck: it never started from blue. */
+  const span = 0.55 + drama * 0.12;
+  const near = Math.max(0, Math.min(1, (span - Math.abs(warmth)) / span));
+  const horizonward = near * near * (3 - 2 * near);      // smoothstep
+  const c = k => rgb(mix(mix(day[k], edge[k], horizonward), night[k], below));
+  /* The canvas maps to latitude: the top row is straight up, the middle row
+     is the horizon, the bottom is straight down. The camera only sees about
+     twenty-five degrees above the waterline, which is the top seventh of the
+     upper half — so every colour has to live between v 0.50 and v 0.66 or it
+     is painted somewhere nobody is looking. The first version put the zenith
+     at the very top and the horizon band BELOW the horizon, which is why the
+     sky stayed blue however warm the palette got. */
+  const g = x.createLinearGradient(0, 0, 0, 256);
+  const at = (v, k) => g.addColorStop(1 - v, c(k));   // v measured up from down
+  at(1.00, 'zenith');
+  at(0.72, 'zenith');      // deep blue, creeping down from the top of frame
+  at(0.63, 'high');        // violet
+  at(0.575, 'mid');        // pink
+  at(0.535, 'low');        // orange
+  at(0.505, 'band');       // yellow, right on the water
+  at(0.492, 'under');
+  at(0.40, 'under');
+  g.addColorStop(1.00, '#2b4a5c');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 32, 256);
+  /* hand back the horizon band so the fog can be set to match it */
+  return mix(mix(day.band, edge.band, horizonward), night.band, below);
+}
+paintSky(0, 0);
+const sky = new THREE.CanvasTexture(skyCanvas);
+sky.mapping = THREE.EquirectangularReflectionMapping;   // for the reflections
+sky.colorSpace = THREE.SRGBColorSpace;
+/* A dome rather than scene.background. An equirect background texture is
+   converted to a cubemap once and that conversion is cached against the
+   texture, so repainting the canvas uploads pixels nothing ever reads — the
+   sky freezes on its first frame however often it is marked dirty. A mesh
+   samples the texture directly every frame, so it cannot go stale.
+
+   The same cache sits in front of scene.environment, so the texture is
+   disposed after each repaint, which drops the cached conversion and has it
+   rebuilt from the new pixels. It is a 32x256 image; the cost is nothing. */
+const dome = new THREE.Mesh(
+  new THREE.SphereGeometry(1800, 32, 20),
+  new THREE.MeshBasicMaterial({ map: sky, side: THREE.BackSide, fog: false, depthWrite: false }));
+dome.renderOrder = -200;
+scene.add(dome);
+scene.environment = sky;
+/* the far plane has to clear the bank, or the blocks dissolve into the sky
+   entirely: the camera sits ~70 back, the bank another 120 beyond that. */
+/* The near plane sits just in front of the lead ship, so the wings pick up
+   real haze and read as further off rather than merely smaller. */
+scene.fog = new THREE.Fog(0xbcdeea, 60, 330);
+
+/* The viewport may report nothing at all at startup — an iframe or a preview
+   pane that has not been laid out yet gives 0, and 0 turns the camera's fit
+   distance into Infinity, which renders a sky and nothing else. Every size
+   read goes through here, and the loop re-fits whenever the number changes. */
+function viewport() {
+  const w = renderer && renderer.domElement && renderer.domElement.clientWidth || innerWidth || 0;
+  const h = renderer && renderer.domElement && renderer.domElement.clientHeight || innerHeight || 0;
+  return { w: w > 0 ? w : 1280, h: h > 0 ? h : 720 };
+}
+const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.1, 2200);
+const CAM_HOME = new THREE.Vector3(0, 15, 90);
+
+/* The fleet is wide and the window is any shape at all, so the camera works
+   out its own distance: fit the fleet's bounding box to whichever of the two
+   field-of-view angles is the binding one. A phone in portrait ends up much
+   further back than a desktop, which is the correct answer rather than a
+   compromise between them. */
+function fitCamera() {
+  if (!ships.length) return;
+  const box = new THREE.Box3();
+  for (const s of ships) box.expandByObject(s);
+  const size = box.getSize(new THREE.Vector3());
+  if (!isFinite(camera.aspect) || camera.aspect <= 0) camera.aspect = 16 / 9;
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  /* the masts may crowd the top edge — framing the full height of them on a
+     wide screen pushes the camera so far back the hulls turn into models on a
+     shelf. 0.40 lets the mastheads sit near the top of frame. */
+  const dV = (size.y * 0.52) / Math.tan(vFov / 2);
+  const dH = (size.x * 0.5) / Math.tan(Math.atan(Math.tan(vFov / 2) * camera.aspect));
+  /* portrait needs a touch more room: a phone rotating mid-look should not
+     clip a masthead against the edge. */
+  const vp = (typeof VIEWS !== 'undefined' && VIEWS[view]) ? VIEWS[view].camera.pad : 0.9;
+  const pad = camera.aspect < 1 ? vp + 0.12 : vp;
+  /* the eye sits low — a little above the deck line rather than above the
+     mastheads — so the horizon crosses the hulls and the ships read as being
+     ON the sea rather than seen from a balcony. */
+  const dist = Math.max(dV, dH);
+  if (!isFinite(dist)) return;                       // never hand the camera Infinity
+  const vc = (typeof VIEWS !== 'undefined' && VIEWS[view]) ? VIEWS[view].camera : { lift: 0.17 };
+  CAM_HOME.set(0, size.y * vc.lift, box.max.z + dist * pad + 6);
+}
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));   // a 2014 iMac does not want 2x
+renderer.setSize(viewport().w, viewport().h);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+/* ACES rolls the top end off hard, which turned every saturated dusk into
+   pastel. Reinhard keeps far more of the colour and still stops the sun
+   clipping. */
+renderer.toneMapping = THREE.ReinhardToneMapping;
+document.body.appendChild(renderer.domElement);
+
+const hemi = new THREE.HemisphereLight(0xdfefff, 0x3a5668, 1.2);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0d8, 1.35);
+sun.position.set(-30, 46, 34);
+scene.add(sun);
+
+/* ------------------------------------------------------------------- the sun
+   It rises behind the viewer, crosses overhead and sets behind the pyramid —
+   which is the right way round, because the face of the pyramid turned
+   towards you is its east face, so you are standing east of it looking west.
+   Sunrise lights that face; sunset puts the pyramid against the glare.
+
+   The disc itself is a sprite that only appears once the sun has come round
+   in front of the camera. altitude drives everything else: the sky palette,
+   the colour and strength of the key light, and the glitter on the water. */
+const SUN_DIST = 900, DAY = 120;                   // one full day, in seconds
+
+/* ------------------------------------------------------- the real sky
+   View one runs on the viewer's own sky: where the sun actually is above
+   their horizon at this moment, and the real phase of the moon tonight. In
+   New York the fleet sits in afternoon light while in Sydney it is already
+   dark, which is the point of it.
+
+   Position comes from the browser if it is offered, and otherwise from the
+   time zone, which is enough for a horizon: a zone fixes longitude closely
+   and latitude well enough that the sun is within a few degrees. */
+const ZONES = {           // a coarse table: zone -> [latitude, longitude]
+  'America/New_York':[40.7,-74.0],'America/Chicago':[41.9,-87.6],'America/Denver':[39.7,-105.0],
+  'America/Los_Angeles':[34.1,-118.2],'America/Sao_Paulo':[-23.5,-46.6],'America/Mexico_City':[19.4,-99.1],
+  'Europe/London':[51.5,-0.1],'Europe/Paris':[48.9,2.4],'Europe/Berlin':[52.5,13.4],
+  'Europe/Madrid':[40.4,-3.7],'Europe/Moscow':[55.8,37.6],'Africa/Cairo':[30.0,31.2],
+  'Africa/Lagos':[6.5,3.4],'Africa/Johannesburg':[-26.2,28.0],'Africa/Nairobi':[-1.3,36.8],
+  'Asia/Dubai':[25.2,55.3],'Asia/Karachi':[24.9,67.0],'Asia/Kolkata':[19.1,72.9],
+  'Asia/Bangkok':[13.8,100.5],'Asia/Shanghai':[31.2,121.5],'Asia/Hong_Kong':[22.3,114.2],
+  'Asia/Tokyo':[35.7,139.7],'Asia/Seoul':[37.6,127.0],'Asia/Singapore':[1.35,103.8],
+  'Australia/Sydney':[-33.9,151.2],'Australia/Perth':[-31.9,115.9],'Pacific/Auckland':[-36.9,174.8]
+};
+
+const place = { lat: 40.7, lon: -74.0, name: 'New York', source: 'default' };
+(function locate() {
+  let zone = '';
+  try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch {}
+  if (ZONES[zone]) {
+    place.lat = ZONES[zone][0]; place.lon = ZONES[zone][1];
+    place.name = zone.split('/').pop().replace(/_/g, ' ');
+    place.source = 'time zone';
+  } else if (zone) {
+    /* an unlisted zone: longitude from the offset is still worth having */
+    place.lon = -new Date().getTimezoneOffset() / 4;
+    place.name = zone.split('/').pop().replace(/_/g, ' ');
+    place.source = 'time zone';
+  }
+  /* and refine it if the browser will say, without insisting */
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => { place.lat = pos.coords.latitude; place.lon = pos.coords.longitude;
+               place.source = 'your location'; stampPlace(); },
+      () => {}, { timeout: 4000, maximumAge: 3600e3 });
+  }
+})();
+
+/* Where the sun is, for a place and a moment. The usual low-precision solar
+   position: day angle, declination, equation of time, hour angle. Good to
+   well under a degree, which is far better than a horizon needs. */
+function sunAngles(date, lat, lon) {
+  /* Days since J2000.0 — the epoch every term below is written against. The
+     first version of this mixed a day-of-year count into formulae expecting
+     that, and put the midday sun twenty degrees under the horizon. */
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  const d = date.getTime() / 86400000 - 10957.5;
+
+  const L = (280.460 + 0.9856474 * d) % 360;                 // mean longitude
+  const g = ((357.528 + 0.9856003 * d) % 360) * rad;         // mean anomaly
+  const lam = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * rad;
+  const eps = (23.439 - 0.0000004 * d) * rad;                // obliquity
+
+  const ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam)) * deg;
+  const dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+
+  const gmst = (18.697374558 + 24.06570982441908 * d) % 24;  // hours
+  const lst = ((gmst * 15 + lon) % 360 + 360) % 360;         // degrees
+  const H = ((lst - ra + 540) % 360 - 180) * rad;            // hour angle, -180..180
+
+  const la = lat * rad;
+  const alt = Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(H));
+  let az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(la) - Math.tan(dec) * Math.cos(la));
+  az = (az * deg + 180) % 360;                               // from north, clockwise
+  return { alt: alt * deg, az: (az + 360) % 360 };
+}
+
+/* ------------------------------------------------------------- the Moon
+   Where it actually is, not merely what shape it is. The standard low
+   precision lunar theory: mean elements at the epoch, the handful of
+   periodic terms that matter (evection, variation, the annual equation),
+   then ecliptic to equatorial to the horizon for this place. Good to well
+   within a degree — the Moon is half a degree wide, so that is close enough
+   to point at.
+
+   The phase then comes out of the geometry rather than a calendar: it is the
+   elongation from the sun, so the shape and the position always agree. */
+function moonPosition(date, lat, lon) {
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  const d = date.getTime() / 86400000 - 10957.5;      // days since J2000.0
+
+  const L  = (218.316 + 13.176396 * d) * rad;         // mean longitude
+  const M  = (134.963 + 13.064993 * d) * rad;         // mean anomaly
+  const F  = (93.272  + 13.229350 * d) * rad;         // argument of latitude
+  const Ms = (357.529 + 0.98560028 * d) * rad;        // the sun's mean anomaly
+  const D  = (297.850 + 12.190749 * d) * rad;         // mean elongation
+
+  /* ecliptic longitude and latitude, with the terms worth carrying */
+  const lam = L + (6.289 * Math.sin(M)
+                 + 1.274 * Math.sin(2 * D - M)        // evection
+                 + 0.658 * Math.sin(2 * D)            // variation
+                 - 0.186 * Math.sin(Ms)               // annual equation
+                 - 0.059 * Math.sin(2 * M - 2 * D)
+                 - 0.057 * Math.sin(M - 2 * D + Ms)
+                 + 0.053 * Math.sin(M + 2 * D)
+                 + 0.046 * Math.sin(2 * D - Ms)
+                 + 0.041 * Math.sin(M - Ms)
+                 - 0.035 * Math.sin(D)
+                 - 0.031 * Math.sin(M + Ms)) * rad;
+  const bet = (5.128 * Math.sin(F)
+             + 0.281 * Math.sin(M + F)
+             - 0.278 * Math.sin(F - M)
+             - 0.173 * Math.sin(F - 2 * D)) * rad;
+
+  const eps = (23.439 - 0.0000004 * d) * rad;
+  const ra = Math.atan2(Math.sin(lam) * Math.cos(eps) - Math.tan(bet) * Math.sin(eps), Math.cos(lam));
+  const dec = Math.asin(Math.sin(bet) * Math.cos(eps) + Math.cos(bet) * Math.sin(eps) * Math.sin(lam));
+
+  const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+  const lst = ((gmst * 15 + lon) % 360 + 360) % 360;
+  const H = ((lst - ra * deg + 540) % 360 - 180) * rad;
+
+  const la = lat * rad;
+  const alt = Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(H));
+  let az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(la) - Math.tan(dec) * Math.cos(la));
+  az = ((az * deg + 180) % 360 + 360) % 360;
+
+  /* the phase, from how far the Moon has pulled away from the sun */
+  const sunLam = ((280.460 + 0.9856474 * d) % 360) * rad
+               + (1.915 * Math.sin(Ms) + 0.020 * Math.sin(2 * Ms)) * rad;
+  let elong = (lam - sunLam) % (Math.PI * 2);
+  if (elong < 0) elong += Math.PI * 2;
+  return { alt: alt * deg, az, phase: elong / (Math.PI * 2) };   // phase 0 new, 0.5 full
+}
+
+/* The real phase tonight, counted from a known new moon. */
+function moonPhaseNow(date) {
+  const SYNODIC = 29.530588853;
+  const known = Date.UTC(2000, 0, 6, 18, 14);         // a new moon
+  const days = (date.getTime() - known) / 864e5;
+  return ((days % SYNODIC) + SYNODIC) % SYNODIC / SYNODIC;   // 0 new, 0.5 full
+}
+
+
+function sunDisc() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 2, 64, 64, 64);
+  g.addColorStop(0.00, 'rgba(255,252,236,1)');
+  g.addColorStop(0.10, 'rgba(255,241,196,.95)');
+  g.addColorStop(0.24, 'rgba(255,206,128,.45)');
+  g.addColorStop(0.55, 'rgba(255,176,96,.12)');
+  g.addColorStop(1.00, 'rgba(255,160,80,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: sunDisc(), transparent: true, depthWrite: false, depthTest: true,
+  blending: THREE.AdditiveBlending, fog: false }));
+sunSprite.scale.setScalar(190);
+/* Drawn before the pyramid, not after. The pyramid writes no depth — it is
+   translucent — so nothing occludes the sun by depth alone; what decides it
+   is the order. At -60 the sun goes down first and the pyramid's faces then
+   blend over it, which is what a sun setting BEHIND a translucent pyramid
+   looks like. Previously it drew last and sat in front of the stone. */
+sunSprite.renderOrder = -60;
+scene.add(sunSprite);
+
+/* ---------------------------------------------------------------- planets
+   Six bodies following the sun along the same arc, each trailing it by its
+   own amount and riding a slightly different path — the fast ones close
+   behind, the slow ones a long way back. Coloured as the orrery in Treasure
+   Chess colours them: by frequency, the Moon white and quickest through to
+   Saturn red and slowest.
+
+   They are invisible in daylight, as they should be. Each fades up only when
+   the sun is low enough for the sky to let it through, and only while it is
+   above the horizon itself. */
+const PLANETS = [
+  /* The Moon rides opposite the sun — rising as it sets, which is both how a
+     full moon behaves and the only way it is ever in the sky while the sky
+     is dark enough to see it. Trailing just behind the sun, as it was, meant
+     it set at the same time and was never once visible. */
+  { name: 'Moon',    color: 0xf4f4f0, size: 46, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
+  { name: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
+  { name: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
+  { name: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
+  { name: 'Jupiter', color: 0xe8c898, size: 15, lag: 2.35, tilt: 0.22, mag: 0.70 },
+  { name: 'Saturn',  color: 0xd06a4a, size: 12, lag: 2.95, tilt: -0.26, mag: 0.55 }
+];
+
+function bodyTexture(hex) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const col = new THREE.Color(hex);
+  const r = Math.round(col.r * 255), g = Math.round(col.g * 255), b = Math.round(col.b * 255);
+  const grad = x.createRadialGradient(32, 32, 1, 32, 32, 32);
+  grad.addColorStop(0.00, `rgba(255,255,255,1)`);
+  grad.addColorStop(0.22, `rgba(${r},${g},${b},1)`);
+  grad.addColorStop(0.44, `rgba(${r},${g},${b},.45)`);
+  grad.addColorStop(1.00, `rgba(${r},${g},${b},0)`);
+  x.fillStyle = grad;
+  x.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/* The Moon is repainted whenever its phase has moved enough to see. The lit
+   part is drawn the way a phase actually works: the terminator is the edge
+   of a circle seen at an angle, so it is an ellipse whose width runs from
+   the full disc at new and full, through zero at the quarters, and whose
+   side swaps as the Moon passes opposition. */
+const moonCanvas = document.createElement('canvas');
+moonCanvas.width = moonCanvas.height = 128;
+
+function paintMoon(phase) {                 // 0 new, 0.25 first quarter, 0.5 full
+  const x = moonCanvas.getContext('2d');
+  x.clearRect(0, 0, 128, 128);
+  const R = 58, cx = 64, cy = 64;
+
+  /* the unlit disc: still faintly there, as earthshine makes it */
+  x.fillStyle = 'rgba(96,102,116,.22)';
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.fill();
+
+  /* Drawn as three steps inside the disc, which is exact and needs no
+     clever arc sweeps: light the whole face, shade the half that is turned
+     away, then let the terminator ellipse either eat into the lit side (a
+     crescent) or spill into the dark one (a gibbous). Its width is the
+     cosine of the phase angle — full radius at new and full, nothing at the
+     quarters. */
+  const d = Math.cos(phase * Math.PI * 2);        // +1 new, 0 quarter, -1 full
+  const waxing = phase < 0.5;
+  const LIT = '#ece9df', DARK = 'rgba(96,102,116,.22)';
+
+  x.save();
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip();
+
+  const g = x.createRadialGradient(cx - R * 0.2, cy - R * 0.2, 4, cx, cy, R);
+  g.addColorStop(0.00, '#ffffff');
+  g.addColorStop(0.72, LIT);
+  g.addColorStop(1.00, '#c9c4b6');
+  x.fillStyle = g;
+  x.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+  x.globalCompositeOperation = 'source-over';      // the half turned away
+  x.fillStyle = '#12161f';
+  x.fillRect(waxing ? cx - R : cx, cy - R, R, R * 2);
+
+  x.beginPath();                                   // the terminator
+  x.ellipse(cx, cy, R * Math.abs(d), R, 0, 0, Math.PI * 2);
+  x.fillStyle = d > 0 ? '#12161f' : g;             // crescent shades, gibbous lights
+  x.fill();
+
+  x.globalAlpha = 0.28;                            // maria, over the lit side only
+  x.fillStyle = '#9a978d';
+  for (const [mx, my, mr] of [[52,52,17],[78,58,11],[60,82,14],[86,84,8],[44,72,7]])
+    { x.beginPath(); x.arc(mx, my, mr, 0, Math.PI * 2); x.fill(); }
+  x.globalAlpha = 1;
+  x.restore();
+
+  /* mask back to a disc. restore() above put back the old fill style, which
+     was the 22 per cent unlit grey — masking with that made the whole Moon
+     that transparent. The mask must be fully opaque. */
+  x.globalCompositeOperation = 'destination-in';
+  x.fillStyle = '#000';
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.fill();
+  x.globalCompositeOperation = 'source-over';
+  return moonCanvas;
+}
+
+function moonTexture() {
+  const c = moonCanvas;
+  const x = c.getContext('2d');
+  paintMoon(0.5);                          // starts full
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+let moonTex = null, lastMoonPhase = -1;
+for (const pl of PLANETS) {
+  if (pl.moon) moonTex = moonTexture();
+  pl.sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: pl.moon ? moonTex : bodyTexture(pl.color), transparent: true, depthWrite: false, depthTest: true,
+    blending: pl.moon ? THREE.NormalBlending : THREE.AdditiveBlending,
+    fog: false, opacity: 0 }));
+  pl.sprite.scale.setScalar(pl.size);
+  pl.sprite.renderOrder = -58;            // behind the pyramid, as the sun is
+  scene.add(pl.sprite);
+}
+
+/* the track the sun lays across the water towards the viewer */
+function glitterTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 256;
+  const x = c.getContext('2d');
+  for (let i = 0; i < 260; i++) {
+    const y = Math.pow(Math.random(), 0.6) * 256;
+    const spread = 4 + (y / 256) * 26;
+    const w = 2 + Math.random() * spread;
+    x.fillStyle = `rgba(255,240,200,${0.05 + Math.random() * 0.35})`;
+    x.fillRect(32 - w / 2 + (Math.random() - 0.5) * spread * 1.6, y, w, 1 + Math.random() * 2);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const glitter = new THREE.Mesh(new THREE.PlaneGeometry(90, 420),
+  new THREE.MeshBasicMaterial({ map: glitterTexture(), transparent: true,
+    depthWrite: false, blending: THREE.AdditiveBlending, fog: false, opacity: 0 }));
+glitter.rotation.x = -Math.PI / 2;
+glitter.position.y = 0.4;
+glitter.renderOrder = 2;
+scene.add(glitter);
+
+/* ---------------------------------------------------------------- the sea
+   The hulls float at y = 0, so the surface is at y = 0 too. It was at -1.2,
+   which is why the fleet appeared to hover above its own water.
+
+   Three things make the foreground read: a normal map of small chop tiled
+   tightly so the near water has detail a flat colour cannot give it, a long
+   swell worked into the vertices, and a horizon band painted into the
+   texture so the far water lifts towards the sky instead of ending in a
+   hard line. */
+function waterNormals() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#8080ff'; x.fillRect(0, 0, 256, 256);   // flat normal
+  for (let i = 0; i < 1400; i++) {                        // chop
+    const px = Math.random() * 256, py = Math.random() * 256;
+    const r = 2 + Math.random() * 7, a = Math.random() * Math.PI;
+    const g = x.createLinearGradient(px - Math.cos(a) * r, py - Math.sin(a) * r,
+                                     px + Math.cos(a) * r, py + Math.sin(a) * r);
+    g.addColorStop(0, 'rgba(110,110,255,.55)');
+    g.addColorStop(0.5, 'rgba(128,128,255,0)');
+    g.addColorStop(1, 'rgba(150,150,255,.55)');
+    x.fillStyle = g;
+    x.beginPath(); x.ellipse(px, py, r * 2.2, r, a, 0, Math.PI * 2); x.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(28, 28);
+  return t;
+}
+
+const waterGeo = new THREE.PlaneGeometry(900, 900, 120, 120);
+const waterNrm = waterNormals();
+const water = new THREE.Mesh(waterGeo, new THREE.MeshStandardMaterial({
+  color: 0x2e8fb4, roughness: 0.10, metalness: 0.78,
+  envMap: sky, envMapIntensity: 1.1,
+  transparent: true, opacity: 0.93,            // so the mirrored hulls read through it
+  normalMap: waterNrm, normalScale: new THREE.Vector2(0.55, 0.55) }));
+water.renderOrder = 1;
+water.rotation.x = -Math.PI / 2;
+water.position.y = 0;
+scene.add(water);
+const waterBase = Float32Array.from(waterGeo.attributes.position.array);
+
+/* --------------------------------------------------------- the etching
+   The motif the whole scene hangs on: circuit trace. Everything that is not
+   ship or water is etched with it — the blocks of the middle ground and the
+   faces of the pyramid — because the work is digital and the traces are what
+   that looks like.
+
+   Drawn procedurally so no two surfaces carry the same board: a walk that
+   turns only at right angles and 45s, the way a router lays copper, with
+   pads where a trace terminates, vias punched through, and the odd bus of
+   parallel lines. Returned as one texture used twice per material — as the
+   colour map and as the emissive map — so the traces glow faintly and the
+   substrate between them stays matte. */
+function circuitTexture(px, density, substrate, trace, ink) {
+  const c = document.createElement('canvas');
+  c.width = c.height = px;
+  const x = c.getContext('2d');
+  x.fillStyle = substrate;
+  x.fillRect(0, 0, px, px);
+
+  const g = px / 22;                                  // routing grid, coarse on purpose
+  let seed = 1 + Math.floor(Math.random() * 99999);
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const snap = v => Math.round(v / g) * g;
+  const W = px / 150;                                 // a trace you can see at distance
+  x.lineCap = 'butt';
+  x.lineJoin = 'miter';
+
+  /* copper pours: broad low-contrast fills that give the board its zones */
+  for (let i = 0; i < 4; i++) {
+    x.globalAlpha = 0.10;
+    x.fillStyle = trace;
+    const w = snap(px * (0.18 + rnd() * 0.3)), h = snap(px * (0.12 + rnd() * 0.26));
+    x.fillRect(snap(rnd() * (px - w)), snap(rnd() * (px - h)), w, h);
+  }
+
+  /* buses: the thing that makes a board look routed rather than doodled */
+  for (let b = 0; b < Math.round(density * 0.5); b++) {
+    const vert = rnd() > 0.5;
+    const n = 3 + Math.floor(rnd() * 5);
+    const at = snap(rnd() * px), from = snap(rnd() * px), len = px * (0.25 + rnd() * 0.5);
+    x.strokeStyle = trace;
+    x.globalAlpha = 0.85;
+    x.lineWidth = W;
+    for (let i = 0; i < n; i++) {
+      const off = at + i * g * 0.42;
+      x.beginPath();
+      if (vert) { x.moveTo(off, from); x.lineTo(off, from + len); }
+      else { x.moveTo(from, off); x.lineTo(from + len, off); }
+      x.stroke();
+    }
+  }
+
+  /* traces: orthogonal, with the corners chamfered the way copper is mitred.
+     No long diagonals — those were what made the first version read as
+     scribble rather than as a board. */
+  for (let t = 0; t < density; t++) {
+    let cx = snap(rnd() * px), cy = snap(rnd() * px);
+    let horiz = rnd() > 0.5;
+    x.strokeStyle = trace;
+    x.globalAlpha = 0.9;
+    x.lineWidth = W * (rnd() > 0.7 ? 1.9 : 1);
+    x.beginPath();
+    x.moveTo(cx, cy);
+    const legs = 2 + Math.floor(rnd() * 4);
+    for (let i = 0; i < legs; i++) {
+      const run = g * (1 + Math.floor(rnd() * 4));
+      const dir = rnd() > 0.5 ? 1 : -1;
+      const ch = Math.min(g * 0.5, run * 0.35);       // the chamfer
+      if (horiz) {
+        x.lineTo(cx + (run - ch) * dir, cy);
+        cx += run * dir;
+        const vd = rnd() > 0.5 ? 1 : -1;
+        x.lineTo(cx, cy + ch * vd);
+        cy += ch * vd;
+      } else {
+        x.lineTo(cx, cy + (run - ch) * dir);
+        cy += run * dir;
+        const hd = rnd() > 0.5 ? 1 : -1;
+        x.lineTo(cx + ch * hd, cy);
+        cx += ch * hd;
+      }
+      horiz = !horiz;
+    }
+    x.stroke();
+    x.globalAlpha = 1;                                 // the pad it lands on
+    x.fillStyle = trace;
+    x.beginPath(); x.arc(cx, cy, W * 2.4, 0, Math.PI * 2); x.fill();
+    x.fillStyle = substrate;
+    x.beginPath(); x.arc(cx, cy, W * 1.0, 0, Math.PI * 2); x.fill();
+  }
+
+  /* chips: a footprint with two rows of pins, which reads as a component
+     even when the whole board is only a hundred pixels on screen */
+  for (let i = 0; i < Math.max(2, Math.round(density / 6)); i++) {
+    const w = g * (2 + Math.floor(rnd() * 3)), h = g * (1 + Math.floor(rnd() * 2));
+    const bx = snap(rnd() * (px - w)), by = snap(rnd() * (px - h));
+    x.globalAlpha = 0.92;
+    x.fillStyle = ink;
+    x.fillRect(bx, by, w, h);
+    x.fillStyle = trace;
+    const pins = Math.max(3, Math.round(w / (g * 0.5)));
+    for (let q = 0; q < pins; q++) {
+      const pxx = bx + (q + 0.5) * (w / pins) - W * 0.6;
+      x.fillRect(pxx, by - W * 2.2, W * 1.2, W * 2.2);
+      x.fillRect(pxx, by + h, W * 1.2, W * 2.2);
+    }
+    x.globalAlpha = 0.5;                               // pin-1 dot
+    x.fillStyle = substrate;
+    x.beginPath(); x.arc(bx + g * 0.25, by + g * 0.25, W * 1.1, 0, Math.PI * 2); x.fill();
+  }
+
+  /* loose vias */
+  for (let v = 0; v < density; v++) {
+    x.globalAlpha = 0.7;
+    x.fillStyle = trace;
+    x.beginPath(); x.arc(snap(rnd() * px), snap(rnd() * px), W * 1.3, 0, Math.PI * 2); x.fill();
+  }
+  x.globalAlpha = 1;
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+/* ----------------------------------------------------------- the pyramid
+   Far out beyond the bank, in the Amenti manner: the body translucent and
+   low-contrast so it reads as distance rather than as an object, its edges
+   picked out in burnished gold, and the capstone detached — floating a gap
+   above the truncated apex, turning slowly and catching more light than
+   anything else in the scene.
+
+   Fog is off for all of it. At this distance the fog would erase it, and the
+   haze is in the material instead, which is how the game handles its own
+   backdrop. */
+const PY_H = 132, PY_R = 150, PY_Z = -430;
+const pyramid = new THREE.Group();
+pyramid.position.set(0, 0, PY_Z);
+
+const bodyGeo = new THREE.ConeGeometry(PY_R, PY_H, 4, 1, true);
+/* the faces are a smooth gradient, not a board: the etching read as noise at
+   this distance and fought the silhouette. Dense at the base, thinning as it
+   rises, so the pyramid dissolves towards its own apex and the capstone is
+   the one solid thing up there. */
+function pyramidGradient() {
+  const c = document.createElement('canvas');
+  c.width = 8; c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0.00, '#f2f7f8');      // apex, nearly sky
+  g.addColorStop(0.35, '#dae8ec');
+  g.addColorStop(0.72, '#c4d8de');
+  g.addColorStop(1.00, '#a9c4cd');      // base, where it meets the water
+  x.fillStyle = g;
+  x.fillRect(0, 0, 8, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const pyTex = pyramidGradient();
+const body = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({
+  map: pyTex,
+  color: 0xffffff, transparent: true, opacity: 0.32, depthWrite: false,
+  fog: false, side: THREE.DoubleSide, roughness: 0.9, metalness: 0.0,
+  emissive: 0xbcd4dc, emissiveIntensity: 0.12 }));
+body.rotation.y = Math.PI / 4;                   // a face towards the viewer
+body.position.y = PY_H / 2;
+body.renderOrder = -52;
+pyramid.add(body);
+
+const edges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(bodyGeo),
+  new THREE.LineBasicMaterial({ color: 0xb89a4e, transparent: true,
+    opacity: 0.40, depthWrite: false, fog: false }));
+edges.rotation.y = Math.PI / 4;
+edges.position.y = PY_H / 2;
+edges.renderOrder = -51;
+pyramid.add(edges);
+
+/* the capstone, floating clear of the apex */
+const CAP_R = PY_R * 0.17, CAP_H = PY_H * 0.17, CAP_GAP = PY_H * 0.16;
+/* The capstone is a group, not a single cone. A cone's base cap was either
+   missing or invisible from below, so the stone read as a hollow shell with
+   a bright rim and the sky showing through it. This way the four faces and
+   the base are separate meshes, and the base is definitely there: a square
+   plane turned to face straight down, dark, lit by nothing. */
+const capFaceMat = new THREE.MeshStandardMaterial({
+  color: 0xe8c463, roughness: 0.22, metalness: 0.9,
+  emissive: 0x6b4f14, emissiveIntensity: 0.55, fog: false });
+const capBaseMat = new THREE.MeshBasicMaterial({
+  color: 0x140e07, fog: false });          // flat black-brown: its own shadow
+
+const capstone = new THREE.Group();
+const capCone = new THREE.Mesh(
+  new THREE.ConeGeometry(CAP_R, CAP_H, 4, 1, true), capFaceMat);   // open; the base is its own mesh
+capstone.add(capCone);
+const capBase = new THREE.Mesh(
+  new THREE.PlaneGeometry(CAP_R * Math.SQRT2, CAP_R * Math.SQRT2), capBaseMat);
+/* A cone with four segments puts its base corners at 0, 90, 180 and 270
+   degrees; a plane puts its corners at 45 between those. Spinning the square
+   a further 45 in its own plane brings the two into register. */
+capBase.rotation.set(Math.PI / 2, 0, Math.PI / 4);
+capBase.position.y = -CAP_H / 2 + 0.01;    // sit flush under the faces
+capstone.add(capBase);
+capstone.rotation.y = Math.PI / 4;
+capstone.position.y = PY_H + CAP_GAP + CAP_H / 2;
+capstone.renderOrder = -50;
+pyramid.add(capstone);
+const capEdges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(capCone.geometry),
+  new THREE.LineBasicMaterial({ color: 0xffe6a0, transparent: true, opacity: 0.75,
+    depthWrite: false, fog: false }));
+capEdges.rotation.y = Math.PI / 4;
+capEdges.position.copy(capstone.position);
+capEdges.renderOrder = -49;
+pyramid.add(capEdges);
+/* a halo behind it, so the gold has something to sit in */
+function haloTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 4, 64, 64, 64);
+  g.addColorStop(0.00, 'rgba(255,232,168,.85)');
+  g.addColorStop(0.28, 'rgba(255,214,120,.30)');
+  g.addColorStop(0.62, 'rgba(255,200,96,.08)');
+  g.addColorStop(1.00, 'rgba(255,200,96,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: haloTexture(), transparent: true, depthWrite: false, depthTest: false,
+  blending: THREE.AdditiveBlending, opacity: 0.8, fog: false }));
+halo.scale.setScalar(CAP_R * 7);
+/* centred on the stone, the halo bled under it and lit the very face that
+   should be in shadow. Sitting it slightly high keeps the glow above. */
+halo.position.copy(capstone.position);
+halo.position.y += CAP_H * 0.45;
+halo.renderOrder = -53;
+pyramid.add(halo);
+pyramid.userData.halo = halo;
+
+/* the beacon: a shaft of light standing straight up out of the capstone,
+   bright where it leaves the gold and gone by the top. Additive, so it adds
+   to the sky rather than covering it, and drawn without writing depth so the
+   sky and the capstone both read through it. */
+function beamTexture() {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 256, 0, 0);       // base at the bottom
+  g.addColorStop(0.00, 'rgba(255,238,190,.95)');
+  g.addColorStop(0.12, 'rgba(255,224,150,.55)');
+  g.addColorStop(0.45, 'rgba(255,214,120,.18)');
+  g.addColorStop(0.78, 'rgba(255,206,110,.05)');
+  g.addColorStop(1.00, 'rgba(255,206,110,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const BEAM_H = PY_H * 2.6;
+const beam = new THREE.Mesh(
+  /* CylinderGeometry takes the TOP radius first: narrow above, wider where it
+     leaves the capstone, so the shaft tapers to a point in the sky. */
+  new THREE.CylinderGeometry(CAP_R * 0.03, CAP_R * 0.18, BEAM_H, 12, 1, true),
+  new THREE.MeshBasicMaterial({ map: beamTexture(), transparent: true,
+    depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    fog: false, opacity: 0.85 }));
+beam.position.y = capstone.position.y + CAP_H / 2 + BEAM_H / 2;
+beam.renderOrder = -53;
+pyramid.add(beam);
+pyramid.userData.beam = beam;
+
+pyramid.userData.cap = capstone;
+pyramid.userData.capEdges = capEdges;
+pyramid.userData.capY = capstone.position.y;
+scene.add(pyramid);
+
+/* ================================================== the fleet, in formation
+   A shallow V with its point towards the viewer, every bow turned to face
+   the camera. This is the wedge the game holds before the first move. */
+/* A chevron opening away from the viewer rather than a closed V: the two
+   lead ships abreast, the outer pair set back and wider. Nothing stands
+   behind anything, so all four sails read at once. */
+/* A chevron opening away from the viewer rather than a closed V: the two
+   lead ships abreast, the outer pair set back and wider. Nothing stands
+   behind anything, so all four sails read at once. */
+/* A wedge with its point towards the viewer: Amenti leads, the other two
+   sit back on either quarter. Nothing stands behind anything. */
+/* A wedge with its point towards the viewer: Amenti leads, GannLab and
+   Treasure Chess sit back on either quarter, and two more stand further out
+   again on the wings, smaller with distance. */
+const FORMATION = [
+  { x:   0, z:   6 },   // Amenti, the lead ship
+  { x: -26, z: -16 },   // GannLab
+  { x:  26, z: -16 },   // Treasure Chess
+  { x: -56, z: -42 },   // X, far out on the left wing
+  { x:  56, z: -42 }    // Amenti.live, far out on the right wing
+];
+const ships = [];
+PROJECTS.forEach((p, i) => {
+  const s = buildShip(p);
+  s.position.set(FORMATION[i].x, 0, FORMATION[i].z);
+  s.userData.project = p;
+  s.userData.home = s.position.clone();
+  s.userData.phase = i * 1.7;
+  scene.add(s);
+  ships.push(s);
+});
+
+/* ------------------------------------------------------- the reflections
+   Each ship gets a mirrored twin under the surface: the same geometry with
+   its Y flipped, drawn before the water and without writing depth, so the
+   sea lies over it. Two shared materials rather than a copy of all
+   forty-three — a reflection in moving water is a smear of tone, not a
+   second ship, and this way three reflections cost two materials.
+
+   The twin stretches and slides a little on the swell, which is what sells
+   it: a still reflection under moving water looks painted on. */
+/* A reflection dims as it goes down and gives out well before the mast would
+   reach: chop breaks the far end of it up long before that. So the twin is
+   foreshortened, faded with depth in the shader, and clipped hard at the
+   point where there would be nothing left to see anyway. */
+const REF_FLOOR = 9;                       // how deep a reflection survives
+renderer.localClippingEnabled = true;
+const refClip = new THREE.Plane(new THREE.Vector3(0, 1, 0), REF_FLOOR);
+
+function fadeWithDepth(mat) {
+  mat.onBeforeCompile = shader => {
+    shader.vertexShader = 'varying float vDepthY;\n' + shader.vertexShader
+      .replace('#include <begin_vertex>',
+               '#include <begin_vertex>\n  vDepthY = (modelMatrix * vec4(position, 1.0)).y;');
+    shader.fragmentShader = 'varying float vDepthY;\n' + shader.fragmentShader
+      .replace('#include <dithering_fragment>',
+               '#include <dithering_fragment>\n  gl_FragColor.a *= clamp(1.0 + vDepthY / ' +
+               REF_FLOOR.toFixed(1) + ', 0.0, 1.0);');
+  };
+  return mat;
+}
+
+const refDark = fadeWithDepth(new THREE.MeshBasicMaterial({ color: 0x1b2a33, transparent: true,
+  opacity: 0.40, depthWrite: false, fog: true, clippingPlanes: [refClip] }));
+const refPale = fadeWithDepth(new THREE.MeshBasicMaterial({ color: 0xdfe8ea, transparent: true,
+  opacity: 0.30, depthWrite: false, fog: true, clippingPlanes: [refClip] }));
+
+for (const ship of ships) {
+  const twin = ship.clone(true);
+  twin.traverse(o => {
+    if (!o.isMesh) return;
+    o.material = (o.material && o.material.map) ? refPale : refDark;
+    o.renderOrder = 0;
+    o.castShadow = o.receiveShadow = false;
+  });
+  twin.scale.y = -0.55;                    // mirrored and foreshortened
+  twin.userData.of = ship;
+  scene.add(twin);
+  ship.userData.twin = twin;
+}
+
+fitCamera();
+camera.position.copy(CAM_HOME);
+
+/* ============================================================= interaction */
+const ray = new THREE.Raycaster();
+const ptr = new THREE.Vector2();
+let hovered = null, chosen = null, dragging = false, px = 0, py = 0, yaw = 0, pitch = 0;
+
+function shipUnder(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+  ptr.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(ships, true)[0];
+  if (!hit) return null;
+  let o = hit.object;
+  while (o && !o.userData.project) o = o.parent;
+  return o || null;
+}
+
+renderer.domElement.addEventListener('pointermove', ev => {
+  if (dragging) {
+    yaw = Math.max(-0.5, Math.min(0.5, yaw - (ev.clientX - px) * 0.0025));
+    pitch = Math.max(-0.1, Math.min(0.32, pitch + (ev.clientY - py) * 0.0015));
+    px = ev.clientX; py = ev.clientY;
+    return;
+  }
+  const s = shipUnder(ev);
+  if (s !== hovered) {
+    hovered = s;
+    renderer.domElement.style.cursor = s ? 'pointer' : 'grab';
+  }
+  if (s) {
+    tip.textContent = s.userData.project.title.toUpperCase();
+    tip.style.left = ev.clientX + 'px';
+    tip.style.top = ev.clientY + 'px';
+    tip.classList.add('on');
+  } else tip.classList.remove('on');
+});
+renderer.domElement.addEventListener('pointerdown', ev => {
+  dragging = true; px = ev.clientX; py = ev.clientY;
+  if (renderer.domElement.setPointerCapture) renderer.domElement.setPointerCapture(ev.pointerId);
+});
+renderer.domElement.addEventListener('pointerup', ev => {
+  dragging = false;
+  if (Math.abs(ev.clientX - px) + Math.abs(ev.clientY - py) < 6) {
+    const s = shipUnder(ev);
+    if (s) choose(s); else release();
+  }
+});
+renderer.domElement.addEventListener('pointerleave', () => { dragging = false; tip.classList.remove('on'); });
+
+function choose(s) {
+  if (chosen === s) { release(); return; }
+  chosen = s;
+  hint.classList.add('gone');
+  const p = s.userData.project;
+  document.getElementById('cardKind').textContent = p.kind;
+  document.getElementById('cardTitle').textContent = p.title;
+  document.getElementById('cardBlurb').textContent = p.blurb;
+  if (p.url) {
+    cardGo.href = p.url; cardGo.textContent = 'Open ' + p.title;
+    cardGo.removeAttribute('aria-disabled');
+  } else {
+    cardGo.href = '#'; cardGo.textContent = 'Not yet launched';
+    cardGo.setAttribute('aria-disabled', 'true');
+  }
+  card.classList.add('up');
+  card.setAttribute('aria-hidden', 'false');
+}
+function release() {
+  chosen = null;
+  card.classList.remove('up');
+  card.setAttribute('aria-hidden', 'true');
+}
+
+const dots = [...document.querySelectorAll('#views .dot')];
+function setView(n) {
+  if (n === view) return;
+  view = n;
+  viewSince = clock.getElapsedTime();
+  for (const o of dots) o.setAttribute('aria-pressed', String(+o.dataset.view === view));
+  fitCamera();
+  hint.classList.add('gone');
+}
+for (const d of dots) {
+  d.setAttribute('aria-pressed', String(+d.dataset.view === view));
+  d.addEventListener('click', () => setView(+d.dataset.view));
+}
+
+/* the stamp: where this sky is drawn from, and the local hour it is drawn
+   for. Refreshed every few seconds, and again if the browser offers a
+   position after the fact. */
+const stampEl = document.getElementById('stamp');
+function stampPlace() {
+  const now = new Date();
+  const sa = sunAngles(now, place.lat, place.lon);
+  const ph = moonPhaseNow(now);
+  const names = ['new', 'waxing crescent', 'first quarter', 'waxing gibbous',
+                 'full', 'waning gibbous', 'last quarter', 'waning crescent'];
+  const phaseName = names[Math.round(ph * 8) % 8];
+  stampEl.textContent =
+    `${place.name} · ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ` +
+    `sun ${sa.alt > 0 ? sa.alt.toFixed(0) + '° up' : 'below the horizon'} · moon ${phaseName}`;
+}
+stampPlace();
+setInterval(stampPlace, 5000);
+
+document.getElementById('cardBack').addEventListener('click', release);
+cardGo.addEventListener('click', e => { if (cardGo.getAttribute('aria-disabled') === 'true') e.preventDefault(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') release(); });
+function resize() {
+  const { w, h } = viewport();
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+  fitCamera();
+}
+addEventListener('resize', resize);
+resize();
+
+/* ================================================================== render */
+const clock = new THREE.Clock();
+let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
+function frame() {
+  const t = clock.getElapsedTime();
+
+  const { w, h } = viewport();                       // a pane sized after load
+  if (w !== lastW || h !== lastH) { lastW = w; lastH = h; resize(); }
+
+  /* the sky warms and cools on a ninety-second cycle. Repainted at about
+     eight frames a second, which is smooth at this speed and costs almost
+     nothing; the fog and the key light follow it so the whole scene turns
+     together rather than the sky changing behind a cold sea. */
+  /* the sun's arc: theta 0 at sunrise behind the viewer, PI at sunset behind
+     the pyramid. Everything else is read off its altitude. */
+  /* Time is warped so the sun spends about seventy per cent of the cycle
+     above the horizon and hurries through the night: an even split left the
+     page dark half the time it was open. */
+  /* The page opens at noon — the bright blue the scene started life in —
+     and works round to dusk, night, dawn and back to blue. Opening on a
+     sunrise meant the first thing anyone saw was the warm phase. */
+  /* a dot holds the sky at one point in the day; with none pressed the day
+     simply runs. The ships, the swell and the capstone keep their own time
+     either way — only the sun is held. */
+  /* Each view decides what the sun is doing. A view with `from` set starts
+     the day at that point and runs it at its own rate, stopping at `until`
+     if it has one; a view with none simply lets the day run. */
+  const V = VIEWS[view];
+  let dayTime = t;
+  let realSky = false, realAlt = 0, realAz = 180, realPhase = 0.5, realMoon = null;
+  if (V.live) {
+    const now = new Date();
+    const sa = sunAngles(now, place.lat, place.lon);
+    realSky = true; realAlt = sa.alt; realAz = sa.az;
+    realPhase = moonPhaseNow(now);
+    realMoon = moonPosition(now, place.lat, place.lon);
+    realPhase = realMoon.phase;              // phase and position from one geometry
+  }
+  if (V.from !== null) {
+    const elapsed = (t - viewSince) * V.rate;
+    dayTime = (V.from + elapsed / DAY) * DAY;
+    if (V.until !== undefined) dayTime = Math.min(dayTime, V.until * DAY);
+  }
+  const phase = (dayTime / DAY + 0.25) % 1;
+  const warped = phase < 0.70 ? (phase / 0.70) * 0.5 : 0.5 + ((phase - 0.70) / 0.30) * 0.5;
+  /* ease the sun through the horizon: it hangs there, the way a real sunset
+     takes its time and then the light goes quickly once it is under. */
+  const raw = warped * Math.PI * 2;
+  let theta = raw - Math.sin(raw * 2) * 0.28;
+  if (realSky) theta = Math.asin(Math.max(-1, Math.min(1, realAlt / 90)));   // altitude drives it
+  let alt = Math.sin(theta);                        // -1 under, +1 overhead
+  let sunPos;
+  if (realSky) {
+    /* east is +Z, because the pyramid's east face is the one turned towards
+       the viewer; north is -X. The sun then rises and sets where it really
+       does for this place at this hour. */
+    alt = Math.sin(realAlt * Math.PI / 180);
+    const azr = realAz * Math.PI / 180, ar = realAlt * Math.PI / 180;
+    sunPos = new THREE.Vector3(
+      -Math.cos(azr) * Math.cos(ar) * SUN_DIST,
+      Math.sin(ar) * SUN_DIST,
+      Math.sin(azr) * Math.cos(ar) * SUN_DIST);
+  } else {
+    sunPos = new THREE.Vector3(
+      -Math.sin(theta) * SUN_DIST * 0.30,
+      alt * SUN_DIST * 0.62,
+      Math.cos(theta) * SUN_DIST);
+  }
+  sun.position.copy(sunPos);
+  sunSprite.position.copy(sunPos);
+  sunSprite.material.opacity = Math.max(0, Math.min(1, (alt + 0.12) * 3));
+  /* the disc goes from white overhead to deep orange on the horizon */
+  const low = Math.max(0, 1 - Math.max(0, alt) / 0.5);
+  sunSprite.material.color.setRGB(1, 1 - low * 0.30, 1 - low * 0.62);
+  sunSprite.scale.setScalar(150 + Math.max(0, 1 - Math.abs(alt) * 3) * 130);   // swollen at the horizon
+
+  /* The canvas is only repainted a few times a second — it is a paint job and
+     eight frames is plenty. Everything else keyed to the sun is updated every
+     frame, because the sun moves every frame and a sea that catches up an
+     eighth of a second later reads as lagging behind the sky. */
+  drama += ((VIEWS[view].drama || 0) - drama) * 0.04;      // eased, so the dots do not snap
+  if (t - lastSky > 0.125) {
+    lastSky = t;
+    skyBand = paintSky(alt, drama);
+    sky.needsUpdate = true;
+    sky.dispose();                    // drop the cached cubemap so reflections follow too
+    scene.environment = sky;
+  }
+  renderer.toneMappingExposure = 1.12 + drama * 0.10;
+
+  const lift = Math.max(0, alt);                   // 0 at the horizon, 1 overhead
+  const dusk = Math.max(0, 1 - Math.abs(alt) / 0.62);
+  const bandCol = new THREE.Color(skyBand[0] / 255, skyBand[1] / 255, skyBand[2] / 255);
+
+  scene.fog.color.copy(bandCol);
+  sun.intensity = 0.12 + lift * 1.4;
+  sun.color.setRGB(1, 0.70 + lift * 0.26, 0.44 + lift * 0.46);   // red low, white high
+  hemi.intensity = 0.42 + lift * 0.85;
+  hemi.color.copy(bandCol).lerp(new THREE.Color(0xdfefff), lift);
+
+  /* the sails carry the names, so they are lit from within as the light
+     fails: barely at noon, strongly once the sun is under */
+  const cloth = 0.18 + (1 - lift) * 0.62;
+  for (const sh of ships) if (sh.userData.sailMat) sh.userData.sailMat.emissiveIntensity = cloth;
+
+  /* the sea is mixed from its own blue, darkened by how low the sun is, and
+     tinted towards whatever the horizon is doing — which is what makes a
+     sunset sea go copper rather than staying blue under a pink sky */
+  const deep = new THREE.Color(0x2e8fb4).multiplyScalar(0.30 + lift * 0.78);
+  water.material.color.copy(deep).lerp(bandCol.clone().multiplyScalar(0.62), dusk * 0.42);
+  water.material.envMapIntensity = 0.55 + lift * 0.65;
+
+  /* the procession: each body sits further back along the sun's arc, and
+     shows only once the sky is dark enough and it has risen */
+  /* the Moon works its way round: one full round of phases every eight days,
+     which is quick enough to notice and slow enough not to strobe */
+  const MOON_MONTH = 8;
+  const moonPhase = realSky ? realPhase : ((dayTime / DAY) / MOON_MONTH) % 1;
+  const moonLag = moonPhase * Math.PI * 2;
+  if (Math.abs(moonPhase - lastMoonPhase) > 0.004) {
+    lastMoonPhase = moonPhase;
+    paintMoon(moonPhase);
+    moonTex.needsUpdate = true;
+  }
+
+  for (const pl of PLANETS) {
+    if (pl.moon && realMoon) {
+      /* the real Moon: its own altitude and azimuth, on the same compass as
+         the sun — east is +Z, north is -X */
+      const ar = realMoon.alt * Math.PI / 180;
+      pl.sprite.position.set(
+        -Math.cos(realMoon.az) * Math.cos(ar) * SUN_DIST,
+        Math.sin(ar) * SUN_DIST,
+        Math.sin(realMoon.az) * Math.cos(ar) * SUN_DIST);
+      const risen = Math.max(0, Math.min(1, Math.sin(ar) * 6));
+      const dark = Math.max(0, Math.min(1, (0.55 - alt) * 2.2));
+      pl.sprite.material.opacity = risen * dark * pl.mag;
+      const ms = pl.sprite.position.clone().project(camera);
+      const ss = sunPos.clone().project(camera);
+      pl.sprite.material.rotation = Math.atan2(ss.y - ms.y, ss.x - ms.x) - Math.PI / 2;
+      continue;
+    }
+    const th = theta - (pl.moon ? moonLag : pl.lag);
+    const a = Math.sin(th);
+    pl.sprite.position.set(
+      -Math.sin(th) * SUN_DIST * 0.30 + Math.sin(th * 2) * SUN_DIST * pl.tilt * 0.35,
+      a * SUN_DIST * 0.62 + pl.tilt * SUN_DIST * 0.06,
+      Math.cos(th) * SUN_DIST);
+    const risen = Math.max(0, Math.min(1, a * 6));          // above the horizon
+    const dark = pl.moon
+      ? Math.max(0, Math.min(1, (0.55 - alt) * 2.2))     // the Moon shows in a bright sky too
+      : Math.max(0, Math.min(1, (0.18 - alt) * 3.2));    // the planets need it dim
+    pl.sprite.material.opacity = risen * dark * pl.mag;
+    if (pl.moon) {
+      /* point the lit side at the sun, in screen terms */
+      const ms = pl.sprite.position.clone().project(camera);
+      const ss = sunPos.clone().project(camera);
+      pl.sprite.material.rotation = Math.atan2(ss.y - ms.y, ss.x - ms.x) - Math.PI / 2;
+    }
+  }
+
+  /* the glitter track lies between the viewer and the sun, and only when the
+     sun is low enough to lay one */
+  const lowSun = Math.max(0, 1 - Math.abs(alt) * 2.2) * Math.max(0, Math.sign(sunPos.z) * 0.5 + 0.5);
+  glitter.material.opacity = lowSun * 0.7;
+  if (lowSun > 0.01) {
+    glitter.position.x = sunPos.x * 0.12;
+    glitter.position.z = -60;
+    glitter.rotation.z = Math.atan2(sunPos.x, -sunPos.z) * 0.4;
+  }
+
+  const a = waterGeo.attributes.position.array;        // the swell
+  for (let i = 0; i < a.length; i += 3) {
+    const x = waterBase[i], y = waterBase[i + 1];
+    a[i + 2] = Math.sin(x * 0.05 + t * 0.7) * 0.55
+             + Math.cos(y * 0.07 - t * 0.5) * 0.4
+             + Math.sin((x + y) * 0.16 + t * 1.5) * 0.14;   // near-field chop
+  }
+  waterGeo.attributes.position.needsUpdate = true;
+  waterNrm.offset.set(t * 0.012, t * 0.02);            // the chop drifts
+
+  for (const s of ships) {                             // every ship rides it
+    const ph = s.userData.phase, home = s.userData.home;
+    const lift = (s === hovered ? 0.5 : 0) + (s === chosen ? 1.1 : 0);
+    /* hovering brings a ship out of the line and lifts the thread, so the
+       sail is both nearer and brighter while you read it */
+    const want = (s === hovered ? 1 : 0);
+    s.userData.near = (s.userData.near || 0) + (want - (s.userData.near || 0)) * 0.08;
+    s.userData.sailMat.emissiveIntensity = 0.85 + s.userData.near * 0.75;
+    /* a proper sea state: heave on two periods so it never repeats cleanly,
+       roll, pitch, a slow yaw as the hull hunts around its anchor, and a
+       surge back and forth along its own length. */
+    const heave = Math.sin(t * 0.9 + ph) * 0.42 + Math.sin(t * 0.37 + ph * 1.7) * 0.22;
+    s.position.y += ((heave - 0.35 + lift) - s.position.y) * 0.06;
+    if (s.userData.foam) {
+      const b = 1 + Math.sin(t * 1.3 + ph) * 0.05;
+      s.userData.foam.scale.set(b, b * 0.46, b);
+      s.userData.foam.material.opacity = 0.22 + Math.sin(t * 1.1 + ph) * 0.08;
+    }
+    s.rotation.z = Math.sin(t * 0.7 + ph) * 0.075 + Math.sin(t * 0.23 + ph) * 0.03;   // roll
+    s.rotation.x = Math.cos(t * 0.55 + ph) * 0.045;                                    // pitch
+    s.rotation.y = Math.PI / 2 + Math.sin(t * 0.19 + ph * 0.6) * 0.07;                 // yaw
+    const twin = s.userData.twin;
+    if (twin) {
+      twin.position.set(s.position.x, -s.position.y * 0.92, s.position.z);
+      twin.rotation.set(-s.rotation.x, s.rotation.y, -s.rotation.z);
+      /* the swell stretches and shears it */
+      twin.scale.set(1 + Math.sin(t * 1.1 + ph) * 0.03,
+                     -(0.55 + Math.sin(t * 0.8 + ph) * 0.05),
+                     1);
+      twin.position.x += Math.sin(t * 1.4 + ph) * 0.25;
+    }
+
+    /* Hovering brings a ship five of its own lengths forward — enough that
+       the sail fills a good part of the frame and the embroidery can be
+       read. Clamped so it can never arrive in the camera's lap: it stops a
+       clear 34 units short of the eye. */
+    const reach = (s.userData.len || 15) * 5;
+    const wanted = (s === chosen ? 24 : 0) + s.userData.near * reach;
+    const room = Math.max(0, CAM_HOME.z - 34 - home.z);
+    const tz = home.z + Math.min(wanted, room);
+    const tx = home.x + (s === chosen ? -home.x * 0.25 : 0);
+    s.position.z += (tz - s.position.z) * 0.045;
+    s.position.x += (tx - s.position.x) * 0.045;
+    s.position.x += Math.sin(t * 0.31 + ph) * 0.06;        // slow sideways set
+    s.position.z += Math.sin(t * 0.44 + ph * 1.3) * 0.05;  // surge
+  }
+
+  /* the capstone drifts and turns, slowly enough to notice only on a second
+     look, which is the point of it */
+  const capY = pyramid.userData.capY + Math.sin(t * 0.25) * 2.2;
+  pyramid.userData.cap.position.y = capY;
+  /* one turn every twenty seconds or so: slow enough to be calm, quick
+     enough that the gold catches a new face while you are looking at it. */
+  pyramid.userData.cap.rotation.y = Math.PI / 4 + t * 0.32;
+  pyramid.userData.cap.rotation.z = Math.sin(t * 0.17) * 0.05;   // a slight list
+  pyramid.userData.capEdges.position.y = capY;
+  pyramid.userData.capEdges.rotation.y = pyramid.userData.cap.rotation.y;
+  pyramid.userData.capEdges.rotation.z = pyramid.userData.cap.rotation.z;
+  /* the capstone breathes: two cycles of different length so the pulse never
+     settles into an obvious rhythm */
+  /* two cycles added rather than multiplied — multiplied, they cancel and the
+     capstone barely moves. */
+  const beat = 0.5 + 0.34 * Math.sin(t * 0.55) + 0.16 * Math.sin(t * 0.21 + 1.3);
+  capFaceMat.emissiveIntensity = 0.42 + beat * 0.55;
+  const glow = pyramid.userData.halo;
+  glow.position.y = capY + CAP_H * 0.45;
+  glow.material.opacity = 0.55 + beat * 0.42;
+  glow.scale.setScalar(CAP_R * (6.4 + beat * 1.3));
+  /* the shaft rides the same beat, and stands on top of the capstone */
+  const bm = pyramid.userData.beam;
+  bm.position.y = capY + CAP_H / 2 + BEAM_H / 2;
+  bm.material.opacity = 0.55 + beat * 0.45;
+  /* the shaft draws in and opens again: full width at the top of the beat,
+     a fifth of it at the bottom, on the same cycle as the glow so the beacon
+     brightens as it widens. */
+  const draw = 0.20 + beat * 0.80;
+  bm.scale.set(draw, 1, draw);
+
+  camera.position.x += ((CAM_HOME.x + Math.sin(yaw) * CAM_HOME.z * 0.3) - camera.position.x) * 0.05;
+  camera.position.y += ((CAM_HOME.y + (chosen ? 5 : 0) + pitch * 34) - camera.position.y) * 0.05;
+  camera.position.z += ((CAM_HOME.z + (chosen ? 14 : 0)) - camera.position.z) * 0.05;
+  camera.lookAt(0, CAM_HOME.y * (VIEWS[view].camera.look), chosen ? 8 : 0);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+frame();
+setTimeout(() => hint.classList.add('gone'), 9000);
+</script>
+</body></html>
