@@ -67,21 +67,72 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
 #mail:hover{color:var(--brass)}
 @media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} }
-#hud{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:6;
+#hudTab{position:fixed;right:236px;bottom:calc(34px + env(safe-area-inset-bottom,0px));z-index:7;
+  transition:right .32s cubic-bezier(.4,0,.2,1);
+  writing-mode:vertical-rl;font:inherit;font-size:10px;letter-spacing:.32em;text-transform:uppercase;
+  padding:14px 6px;cursor:pointer;background:rgba(8,14,20,.82);color:var(--gold);
+  border:1px solid rgba(232,223,200,.22);border-right:0}
+#hudTab:hover{background:rgba(16,26,34,.92)}
+/* a full-height rail down the right edge: top to bottom, flush to the side,
+   sliding out sideways when it is folded away */
+#hud{position:fixed;right:0;top:0;bottom:0;z-index:6;
+  width:236px;box-sizing:border-box;border-right:0;border-top:0;border-bottom:0;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:18px 16px;
+  transition:transform .32s cubic-bezier(.4,0,.2,1),opacity .24s;
   background:rgba(8,14,20,.72);border:1px solid rgba(232,223,200,.22);padding:12px 14px;
   font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);
   min-width:210px;backdrop-filter:blur(3px)}
-#hud .row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+#hud.away{transform:translateX(100%);opacity:0;pointer-events:none}
+#hudTab.out{right:0}
+#hud .hudtitle{font-size:10px;letter-spacing:.26em;color:var(--gold);
+  padding-bottom:9px;margin-bottom:8px;border-bottom:1px solid rgba(232,223,200,.22)}
+#hud .hrow{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+#hud .sep{height:1px;background:rgba(232,223,200,.18);margin:9px 0 7px}
+#hud .jcrhead,#hud .jrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:1.5px 0}
+#hud .jcrhead{color:rgba(255,255,255,.3);font-size:9px;padding-bottom:3px}
+#hud .jrow{cursor:pointer}
+#hud .jrow:hover{color:#fff}
+#hud .jrow.on{color:var(--gold)}
+#hud .jrow .c{font-variant-numeric:tabular-nums}
+#hud .jrow.cheap .c{color:#8fe6a8}
 #hud .lab{color:rgba(255,255,255,.38)}
+#hud #lock{background:transparent;color:var(--gold);border:1px solid rgba(232,223,200,.45)}
+#hud #lock.armed{background:var(--gold);color:#12161f;border-color:var(--gold)}
+#hud #jump.open{animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
 #hud button{margin-top:10px;width:100%;font:inherit;letter-spacing:.2em;text-transform:uppercase;
   padding:8px 0;cursor:pointer;background:var(--gold);color:#12161f;border:0}
 #hud button:disabled{background:transparent;color:rgba(255,255,255,.3);
   border:1px solid rgba(255,255,255,.18);cursor:default}
 #hud button:not(:disabled):hover{background:var(--brass)}
+#gtip{position:absolute;left:14px;right:14px;bottom:100%;margin-bottom:6px;
+  background:rgba(8,14,20,.94);border:1px solid rgba(232,223,200,.28);
+  padding:7px 9px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.86);opacity:0;transition:opacity .16s;pointer-events:none;
+  display:flex;justify-content:space-between;gap:10px}
+#gtip.on{opacity:1}
+#gtip .d{color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
+#glyphs{display:flex;justify-content:space-between;gap:4px;margin-top:11px;
+  padding-top:9px;border-top:1px solid rgba(232,223,200,.22)}
+#glyphs button{margin:0;width:auto;flex:1;padding:5px 0;font-size:17px;line-height:1;
+  letter-spacing:0;background:transparent;border:1px solid transparent;
+  color:rgba(255,255,255,.62);cursor:pointer}
+#glyphs button:hover{border-color:rgba(232,223,200,.35);filter:brightness(1.3)}
+#glyphs button.on{border-color:var(--gold);background:rgba(232,201,122,.12);filter:brightness(1.25)}
+
+#glyphs button.cheap::after{content:'';display:block;width:3px;height:3px;margin:3px auto 0;
+  border-radius:50%;background:#8fe6a8}
+#edge{position:fixed;z-index:6;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;
+  text-shadow:0 0 6px rgba(0,0,0,.8)}
 #flash{position:fixed;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none;
   transition:opacity .18s}
-@media (max-width:520px){ #hud{min-width:0;font-size:9.5px;padding:9px 10px} }
+@media (max-width:520px){ #hud{width:198px;font-size:9.5px;padding:14px 11px}
+  #hudTab{right:198px}
+  #hudTab.out{right:0} }
 #stamp{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
+  max-width:min(54vw,640px);
   font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);
   pointer-events:none;line-height:1.7}
 #hint{position:fixed;left:0;right:0;bottom:22px;z-index:4;text-align:center;pointer-events:none;
@@ -128,12 +179,23 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 <div id="stamp"></div>
 
 <!-- the flight panel: a ship, a target, and the rule between them -->
-<div id="hud" aria-live="polite">
-  <div class="row"><span class="lab">craft</span><span id="hudShip">none</span></div>
-  <div class="row"><span class="lab">target</span><span id="hudTarget">none</span></div>
-  <div class="row"><span class="lab">status</span><span id="hudWhy">pick a craft</span></div>
+<button id="hudTab" type="button" class="out" aria-expanded="false" aria-controls="hud" title="Jump control surface">JCS</button>
+<div id="hud" class="away" aria-live="polite">
+  <div class="hudtitle">Jump Control Surface</div>
+  <div class="hrow"><span class="lab">craft</span><span id="hudShip">none</span></div>
+  <div class="hrow"><span class="lab">target</span><span id="hudTarget">none</span></div>
+  <div class="hrow"><span class="lab">status</span><span id="hudWhy">pick a craft</span></div>
+  <div class="hrow"><span class="lab">clock</span><span id="hudClock">&mdash;</span></div>
+  <div class="hrow"><span class="lab">window</span><span id="hudWindow">&mdash;</span></div>
+  <div class="sep"></div>
+  <div class="jcrhead"><span>body</span><span>now</span><span>cheapest</span></div>
+  <div id="jcr"></div>
+  <button id="lock" type="button" disabled>lock on</button>
   <button id="jump" type="button" disabled>jump</button>
+  <button id="land" type="button" hidden>land</button>
   <button id="backHome" type="button" hidden>return</button>
+  <div id="gtip" aria-hidden="true"></div>
+  <div id="glyphs" role="group" aria-label="Bodies"></div>
 </div>
 
 <!-- Share and contact. The QR is inline SVG made from the site's own address,
@@ -169,19 +231,19 @@ import * as THREE from 'three';
 
 /* ================================================================ the four */
 const PROJECTS = [
-  { id:'amenti', neon: 0xffd23a, title:'Amenti Interface', kind:'platform', emblem:'\u2625',
+  { id:'amenti', drive: 1.35, neon: 0xffd23a, title:'Amenti Interface', kind:'platform', emblem:'\u2625',
     url:'',
     blurb:'The Library of Legends. An AI-powered platform built on a database of historical figures \u2014 live chat with authentic historical characters, grounded in high quality primary source data.' },
-  { id:'gannlab', neon: 0x35e6ff, title:'GannLab', kind:'research', emblem:'\u2691',
+  { id:'gannlab', drive: 1.0, neon: 0x35e6ff, title:'GannLab', kind:'research', emblem:'\u2691',
     url:'https://ianingram.github.io/GannLab/',
     blurb:'Fifty-nine pre-registered trading-hypothesis experiments, their run files, and an honest account of what survived. Mostly nothing did. The failures are the content.' },
-  { id:'chess', neon: 0xff2bd6, title:'Treasure Chess', kind:'game', emblem:'\u265E',
+  { id:'chess', drive: 0.86, neon: 0xff2bd6, title:'Treasure Chess', kind:'game', emblem:'\u265E',
     url:'',
     blurb:'Sea-battle chess played with a roster of historical characters. Fleets hold a wedge until the first move, then sail into the back rank. Every piece is somebody.' },
-  { id:'x', neon: 0x7cff4f, title:'X', kind:'unannounced', emblem:'\u2715',
+  { id:'x', drive: 1.15, neon: 0x7cff4f, title:'X', kind:'unannounced', emblem:'\u2715',
     url:'',
     blurb:'Not named yet. The hull is in the water and the rest follows.' },
-  { id:'amentilive', neon: 0xff7a18, title:'Amenti.live', kind:'live', emblem:'\u2609',
+  { id:'amentilive', drive: 0.94, neon: 0xff7a18, title:'Amenti.live', kind:'live', emblem:'\u2609',
     url:'',
     blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' }
 ];
@@ -277,10 +339,78 @@ function sailTexture(p) {
   const words = p.title.toUpperCase().split(' ');
   thread(ctx => {
     ctx.textAlign = 'center';
-    ctx.font = '150px Georgia, serif';
-    ctx.fillText(p.emblem, W / 2, 250);                  // the emblem above
-    ctx.font = '600 58px ui-monospace, Menlo, monospace';
-    words.forEach((w, i) => ctx.fillText(w, W / 2, 430 + i * 72));
+    /* The emblems are drawn rather than typed. A font glyph depends on what
+       the viewer happens to have installed — the ankh and the knight were
+       rendering as empty boxes anywhere the font was missing — and a drawn
+       mark can be as large and as heavy as the sail wants. */
+    const cxE = W / 2, cyE = 232;
+    if (p.id === 'gannlab') {
+      /* a circle with a cross: the cardinal cross on the wheel, which is
+         what the Square of Nine is */
+      ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.arc(cxE, cyE, 104, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(cxE - 132, cyE); ctx.lineTo(cxE + 132, cyE);
+      ctx.moveTo(cxE, cyE - 132); ctx.lineTo(cxE, cyE + 132);
+      ctx.stroke();
+      ctx.lineWidth = 3;                                  // the diagonals, lighter
+      ctx.beginPath();
+      const q = 104 * 0.7071;
+      ctx.moveTo(cxE - q, cyE - q); ctx.lineTo(cxE + q, cyE + q);
+      ctx.moveTo(cxE + q, cyE - q); ctx.lineTo(cxE - q, cyE + q);
+      ctx.stroke();
+    } else if (p.id === 'amenti') {
+      /* a dominant triangle, on its own */
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(cxE, cyE - 150);
+      ctx.lineTo(cxE + 150, cyE + 112);
+      ctx.lineTo(cxE - 150, cyE + 112);
+      ctx.closePath();
+      ctx.stroke();
+
+    } else if (p.id === 'chess') {
+      /* back to the knight it had: the glyph reads better than my outline did */
+      ctx.font = '170px Georgia, serif';
+      ctx.fillText(p.emblem, cxE, cyE + 60);
+    } else if (p.id === 'amentilive') {
+      /* a sun: the platform running */
+      ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.arc(cxE, cyE, 62, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 6;
+      for (let i = 0; i < 12; i++) {
+        const an = i * Math.PI / 6;
+        ctx.beginPath();
+        ctx.moveTo(cxE + Math.cos(an) * 84, cyE + Math.sin(an) * 84);
+        ctx.lineTo(cxE + Math.cos(an) * 118, cyE + Math.sin(an) * 118);
+        ctx.stroke();
+      }
+    } else {
+      /* X, and anything unnamed */
+      ctx.lineWidth = 11;
+      ctx.beginPath();
+      ctx.moveTo(cxE - 92, cyE - 92); ctx.lineTo(cxE + 92, cyE + 92);
+      ctx.moveTo(cxE + 92, cyE - 92); ctx.lineTo(cxE - 92, cyE + 92);
+      ctx.stroke();
+    }
+    /* Letter-spaced by hand, character by character. Canvas has no tracking
+       control worth relying on, and a name set solid under a large mark
+       reads as a lump — the spacing is what makes it look lettered rather
+       than typed. The gap under the emblem is opened up too, so the mark
+       and the name are two things rather than one crowded block. */
+    ctx.font = '600 52px ui-monospace, Menlo, monospace';
+    const TRACK = 7;
+    const drawTracked = (text, cy) => {
+      const chars = [...text];
+      const widths = chars.map(ch => ctx.measureText(ch).width);
+      const total = widths.reduce((s2, w2) => s2 + w2, 0) + TRACK * (chars.length - 1);
+      let cx2 = W / 2 - total / 2;
+      ctx.textAlign = 'left';
+      chars.forEach((ch, i) => { ctx.fillText(ch, cx2, cy); cx2 += widths[i] + TRACK; });
+      ctx.textAlign = 'center';
+    };
+    words.forEach((w, i) => drawTracked(w, 452 + i * 66));
     /* the border runs round the whole sail rather than boxing the name: a
        heavy rule inset from the edge, a stitched rule inside it, and a
        corner mark at each turn, so the cloth is framed the way a banner is. */
@@ -1037,6 +1167,28 @@ function sunAngles(date, lat, lon) {
 
    The phase then comes out of the geometry rather than a calendar: it is the
    elongation from the sun, so the shape and the position always agree. */
+/* The Moon's true distance, which swings from about 356,500 km at perigee
+   to 406,700 at apogee — a fourteen per cent spread. It was hardcoded to
+   the mean, which is the one body in the scene that was not computed. */
+function moonRangeKm(date) {
+  const rad = Math.PI / 180;
+  const d = date.getTime() / 86400000 - 10957.5;
+  const M = (134.963 + 13.064993 * d) * rad;
+  const D = (297.850 + 12.190749 * d) * rad;
+  const Ms = (357.529 + 0.98560028 * d) * rad;
+  const F = (93.272 + 13.229350 * d) * rad;
+  return 385000.56
+       - 20905.355 * Math.cos(M)
+       -  3699.111 * Math.cos(2 * D - M)
+       -  2955.968 * Math.cos(2 * D)
+       -   569.925 * Math.cos(2 * M)
+       +    48.888 * Math.cos(Ms)
+       -     3.149 * Math.cos(2 * F)
+       +   246.158 * Math.cos(2 * D - 2 * M)
+       -   152.138 * Math.cos(2 * D - Ms - M)
+       -   170.733 * Math.cos(2 * D + M);
+}
+
 function moonPosition(date, lat, lon) {
   const rad = Math.PI / 180, deg = 180 / Math.PI;
   const d = date.getTime() / 86400000 - 10957.5;      // days since J2000.0
@@ -1195,13 +1347,13 @@ const PLANETS = [
      full moon behaves and the only way it is ever in the sky while the sky
      is dark enough to see it. Trailing just behind the sun, as it was, meant
      it set at the same time and was never once visible. */
-  { name: 'Moon',    color: 0xf4f4f0, size: 38, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
-  { name: 'Mercury', real: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
-  { name: 'Venus', real: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
-  { name: 'Mars', real: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
-  { name: 'Jupiter', real: 'Jupiter', color: 0xe8c898, size: 15, lag: 2.35, tilt: 0.22, mag: 0.70 },
-  { name: 'Saturn', real: 'Saturn',  color: 0xd06a4a, size: 12, lag: 2.95, tilt: -0.26, mag: 0.55 },
-  { name: 'Pluto', real: 'Pluto', color: 0xb9a48f, size: 8, lag: 3.5, tilt: 0.3, mag: 0.4 }
+  { name: 'Moon', glyph: '\u263D',    color: 0xf4f4f0, size: 38, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
+  { name: 'Mercury', glyph: '\u263F', real: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
+  { name: 'Venus', glyph: '\u2640', real: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
+  { name: 'Mars', glyph: '\u2642', real: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
+  { name: 'Jupiter', glyph: '\u2643', real: 'Jupiter', color: 0xe8c898, size: 15, lag: 2.35, tilt: 0.22, mag: 0.70 },
+  { name: 'Saturn', glyph: '\u2644', real: 'Saturn',  color: 0xd06a4a, size: 12, lag: 2.95, tilt: -0.26, mag: 0.55 },
+  { name: 'Pluto', glyph: '\u2647', real: 'Pluto', color: 0xb9a48f, size: 8, lag: 3.5, tilt: 0.3, mag: 0.4 }
 ];
 
 function bodyTexture(hex) {
@@ -2110,7 +2262,8 @@ renderer.domElement.addEventListener('pointermove', ev => {
   const s = shipUnder(ev);
   if (s !== hovered) {
     hovered = s;
-    cardFor(s);                                  // the card follows the pointer
+    /* the card is a click, not a hover: it was rising and dropping every
+       time the pointer crossed a hull, which made the whole thing twitch */
     renderer.domElement.style.cursor = s ? 'pointer' : 'grab';
   }
   if (s) {
@@ -2211,7 +2364,13 @@ function stampPlace() {
   stampEl.textContent =
     `${place.name} · ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ` +
     `sun ${sa.alt > 0 ? sa.alt.toFixed(0) + '° up' : 'below the horizon'} · moon ${phaseName}` +
-    (clockRead ? ` · clock on ${clockRead.body.toLowerCase()}, course ${clockRead.course}` : '');
+    '';
+  /* the clock reading lives in the instrument panel, not the stamp: the two
+     were meeting in the middle of the screen and overlapping */
+  const hc = document.getElementById('hudClock');
+  if (hc) hc.textContent = clockRead
+    ? `${clockRead.body.toLowerCase()} · ${clockRead.course}`
+    : '—';
 }
 stampPlace();
 setInterval(stampPlace, 5000);
@@ -2241,6 +2400,63 @@ resize();
 
    Energy is not modelled. Every craft can reach anything it can see.
    ========================================================================= */
+/* ====================================================== the jump clock ====
+   Not a gate. A CLOCK: it runs whether or not anyone is watching, and at
+   any moment it holds two answers for every body — what a jump costs right
+   now, and when tonight it will be cheapest.
+
+   Everything is always reachable. Jupiter under the horizon is not a
+   refusal, it is a price: the Earth is in the way and the solution has to
+   go round it. What you buy by waiting, or by turning to look, is a
+   cheaper solve.
+
+   THE PRICE IS TIME, since the drives have energy to spare. Cost is the
+   spool the craft needs before it can go, in seconds:
+
+     range      how far, against the Moon as one unit
+     occlusion  how far below the horizon, if it is under
+     off-axis   how far from where the craft is pointed
+     drive      the craft's own coefficient; the five differ
+
+   The clock can look ahead because the sky is computed rather than drawn:
+   asking where Mars will be at 03:40 is the same call as asking where it
+   is now. So it scans the next twenty-four hours and reports the minimum,
+   which turns waiting into a move you can choose.
+   ========================================================================= */
+const MOON_MEAN = 384400;                 // one unit of range
+
+function bodyRangeKm(name, date) {
+  if (name === 'Moon') return moonRangeKm(date);
+  const d = date.getTime() / 86400000 - 10957.5;
+  const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
+                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
+  const pl = helio(ELEMENTS[name], d);
+  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * 149597870.7;
+}
+
+/* jumpCost: what the drive has to spool, in seconds */
+function jumpCost(name, date, lat, lon, drive, offAxisDeg) {
+  const alt = name === 'Moon' ? moonPosition(date, lat, lon).alt
+                              : planetPosition(name, date, lat, lon).alt;
+  const km = bodyRangeKm(name, date);
+  const range = Math.sqrt(km / MOON_MEAN);              // distance, softened
+  const occl = alt >= 0 ? 1 : 1 + Math.pow(-alt / 90, 0.8) * 7;   // through the Earth
+  const axis = 1 + (offAxisDeg === undefined ? 0 : offAxisDeg / 180) * 1.6;
+  return 2.2 * range * occl * axis / (drive || 1);
+}
+
+/* the cheapest moment in the next day, and what it costs there */
+function cheapestWindow(name, lat, lon, drive) {
+  const now = Date.now();
+  let bestT = now, bestC = Infinity;
+  for (let m = 0; m <= 24 * 60; m += 15) {              // every quarter hour
+    const t = new Date(now + m * 60000);
+    const c = jumpCost(name, t, lat, lon, drive);       // ignoring aim: you can turn
+    if (c < bestC) { bestC = c; bestT = t.getTime(); }
+  }
+  return { at: bestT, cost: bestC };
+}
+
 const hudShip = document.getElementById('hudShip');
 const hudTarget = document.getElementById('hudTarget');
 const hudWhy = document.getElementById('hudWhy');
@@ -2248,7 +2464,37 @@ const jumpBtn = document.getElementById('jump');
 const backBtn = document.getElementById('backHome');
 const flash = document.getElementById('flash');
 
+/* A ring on the locked body, and a chevron at the edge of the frame when it
+   is off screen. Hunting a speck with the pointer was the hardest part of
+   the whole thing; now the table picks it, the view slews to it, and the
+   marker says where it went. */
+function reticleTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.strokeStyle = 'rgba(255,220,140,.95)';
+  x.lineWidth = 4;
+  x.beginPath(); x.arc(64, 64, 40, 0, Math.PI * 2); x.stroke();
+  x.lineWidth = 3;
+  for (const a of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {   // four ticks
+    x.beginPath();
+    x.moveTo(64 + Math.cos(a) * 46, 64 + Math.sin(a) * 46);
+    x.lineTo(64 + Math.cos(a) * 60, 64 + Math.sin(a) * 60);
+    x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const reticle = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: reticleTexture(), transparent: true, depthWrite: false, depthTest: false,
+  fog: false, opacity: 0 }));
+reticle.scale.setScalar(90);
+scene.add(reticle);
+
+let slew = null;             // the view swinging onto a target
 let craft = null;            // the ship that flies
+let pendingCost = 3;         // the spool the next jump needs, in seconds
 let target = null;           // the body it is locked to
 let flight = null;           // the jump in progress
 let arrived = null;          // where we are, once there
@@ -2300,16 +2546,109 @@ function bodyUnder(ev) {
   return PLANETS.find(p => p.sprite === hit.object) || null;
 }
 
+const jcrEl = document.getElementById('jcr');
+let jcrRows = [], jcrScanAt = 0, jcrData = [];
+
+const hhmm = ms => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const secs = c => c < 90 ? c.toFixed(0) + 's' : (c / 60).toFixed(1) + 'm';
+
+function scanJCR() {
+  const drive = craft ? (craft.userData.project.drive || 1) : 1;
+  jcrData = PLANETS.map(pl => {
+    const w = cheapestWindow(pl.real || 'Moon', place.lat, place.lon, drive);
+    return { pl, name: pl.name, best: w };
+  });
+  jcrScanAt = Date.now();
+}
+function drawJCR() {
+  const drive = craft ? (craft.userData.project.drive || 1) : 1;
+  if (!jcrData.length || Date.now() - jcrScanAt > 120000) scanJCR();
+  const now = new Date();
+  const rows = jcrData.map(d => {
+    const st = targetState(d.pl);
+    const off = offAxisDeg(d.pl);
+    const nowCost = jumpCost(d.pl.real || 'Moon', now, place.lat, place.lon, drive, off);
+    return { ...d, nowCost, ok: st.ok };
+  }).sort((a, b) => a.nowCost - b.nowCost);
+  const cheapest = rows[0];
+  drawGlyphs(cheapest ? cheapest.name : null);
+  jcrEl.innerHTML = rows.map(r =>
+    `<div class="jrow${target === r.pl ? ' on' : ''}${r === cheapest ? ' cheap' : ''}" data-b="${r.name}">` +
+    `<span>${r.name.toLowerCase()}</span>` +
+    `<span class="c">${secs(r.nowCost)}</span>` +
+    `<span class="c">${secs(r.best.cost)} ${hhmm(r.best.at)}</span></div>`).join('');
+  for (const el of jcrEl.querySelectorAll('.jrow'))
+    el.addEventListener('click', () => {
+      target = PLANETS.find(p => p.name === el.dataset.b) || null;
+      if (target) aimAt(target);           // and take the view to it
+      refreshHud();
+    });
+}
+/* how far off the aim a body is, in degrees */
+const _fwd = new THREE.Vector3(), _to = new THREE.Vector3();
+function offAxisDeg(pl) {
+  if (!pl || !pl.sprite) return 90;
+  camera.getWorldDirection(_fwd);
+  _to.copy(pl.sprite.getWorldPosition(new THREE.Vector3())).sub(camera.position).normalize();
+  return Math.acos(Math.max(-1, Math.min(1, _fwd.dot(_to)))) * 180 / Math.PI;
+}
+
+/* swing the view onto a body: a bearing and an elevation, eased over about
+   a second. The body may be under the horizon, in which case the view goes
+   to the right compass point and looks down at the water — which is itself
+   worth seeing, because it says where the thing is. */
+function aimAt(pl) {
+  if (!pl || !pl.sprite) return;
+  const w = pl.sprite.getWorldPosition(new THREE.Vector3());
+  const h = Math.hypot(w.x, w.z);
+  slew = {
+    yaw: Math.atan2(-w.x, -w.z),
+    el: Math.atan2(w.y, h)
+  };
+}
+
 function refreshHud() {
   hudShip.textContent = craft ? craft.userData.project.title : 'none';
-  hudTarget.textContent = target ? target.name : 'none';
+  hudTarget.textContent = arrived ? arrived.name + ' orbit'
+                                  : (target ? target.name : 'none');
   if (flight) { hudWhy.textContent = 'jumping'; jumpBtn.disabled = true; return; }
-  if (arrived) { hudWhy.textContent = 'arrived'; jumpBtn.disabled = true; return; }
-  if (!craft) { hudWhy.textContent = 'pick a craft'; jumpBtn.disabled = true; return; }
-  if (!target) { hudWhy.textContent = 'pick a body in the sky'; jumpBtn.disabled = true; return; }
+  if (arrived) {
+    /* in orbit: the readout is where you are, not a status word */
+    const km = arrived.km.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const lt = arrived.km / 299792.458;
+    hudWhy.textContent = `${km} km · light ${lt < 90 ? lt.toFixed(0) + 's' : (lt / 60).toFixed(0) + 'm'}`;
+    hudWindow.textContent = 'in orbit';
+    jumpBtn.disabled = true;
+    return;
+  }
+  if (!craft) { hudWhy.textContent = 'pick a craft'; jumpBtn.disabled = true; lockBtn.disabled = true; return; }
+  if (!target) { hudWhy.textContent = 'pick a body'; jumpBtn.disabled = true; lockBtn.disabled = true; return; }
+  /* never refused — priced. The status line is the spool this jump needs
+     from where the craft is pointed, right now. */
+  const drive = craft.userData.project.drive || 1;
+  const cost = jumpCost(target.real || 'Moon', new Date(), place.lat, place.lon,
+                        drive, offAxisDeg(target));
   const st = targetState(target);
-  hudWhy.textContent = st.why;
-  jumpBtn.disabled = !st.ok;
+  hudWhy.textContent = `${secs(cost)} spool${st.ok ? '' : ' · blind'}`;
+  jumpBtn.disabled = false;
+  jumpBtn.textContent = 'jump · ' + secs(cost);
+  lockBtn.disabled = false;
+
+  /* the countdown, and what waiting is worth */
+  if (locked) {
+    const left = locked.at - Date.now();
+    const save = cost - locked.cost;
+    hudWindow.textContent = left <= 0
+      ? 'open · ' + secs(locked.cost)
+      : hms(left) + (save > 0.5 ? ' · saves ' + secs(save) : '');
+    jumpBtn.classList.toggle('open', left <= 0);
+    if (locked.pl !== target) { locked = null; lockBtn.classList.remove('armed'); lockBtn.textContent = 'lock on'; }
+  } else {
+    hudWindow.textContent = '—';
+    jumpBtn.classList.remove('open');
+  }
+  pendingCost = cost;
+  drawJCR();
 }
 
 /* -------------------------------------------------------------- the jump */
@@ -2331,9 +2670,33 @@ streaks.visible = false;
 scene.add(streaks);
 
 /* the body, close up, once you get there */
+/* a cratered surface, so the body you arrive at is a world and not a disc */
+function surfaceTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#ffffff';
+  x.fillRect(0, 0, 512, 256);
+  for (let i = 0; i < 260; i++) {                  // basins and craters
+    const px = Math.random() * 512, py = Math.random() * 256;
+    const r = 2 + Math.pow(Math.random(), 2.4) * 46;
+    const g = x.createRadialGradient(px, py, r * 0.1, px, py, r);
+    const dark = 0.10 + Math.random() * 0.26;
+    g.addColorStop(0, `rgba(90,88,86,${dark})`);
+    g.addColorStop(0.7, `rgba(120,118,114,${dark * 0.5})`);
+    g.addColorStop(1, 'rgba(140,138,134,0)');
+    x.fillStyle = g;
+    x.beginPath(); x.ellipse(px, py, r, r * 0.72, 0, 0, Math.PI * 2); x.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
+}
 const arrivalBody = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 42, 28),
-  new THREE.MeshStandardMaterial({ color: 0xbfc4c8, roughness: 0.92, metalness: 0.02 }));
+  new THREE.SphereGeometry(1, 64, 40),
+  new THREE.MeshStandardMaterial({ map: surfaceTexture(), color: 0xbfc4c8,
+    roughness: 0.94, metalness: 0.02 }));
 arrivalBody.visible = false;
 scene.add(arrivalBody);
 
@@ -2347,10 +2710,10 @@ const BODY_LOOK = {
 };
 
 function beginJump() {
-  const st = targetState(target);
-  if (!craft || !st.ok || flight) return;
+  if (!craft || !target || flight) return;      // anything is reachable; it only costs
   const wp = target.sprite.getWorldPosition(new THREE.Vector3());
-  flight = { t: 0, from: camera.position.clone(), bearing: wp.clone().normalize(), body: target.name };
+  flight = { t: 0, dur: Math.max(2, Math.min(14, pendingCost)),
+             from: camera.position.clone(), bearing: wp.clone().normalize(), body: target.name };
   streaks.visible = true;
   hideCard();
   refreshHud();
@@ -2359,27 +2722,315 @@ function finishJump() {
   const name = flight.body;
   const look = BODY_LOOK[name] || BODY_LOOK.Moon;
   arrivalBody.material.color.setHex(look.color);
-  /* parked at four radii out, which is a photograph rather than a map */
-  const R = 120;
+
+  /* Put the body where the camera is actually LOOKING, not at a fixed point
+     in the world. Parked at a world position, it sat behind you whenever
+     you had slewed up to aim at the target — you arrived in orbit facing
+     empty space, which read as nothing having happened. */
+  const fwd = new THREE.Vector3();
+  camera.getWorldDirection(fwd);
+  const R = 150;
   arrivalBody.scale.setScalar(R);
-  arrivalBody.position.set(0, R * 0.25, -R * 3.4);
+  arrivalBody.position.copy(camera.position).addScaledVector(fwd, R * 3.2);
   arrivalBody.visible = true;
-  arrived = { name, km: bodyRange(name, new Date()), radius: look.radius };
+
+  /* and the sea is left behind: you are in orbit, not offshore */
+  homeScene(false);
+  /* hide the body's own marker in the sky: you are orbiting it, so having
+     it still hanging there as a labelled speck gave two Moons */
+  for (const pl of PLANETS) {
+    const mine = pl.name === name;
+    pl.sprite.visible = !mine;
+    if (pl.label) pl.label.visible = !mine;
+  }
+
+  arrived = { name, km: bodyRangeKm(name, new Date()), radius: look.radius };
   flight = null;
   streaks.visible = false;
   streaks.material.opacity = 0;
   backBtn.hidden = false;
+  landBtn.hidden = (name !== 'Moon');
   const km = arrived.km.toLocaleString(undefined, { maximumFractionDigits: 0 });
   const light = arrived.km / 299792.458;
-  hudWhy.textContent = `${km} km · light ${light < 90 ? light.toFixed(0) + 's' : (light/60).toFixed(0) + 'm'}`;
+  hudWhy.textContent = `${km} km · light ${light < 90 ? light.toFixed(0) + 's' : (light / 60).toFixed(0) + 'm'}`;
   jumpBtn.disabled = true;
+  hudTarget.textContent = name + ' orbit';
 }
+
+/* everything that belongs to the bay, shown or hidden in one move */
+function homeScene(on) {
+  water.visible = on;
+  pyramid.visible = on;
+  for (const m of MIST) m.visible = on;
+  for (const sh of ships) {
+    sh.visible = on;
+    if (sh.userData.twin) sh.userData.twin.visible = on;
+    if (sh.userData.pool) sh.userData.pool.visible = on;
+  }
+  reticle.visible = on;
+}
+
 function goHome() {
+  if (onMoon) setMoon(false);
+  landBtn.hidden = true;
   arrived = null;
   arrivalBody.visible = false;
+  for (const pl of PLANETS) { pl.sprite.visible = true; if (pl.label) pl.label.visible = true; }
+  homeScene(true);
   backBtn.hidden = true;
   refreshHud();
 }
+
+/* ------------------------------------------------------------- the lock
+   Locking picks a body and starts the clock running down to its cheapest
+   moment tonight. The lock holds wherever the body goes — under the
+   horizon, behind you, into daylight — because position is known whether
+   or not it can be seen. What the countdown measures is not permission but
+   PRICE: at zero the window is open and the same jump costs least.
+
+   You can always go early. It simply costs more, and the panel says how
+   much more while you decide. */
+/* The bodies as glyphs along the bottom edge: the old symbols, which are
+   the shortest way to say Saturn. Dimmed when a body is under the horizon
+   — still reachable, just dearer — lit when it is the target, and dotted
+   when it is the cheapest jump on the board. */
+const glyphEl = document.getElementById('glyphs');
+const glyphBtns = PLANETS.map(pl => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = pl.glyph || '?';
+  b.title = pl.name;
+  b.setAttribute('aria-label', pl.name);
+  /* Each glyph its own colour. Taking the sprite colours and lifting them
+     towards white washed them all to the same pale beige — Mars and Saturn
+     came out within a few points of each other. These are set apart by hue
+     instead, while still being roughly what each body looks like. */
+  const UI_HUE = {
+    Moon: '#e2edf7', Mercury: '#9fb0bd', Venus: '#ffd166', Mars: '#ff5a3c',
+    Jupiter: '#f09048', Saturn: '#e8d27a', Pluto: '#9aa6d6'
+  };
+  const hue = UI_HUE[pl.name] || '#ffffff';
+  b.style.color = hue;
+  b.dataset.hue = hue;
+  /* hovering a glyph says what it is and how far away it is right now —
+     recomputed on the spot, since the distance changes as things orbit */
+  b.addEventListener('pointerenter', () => showTip(pl));
+  b.addEventListener('pointerleave', hideTip);
+  b.addEventListener('focus', () => showTip(pl));
+  b.addEventListener('blur', hideTip);
+  b.addEventListener('click', () => { target = pl; aimAt(pl); refreshHud(); });
+  glyphEl.appendChild(b);
+  return { pl, b };
+});
+const gtip = document.getElementById('gtip');
+let tipFor = null;
+function showTip(pl) {
+  tipFor = pl;
+  paintTip();
+  gtip.classList.add('on');
+}
+function hideTip() { tipFor = null; gtip.classList.remove('on'); }
+function paintTip() {
+  if (!tipFor) return;
+  const name = tipFor.real || 'Moon';
+  const km = bodyRangeKm(name, new Date());
+  const au = km / 149597870.7;
+  const alt = (name === 'Moon' ? moonPosition(new Date(), place.lat, place.lon)
+                               : planetPosition(name, new Date(), place.lat, place.lon)).alt;
+  /* kilometres for the Moon, which is near enough to picture; AU beyond it,
+     where the kilometre stops meaning anything */
+  const dist = au < 0.02
+    ? Math.round(km).toLocaleString() + ' km'
+    : au.toFixed(2) + ' au · ' + (km / 1e6).toFixed(0) + 'M km';
+  const light = km / 299792.458;
+  const lt = light < 90 ? light.toFixed(0) + 's' : (light / 60).toFixed(0) + 'm';
+  gtip.innerHTML = `<span>${tipFor.name}${alt > 0 ? '' : ' &middot; down'}</span>` +
+                   `<span class="d">${dist} &middot; ${lt}</span>`;
+}
+
+function drawGlyphs(cheapName) {
+  for (const g of glyphBtns) {
+    const up = g.pl.sprite && g.pl.sprite.position.y > 0;
+    g.b.classList.toggle('on', target === g.pl);
+    g.b.classList.toggle('down', !up);
+    g.b.style.color = g.b.dataset.hue;          // the colour survives the state
+    g.b.style.opacity = up ? '1' : '.42';
+    g.b.classList.toggle('cheap', g.pl.name === cheapName);
+  }
+}
+
+const lockBtn = document.getElementById('lock');
+const hudWindow = document.getElementById('hudWindow');
+let locked = null;
+
+function hms(ms) {
+  if (ms <= 0) return 'open';
+  const s2 = Math.round(ms / 1000);
+  const h = Math.floor(s2 / 3600), m = Math.floor((s2 % 3600) / 60), q = s2 % 60;
+  return (h ? h + 'h ' : '') + String(m).padStart(h ? 2 : 1, '0') + 'm ' +
+         String(q).padStart(2, '0') + 's';
+}
+function toggleLock() {
+  if (locked) { locked = null; lockBtn.classList.remove('armed'); lockBtn.textContent = 'lock on'; }
+  else if (target) {
+    const drive = craft ? (craft.userData.project.drive || 1) : 1;
+    const w = cheapestWindow(target.real || 'Moon', place.lat, place.lon, drive);
+    locked = { pl: target, at: w.at, cost: w.cost };
+    lockBtn.classList.add('armed');
+    lockBtn.textContent = 'release';
+    aimAt(target);
+  }
+  refreshHud();
+}
+lockBtn.addEventListener('click', toggleLock);
+
+const hudTab = document.getElementById('hudTab');
+const hudPanel = document.getElementById('hud');
+hudTab.addEventListener('click', () => {
+  const away = hudPanel.classList.toggle('away');
+  hudTab.classList.toggle('out', away);        // the tab follows the panel's edge
+  hudTab.setAttribute('aria-expanded', String(!away));
+});
+
+const edgeEl = document.createElement('div');
+edgeEl.id = 'edge';
+document.body.appendChild(edgeEl);
+function edgeMark(pl, inFrame) {
+  if (!pl || inFrame) { edgeEl.style.opacity = '0'; return; }
+  const w = pl.sprite.getWorldPosition(new THREE.Vector3()).project(camera);
+  let x = w.x, y = w.y;
+  const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+  const to = pl.sprite.getWorldPosition(new THREE.Vector3()).sub(camera.position);
+  if (fwd.dot(to) < 0) { x = -x; y = -y; }        // behind: flip to the near edge
+  const m = Math.max(Math.abs(x), Math.abs(y)) || 1;
+  x /= m; y /= m;
+  edgeEl.style.opacity = '.85';
+  edgeEl.style.left = ((x * 0.44 + 0.5) * 100) + '%';
+  edgeEl.style.top = ((0.5 - y * 0.44) * 100) + '%';
+  edgeEl.style.transform = `translate(-50%,-50%) rotate(${Math.atan2(-y, x) * 180 / Math.PI + 90}deg)`;
+  edgeEl.textContent = '\u25B2 ' + pl.name.toLowerCase();
+}
+
+/* Start crewed and aimed. Both controls used to sit disabled until a ship
+   and a body had each been clicked, with nothing on screen saying so — the
+   panel looked broken rather than waiting. The lead craft and the nearest
+   body are a sensible default, and both can be changed at any time. */
+craft = ships[0];
+target = PLANETS.find(pl => pl.name === 'Moon') || PLANETS[0];
+refreshHud();
+
+/* =================================================== the lunar surface ====
+   The same place, somewhere else. The pyramid stands exactly where it does
+   at home and the fleet holds the same formation over it — what changes is
+   the ground, the sky and the light.
+
+   Regolith rather than water: a wide plate of it, undulating, pocked with
+   craters, in the bright grey-white of moon rock. No air, so the sky is
+   black to the horizon with the stars still out at noon, the shadows are
+   hard, and there is no mist and no glitter track. Earth hangs where the
+   sun would be at home.
+   ========================================================================= */
+const moonGround = (() => {
+  const g = new THREE.PlaneGeometry(1600, 1600, 110, 110);
+  const pos = g.attributes.position;
+  /* craters: each one dents the plate, with a raised rim as a real one has */
+  const craters = [];
+  for (let i = 0; i < 90; i++)
+    craters.push({ x: (Math.random() - 0.5) * 1500, y: (Math.random() - 0.5) * 1500,
+                   r: 12 + Math.pow(Math.random(), 2.2) * 120, d: 1.5 + Math.random() * 7 });
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i);
+    let z = Math.sin(x * 0.011) * 3.2 + Math.cos(y * 0.008) * 2.6      // long swells
+          + Math.sin((x + y) * 0.03) * 0.9;
+    for (const c of craters) {
+      const d = Math.hypot(x - c.x, y - c.y);
+      if (d > c.r * 1.25) continue;
+      if (d < c.r) z -= c.d * (1 - Math.pow(d / c.r, 2));              // the bowl
+      else z += c.d * 0.35 * (1 - (d - c.r) / (c.r * 0.25));           // the rim
+    }
+    pos.setZ(i, z);
+  }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+    map: surfaceTexture(), color: 0xf2f0ea, roughness: 1, metalness: 0,
+    envMapIntensity: 0.15 }));
+  m.material.map.repeat.set(7, 7);
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = -1.5;
+  m.visible = false;
+  scene.add(m);
+  return m;
+})();
+
+/* Earth, seen from there */
+const earthBall = new THREE.Mesh(
+  new THREE.SphereGeometry(54, 40, 26),
+  new THREE.MeshStandardMaterial({ color: 0x3f6f9e, roughness: 0.85, metalness: 0,
+    emissive: 0x16283c, emissiveIntensity: 0.5 }));
+earthBall.visible = false;
+scene.add(earthBall);
+
+const homeFog = scene.fog;
+let onMoon = false;
+const landBtn = document.getElementById('land');
+
+/* the pyramid's stone, at home and there */
+const STONE_HOME = 0xd8e6ea, STONE_MOON = 0xf6f4ee;
+
+function setMoon(on) {
+  onMoon = on;
+  moonGround.visible = on;
+  earthBall.visible = on;
+  arrivalBody.visible = arrived && !on;
+
+  /* the bay's own furniture stays behind; the pyramid and the fleet come */
+  water.visible = !on;
+  for (const m of MIST) m.visible = !on;
+  pyramid.visible = true;
+  for (const sh of ships) {
+    sh.visible = true;
+    if (sh.userData.twin) sh.userData.twin.visible = !on;    // nothing to reflect in
+    if (sh.userData.pool) sh.userData.pool.visible = !on;
+  }
+  reticle.visible = !on;
+
+  /* the stone goes bright, and stops pretending to be hazy distance */
+  const body = pyramid.children[0];
+  body.material.color.setHex(on ? STONE_MOON : STONE_HOME);
+  body.material.opacity = on ? 0.96 : 0.32;
+  body.material.roughness = on ? 1 : 0.9;
+
+  /* no air: black sky, hard light, stars at all hours */
+  dome.visible = !on;
+  scene.background = on ? new THREE.Color(0x05070c) : null;
+  scene.fog = on ? null : homeFog;
+  starMat.opacity = on ? 0.95 : starMat.opacity;
+  sun.intensity = on ? 2.4 : sun.intensity;
+  hemi.intensity = on ? 0.12 : hemi.intensity;
+
+  earthBall.position.set(-260, 210, -520);
+
+  /* A lunar day is a month long, so the sun where you land does not follow
+     the clock at home. It is put high and off to one side and LEFT there —
+     without this, landing at one in the morning put the sun under the
+     horizon and the surface was lit by nothing at all, which is exactly
+     what an airless world looks like: invisible. */
+  if (on) {
+    sun.position.set(-620, 520, -260);
+    sunSprite.visible = false;
+    for (const pl of PLANETS) { pl.sprite.visible = false; if (pl.label) pl.label.visible = false; }
+  } else {
+    sunSprite.visible = true;
+    for (const pl of PLANETS) { pl.sprite.visible = true; if (pl.label) pl.label.visible = true; }
+  }
+
+  /* and look out across the ground rather than wherever the jump left the
+     eye pointing */
+  if (on) { pitch = -0.04; yaw = 0; slew = null; }
+  landBtn.textContent = on ? 'orbit' : 'land';
+  hudTarget.textContent = on ? 'moon · surface' : (arrived ? arrived.name + ' orbit' : 'none');
+}
+landBtn.addEventListener('click', () => setMoon(!onMoon));
 
 jumpBtn.addEventListener('click', beginJump);
 backBtn.addEventListener('click', goHome);
@@ -2462,7 +3113,7 @@ function frame() {
       alt * SUN_DIST * 0.62,
       Math.cos(theta) * SUN_DIST);
   }
-  sun.position.copy(sunPos);
+  if (!onMoon) sun.position.copy(sunPos);      // on the Moon the sun is fixed where it was set
   sunSprite.position.copy(sunPos);
   sunSprite.material.opacity = Math.max(0, Math.min(1, (alt + 0.12) * 3));
   /* the disc goes from white overhead to deep orange on the horizon */
@@ -2489,9 +3140,10 @@ function frame() {
   const bandCol = new THREE.Color(skyBand[0] / 255, skyBand[1] / 255, skyBand[2] / 255);
 
   scene.fog.color.copy(bandCol);
-  sun.intensity = 0.12 + lift * 1.4;
-  sun.color.setRGB(1, 0.70 + lift * 0.26, 0.44 + lift * 0.46);   // red low, white high
-  hemi.intensity = 0.42 + lift * 0.85;
+  if (!onMoon) sun.intensity = 0.12 + lift * 1.4;
+  if (!onMoon) sun.color.setRGB(1, 0.70 + lift * 0.26, 0.44 + lift * 0.46);   // red low, white high
+  else sun.color.setRGB(1, 1, 0.98);                            // airless: white, unreddened
+  if (!onMoon) hemi.intensity = 0.42 + lift * 0.85;
   hemi.color.copy(bandCol).lerp(new THREE.Color(0xdfefff), lift);
 
   /* the sails carry the names, so they are lit from within as the light
@@ -2726,8 +3378,12 @@ function frame() {
        the sail fills a good part of the frame and the embroidery can be
        read. Clamped so it can never arrive in the camera's lap: it stops a
        clear 34 units short of the eye. */
-    const reach = (s.userData.len || 15) * 5;
-    const wanted = (s === chosen ? 24 : 0) + s.userData.near * reach;
+    /* hovering nudges a craft forward, it does not send it across the bay.
+       Five hull lengths put the sail in your face and half a length was
+       too timid to read; two is the distance where a craft clearly steps
+       out of the line and the formation still holds. */
+    const reach = (s.userData.len || 15) * 2;
+    const wanted = (s === chosen ? 26 : 0) + s.userData.near * reach;
     const room = Math.max(0, CAM_HOME.z - 34 - home.z);
     const tz = home.z + Math.min(wanted, room) + wz;
     const tx = home.x + (s === chosen ? -home.x * 0.25 : 0) + wx;
@@ -2796,6 +3452,17 @@ function frame() {
      The pointer also steers, gently — the view leans the way you are
      looking, which makes reaching a ship at the edge of the frame a matter
      of moving towards it rather than dragging. */
+  if (slew) {
+    /* ease onto the bearing by the shortest way round the compass */
+    let dy = slew.yaw - yaw;
+    while (dy > Math.PI) dy -= Math.PI * 2;
+    while (dy < -Math.PI) dy += Math.PI * 2;
+    yaw += dy * 0.06;
+    const baseElNow = Math.atan2(CAM_HOME.y * (VIEWS[view].camera.look) - camera.position.y, CAM_HOME.z);
+    pitch += ((slew.el - baseElNow) - pitch) * 0.06;
+    if (Math.abs(dy) < 0.01 && Math.abs((slew.el - baseElNow) - pitch) < 0.01) slew = null;
+  }
+
   const wantSteady = pointerOn ? 1 : 0;
   steady += (wantSteady - steady) * 0.035;
   const roam = 1 - steady;
@@ -2836,7 +3503,7 @@ function frame() {
      as a departure. */
   if (flight) {
     flight.t += 1 / 60;
-    const k = Math.min(1, flight.t / 3);
+    const k = Math.min(1, flight.t / flight.dur);
     const ease = k * k * k;                       // slow, then very fast
     if (craft) {
       craft.position.addScaledVector(flight.bearing, ease * 26);
@@ -2856,9 +3523,26 @@ function frame() {
     flash.style.opacity = '0';
   }
   if (arrived) {
-    arrivalBody.rotation.y += 0.0009;
+    /* hold station: the body stays ahead of the eye wherever you look, and
+       turns under you */
+    arrivalBody.rotation.y += 0.0012;
+    const fwd2 = new THREE.Vector3();
+    camera.getWorldDirection(fwd2);
+    const want = camera.position.clone().addScaledVector(fwd2, arrivalBody.scale.x * 3.2);
+    arrivalBody.position.lerp(want, 0.02);
   }
-  if (hudFrame++ % 20 === 0) refreshHud();        // the sky moves; so does the answer
+  /* the reticle rides the locked body, whether or not it is in frame */
+  if (target && target.sprite) {
+    reticle.position.copy(target.sprite.position);
+    reticle.material.opacity = 0.55 + 0.25 * Math.sin(t * 3);
+    const st = targetState(target);
+    edgeMark(target, st.ok);
+  } else {
+    reticle.material.opacity = 0;
+    edgeMark(null, true);
+  }
+
+  if (hudFrame++ % 20 === 0) { refreshHud(); paintTip(); }   // the sky moves; so do the answers
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
