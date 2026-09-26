@@ -67,6 +67,20 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
 #mail:hover{color:var(--brass)}
 @media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} }
+#hud{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:6;
+  background:rgba(8,14,20,.72);border:1px solid rgba(232,223,200,.22);padding:12px 14px;
+  font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);
+  min-width:210px;backdrop-filter:blur(3px)}
+#hud .row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+#hud .lab{color:rgba(255,255,255,.38)}
+#hud button{margin-top:10px;width:100%;font:inherit;letter-spacing:.2em;text-transform:uppercase;
+  padding:8px 0;cursor:pointer;background:var(--gold);color:#12161f;border:0}
+#hud button:disabled{background:transparent;color:rgba(255,255,255,.3);
+  border:1px solid rgba(255,255,255,.18);cursor:default}
+#hud button:not(:disabled):hover{background:var(--brass)}
+#flash{position:fixed;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none;
+  transition:opacity .18s}
+@media (max-width:520px){ #hud{min-width:0;font-size:9.5px;padding:9px 10px} }
 #stamp{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
   font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);
   pointer-events:none;line-height:1.7}
@@ -113,6 +127,15 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 </div>
 <div id="stamp"></div>
 
+<!-- the flight panel: a ship, a target, and the rule between them -->
+<div id="hud" aria-live="polite">
+  <div class="row"><span class="lab">craft</span><span id="hudShip">none</span></div>
+  <div class="row"><span class="lab">target</span><span id="hudTarget">none</span></div>
+  <div class="row"><span class="lab">status</span><span id="hudWhy">pick a craft</span></div>
+  <button id="jump" type="button" disabled>jump</button>
+  <button id="backHome" type="button" hidden>return</button>
+</div>
+
 <!-- Share and contact. The QR is inline SVG made from the site's own address,
      so there is no image file and no service rendering it. -->
 <div id="share">
@@ -135,6 +158,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
   <button class="back" id="cardBack" type="button">Back to the fleet</button>
 </div></div>
 
+<div id="flash"></div>
 <div id="fallback"><div class="inner">
   <h1>INGRAM MANOR LLC</h1>
   <div id="fbList"></div>
@@ -1061,6 +1085,65 @@ function moonPosition(date, lat, lon) {
   return { alt: alt * deg, az, phase: elong / (Math.PI * 2) };   // phase 0 new, 0.5 full
 }
 
+/* ---------------------------------------------------------- the planets
+   Real positions: orbital elements at the epoch, Kepler solved by
+   iteration for the body and for the Earth, heliocentric to geocentric,
+   then ecliptic to equatorial to this horizon. A few arcminutes, which is
+   far past what anyone can see — and it is why they lie along the
+   ecliptic without being told to. */
+const ELEMENTS = {
+  Mercury: { N:[ 48.3313, 3.24587e-5], i:[7.0047, 5.00e-8],  w:[ 29.1241, 1.01444e-5],
+             a: 0.387098, e:[0.205635, 5.59e-10], M:[168.6562, 4.0923344368] },
+  Venus:   { N:[ 76.6799, 2.46590e-5], i:[3.3946, 2.75e-8],  w:[ 54.8910, 1.38374e-5],
+             a: 0.723330, e:[0.006773, -1.302e-9], M:[ 48.0052, 1.6021302244] },
+  Mars:    { N:[ 49.5574, 2.11081e-5], i:[1.8497, -1.78e-8], w:[286.5016, 2.92961e-5],
+             a: 1.523688, e:[0.093405, 2.516e-9], M:[ 18.6021, 0.5240207766] },
+  Jupiter: { N:[100.4542, 2.76854e-5], i:[1.3030, -1.557e-7],w:[273.8777, 1.64505e-5],
+             a: 5.20256,  e:[0.048498, 4.469e-9], M:[ 19.8950, 0.0830853001] },
+  Saturn:  { N:[113.6634, 2.38980e-5], i:[2.4886, -1.081e-7],w:[339.3939, 2.97661e-5],
+             a: 9.55475,  e:[0.055546, -9.499e-9],M:[316.9670, 0.0334442282] },
+  /* Pluto, on mean elements — slow enough that this holds for a long while,
+     and here as a reference point rather than a destination. */
+  Pluto:   { N:[110.3035, 1.0e-8],      i:[17.1417, 1.0e-9],  w:[113.7630, 1.0e-8],
+             a: 39.4821,  e:[0.248808, 0],        M:[ 14.8620, 0.00396] }
+};
+function kepler(M, e) {
+  let E = M + e * Math.sin(M) * (1 + e * Math.cos(M));
+  for (let k = 0; k < 6; k++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+  return E;
+}
+function helio(el, d) {
+  const rad = Math.PI / 180;
+  const N = (el.N[0] + el.N[1] * d) * rad, i = (el.i[0] + el.i[1] * d) * rad;
+  const w = (el.w[0] + el.w[1] * d) * rad, a = el.a;
+  const e = el.e[0] + el.e[1] * d;
+  const M = ((el.M[0] + el.M[1] * d) % 360 + 360) % 360 * rad;
+  const E = kepler(M, e);
+  const xv = a * (Math.cos(E) - e), yv = a * Math.sqrt(1 - e * e) * Math.sin(E);
+  const v = Math.atan2(yv, xv), r = Math.hypot(xv, yv);
+  return { x: r * (Math.cos(N) * Math.cos(v + w) - Math.sin(N) * Math.sin(v + w) * Math.cos(i)),
+           y: r * (Math.sin(N) * Math.cos(v + w) + Math.cos(N) * Math.sin(v + w) * Math.cos(i)),
+           z: r * Math.sin(v + w) * Math.sin(i) };
+}
+function planetPosition(name, date, lat, lon) {
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  const d = date.getTime() / 86400000 - 10957.5;
+  const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1.000000,
+                        e:[0.016709, -1.151e-9], M:[356.0470, 0.9856002585] }, d);
+  const pl = helio(ELEMENTS[name], d);
+  const x = pl.x - earth.x, y = pl.y - earth.y, z = pl.z - earth.z;
+  const eps = (23.4393 - 3.563e-7 * d) * rad;
+  const ye = y * Math.cos(eps) - z * Math.sin(eps), ze = y * Math.sin(eps) + z * Math.cos(eps);
+  const ra = Math.atan2(ye, x) * deg, dec = Math.atan2(ze, Math.hypot(x, ye));
+  const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+  const lst = ((gmst * 15 + lon) % 360 + 360) % 360;
+  const H = ((lst - ra + 540) % 360 - 180) * rad, la = lat * rad;
+  const alt = Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(H));
+  let az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(la) - Math.tan(dec) * Math.cos(la));
+  az = ((az * deg + 180) % 360 + 360) % 360;
+  return { alt: alt * deg, az: az * rad, eclLat: Math.atan2(z, Math.hypot(x, y)) * deg };
+}
+
 /* The real phase tonight, counted from a known new moon. */
 function moonPhaseNow(date) {
   const SYNODIC = 29.530588853;
@@ -1113,11 +1196,12 @@ const PLANETS = [
      is dark enough to see it. Trailing just behind the sun, as it was, meant
      it set at the same time and was never once visible. */
   { name: 'Moon',    color: 0xf4f4f0, size: 38, lag: Math.PI, tilt: 0.08, mag: 1.00, moon: true },   // lag is set each frame
-  { name: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
-  { name: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
-  { name: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
-  { name: 'Jupiter', color: 0xe8c898, size: 15, lag: 2.35, tilt: 0.22, mag: 0.70 },
-  { name: 'Saturn',  color: 0xd06a4a, size: 12, lag: 2.95, tilt: -0.26, mag: 0.55 }
+  { name: 'Mercury', real: 'Mercury', color: 0xc9c2b4, size: 11, lag: 0.92, tilt: -0.10, mag: 0.55 },
+  { name: 'Venus', real: 'Venus',   color: 0xfff0c8, size: 17, lag: 1.25, tilt: 0.05, mag: 0.85 },
+  { name: 'Mars', real: 'Mars',    color: 0xe07a4a, size: 12, lag: 1.75, tilt: -0.18, mag: 0.60 },
+  { name: 'Jupiter', real: 'Jupiter', color: 0xe8c898, size: 15, lag: 2.35, tilt: 0.22, mag: 0.70 },
+  { name: 'Saturn', real: 'Saturn',  color: 0xd06a4a, size: 12, lag: 2.95, tilt: -0.26, mag: 0.55 },
+  { name: 'Pluto', real: 'Pluto', color: 0xb9a48f, size: 8, lag: 3.5, tilt: 0.3, mag: 0.4 }
 ];
 
 function bodyTexture(hex) {
@@ -1241,8 +1325,161 @@ for (const pl of PLANETS) {
     fog: false, opacity: 0 }));
   pl.sprite.scale.setScalar(pl.size);
   pl.sprite.renderOrder = -58;            // behind the pyramid, as the sun is
+  pl.label = labelSprite(pl.name);        // the name, so it can be found
+  scene.add(pl.label);
   scene.add(pl.sprite);
 }
+
+/* ------------------------------------------------------------------ stars
+   Placed once in equatorial coordinates with the pole up, then carried by
+   two nested groups: one tilted so the pole stands at this latitude, one
+   turned by local sidereal time. Rotating those is the whole night. */
+const starGeo = new THREE.BufferGeometry();
+{
+  const N = 900, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const ra = Math.random() * Math.PI * 2, dec = Math.asin(Math.random() * 2 - 1);
+    const mag = Math.pow(Math.random(), 2.6), R = 1500;
+    pos[i*3] = R * Math.cos(dec) * Math.cos(ra);
+    pos[i*3+1] = R * Math.sin(dec);
+    pos[i*3+2] = R * Math.cos(dec) * Math.sin(ra);
+    const k = Math.random();
+    const c = k > 0.86 ? [1,0.82,0.68] : k < 0.12 ? [0.78,0.86,1] : [1,1,0.97];
+    const b = 0.35 + mag * 0.65;
+    col[i*3] = c[0]*b; col[i*3+1] = c[1]*b; col[i*3+2] = c[2]*b;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  starGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+}
+const starMat = new THREE.PointsMaterial({ size: 2.6, vertexColors: true, transparent: true,
+  opacity: 0, depthWrite: false, fog: false, sizeAttenuation: false,
+  blending: THREE.AdditiveBlending });
+/* ------------------------------------------------- the two great circles
+   The ECLIPTIC — the plane of the solar system, the sun's path, and the
+   band every planet and the moon keep within. And the GALACTIC PLANE, the
+   disc of the galaxy seen edge-on, which crosses it at about sixty degrees.
+
+   Both are fixed against the stars, so they ride the same tilt and turn.
+   They are drawn faintly in daylight as well, because the frame is of most
+   use before you can see anything, not after. */
+function greatCircle(dir, color, weight) {
+  const pts = [];
+  for (let i = 0; i <= 360; i += 2) {
+    const v = dir(i * Math.PI / 180);
+    pts.push(new THREE.Vector3(1490 * v.x, 1490 * v.z, 1490 * v.y));   // pole up, as the stars
+  }
+  const line = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0,
+      depthWrite: false, fog: false }));
+  line.userData.weight = weight;
+  return line;
+}
+const OBLIQ = 23.4393 * Math.PI / 180;
+const ecliptic = greatCircle(lam => ({
+  x: Math.cos(lam),
+  y: Math.sin(lam) * Math.cos(OBLIQ),
+  z: Math.sin(lam) * Math.sin(OBLIQ)
+}), 0xf0d68a, 1);
+
+/* the north galactic pole sits at RA 192.859, Dec 27.128; the plane is
+   every direction at right angles to it */
+const NGP_RA = 192.85948 * Math.PI / 180, NGP_DEC = 27.12825 * Math.PI / 180;
+const gpole = new THREE.Vector3(Math.cos(NGP_DEC) * Math.cos(NGP_RA),
+                                Math.cos(NGP_DEC) * Math.sin(NGP_RA),
+                                Math.sin(NGP_DEC));
+const gA = new THREE.Vector3(0, 0, 1).cross(gpole).normalize();
+const gB = gpole.clone().cross(gA).normalize();
+const galactic = greatCircle(l => {
+  const v = gA.clone().multiplyScalar(Math.cos(l)).add(gB.clone().multiplyScalar(Math.sin(l)));
+  return { x: v.x, y: v.y, z: v.z };
+}, 0x8fb4e8, 0.72);
+
+/* --------------------------------------------------- named stars, Draco
+   Three anchors you can steer by, fixed against the sky like everything
+   else in this frame.
+
+   POLARIS, within a degree of the celestial pole, so the whole sky turns
+   about it tonight. VEGA, which is where that pole will be pointing in
+   about 13,700 AD — precession swings the axis round a circle every 25,800
+   years and Vega is the other end of it. And DRACO, the constellation the
+   two of them wind between, whose head also holds the north ecliptic pole.
+
+   So the three together are a clock at a scale above the Jupiter one: where
+   the axis points now, where it is going, and the coil it travels. */
+const NAMED = [
+  { name: 'Polaris', ra: 37.9529, dec: 89.2641, mag: 2.0 },
+  { name: 'Vega',    ra: 279.2347, dec: 38.7837, mag: 0.03 }
+];
+/* Draco, from the tail between the Bears round to the head by Vega */
+const DRACO = [
+  ['Giausar',    172.8510, 69.3311], ['Kappa Dra',  138.5910, 69.7881],
+  ['Thuban',     211.0975, 64.3758], ['Edasich',    231.2323, 58.9660],
+  ['Aldhibah',   240.4703, 61.5141], ['Athebyne',   245.9980, 61.5141],
+  ['Altais',     288.1387, 67.6615], ['Batentaban', 262.6083, 52.3014],
+  ['Grumium',    268.3823, 56.8727], ['Eltanin',    269.1515, 51.4889],
+  ['Rastaban',   262.6083, 52.3014], ['Kuma',       269.0632, 55.1830]
+];
+const DRACO_LINES = [0,1, 1,2, 2,3, 3,4, 4,5, 5,6, 6,7, 7,8, 8,9, 9,10, 10,11, 11,8];
+
+function eqPoint(raDeg, decDeg, R) {      // into the frame the stars use, pole up
+  const ra = raDeg * Math.PI / 180, dec = decDeg * Math.PI / 180;
+  return new THREE.Vector3(R * Math.cos(dec) * Math.cos(ra),
+                           R * Math.sin(dec),
+                           R * Math.cos(dec) * Math.sin(ra));
+}
+
+const dracoPts = [];
+for (let i = 0; i < DRACO_LINES.length; i += 2) {
+  const a = DRACO[DRACO_LINES[i]], b = DRACO[DRACO_LINES[i+1]];
+  dracoPts.push(eqPoint(a[1], a[2], 1470), eqPoint(b[1], b[2], 1470));
+}
+const draco = new THREE.LineSegments(
+  new THREE.BufferGeometry().setFromPoints(dracoPts),
+  new THREE.LineBasicMaterial({ color: 0x9fd2c8, transparent: true, opacity: 0,
+    depthWrite: false, fog: false }));
+
+/* a name beside each body, so the specks are reference points */
+function labelSprite(text) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const x = c.getContext('2d');
+  x.font = '600 30px ui-monospace, Menlo, monospace';
+  x.textAlign = 'center';
+  x.fillStyle = 'rgba(0,0,0,.55)';
+  x.fillText(text.toUpperCase(), 128, 43);
+  x.fillStyle = 'rgba(255,248,226,.95)';
+  x.fillText(text.toUpperCase(), 128, 41);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true,
+    depthWrite: false, depthTest: false, fog: false, opacity: 0 }));
+  sp.scale.set(120, 30, 1);
+  return sp;
+}
+
+const starSpin = new THREE.Group(); starSpin.add(new THREE.Points(starGeo, starMat));
+starSpin.add(draco);
+starSpin.add(ecliptic);
+starSpin.add(galactic);
+
+/* Polaris and Vega as marked stars, brighter than the field and named */
+const namedLabels = [];
+for (const st of NAMED) {
+  const pt = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: bodyTexture(st.name === 'Vega' ? 0xcfe0ff : 0xfff2d8),
+    transparent: true, depthWrite: false, fog: false,
+    blending: THREE.AdditiveBlending, opacity: 0 }));
+  pt.scale.setScalar(st.mag < 1 ? 26 : 18);
+  pt.position.copy(eqPoint(st.ra, st.dec, 1480));
+  starSpin.add(pt);
+  const lb = labelSprite(st.name);
+  lb.scale.set(96, 24, 1);
+  lb.position.copy(eqPoint(st.ra, st.dec, 1460)).add(new THREE.Vector3(0, -52, 0));
+  starSpin.add(lb);
+  namedLabels.push(pt, lb);
+}
+const starTilt = new THREE.Group(); starTilt.add(starSpin);
+scene.add(starTilt);
 
 /* the track the sun lays across the water towards the viewer */
 function glitterTexture() {
@@ -1598,6 +1835,93 @@ pyramid.userData.capEdges = capEdges;
 pyramid.userData.capY = capstone.position.y;
 scene.add(pyramid);
 
+/* ------------------------------------------------------- the Giza clock
+   The construction probe 41 tested, running live. A body's RISING azimuth
+   selects a point on the pyramid's perimeter; that point maps to one of
+   the 210 courses; the course is lit as a band round the pyramid and a ray
+   runs out along the bearing it rose on.
+
+   Jupiter is the clock's own hand, but from most places on most nights
+   Jupiter is under the horizon and the instrument has nothing to read. So
+   it takes the highest body that has actually risen — Jupiter first if it
+   is up, then Mars, Saturn, Venus, Mercury, and the Moon, which nearly
+   always is. The stamp says which one it is reading.
+
+   Probe 41 retired this as a signal: detrended, the azimuth correlates
+   with price at r = 0.021. It is kept here as what it honestly is, which
+   is a clock. */
+const GIZA_AZ = [62.49, 107.22];         // the azimuth range at the Great Pyramid
+const COURSES = 210;
+const CLOCK_ORDER = ['Jupiter', 'Mars', 'Saturn', 'Venus', 'Mercury'];
+
+const bodyAlt = (n, d, la, lo) =>
+  n === 'Moon' ? moonPosition(d, la, lo).alt : planetPosition(n, d, la, lo).alt;
+const bodyAz = (n, d, la, lo) =>
+  n === 'Moon' ? moonPosition(d, la, lo).az : planetPosition(n, d, la, lo).az;
+
+/* the bearing it rose on, searched backwards; or the next rise if it is down */
+function riseAzimuth(n, date, la, lo, back) {
+  let prev = bodyAlt(n, date, la, lo);
+  for (let m = 10; m <= 60 * 28; m += 10) {
+    const t = new Date(date.getTime() + (back ? -m : m) * 60000);
+    const a = bodyAlt(n, t, la, lo);
+    const crossed = back ? (a < 0 && prev >= 0) : (prev < 0 && a >= 0);
+    if (crossed) return { az: bodyAz(n, t, la, lo) * 180 / Math.PI, when: t };
+    prev = a;
+  }
+  return null;
+}
+function clockReading(date, la, lo) {
+  let pick = null, best = 3;
+  for (const n of CLOCK_ORDER) {
+    const a = bodyAlt(n, date, la, lo);
+    if (n === 'Jupiter' && a > 3) { pick = n; break; }
+    if (a > best) { pick = n; best = a; }
+  }
+  if (!pick && bodyAlt('Moon', date, la, lo) > 3) pick = 'Moon';
+  const name = pick || 'Jupiter';
+  const r = riseAzimuth(name, date, la, lo, !!pick) ||
+            riseAzimuth(name, date, la, lo, false);
+  return r ? { body: name, az: r.az, up: !!pick } : null;
+}
+const courseFor = az =>
+  Math.round(Math.min(1, Math.max(0, (az - GIZA_AZ[0]) / (GIZA_AZ[1] - GIZA_AZ[0]))) * (COURSES - 1));
+
+const clockBand = new THREE.LineLoop(
+  new THREE.BufferGeometry().setFromPoints([0,1,2,3].map(k =>
+    new THREE.Vector3(Math.cos(k * Math.PI/2 + Math.PI/4), 0, Math.sin(k * Math.PI/2 + Math.PI/4)))),
+  new THREE.LineBasicMaterial({ color: 0xffd98a, transparent: true, opacity: 0.6,
+    depthWrite: false, fog: false }));
+pyramid.add(clockBand);
+const clockRay = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineBasicMaterial({ color: 0xffc860, transparent: true, opacity: 0.4,
+    depthWrite: false, fog: false }));
+scene.add(clockRay);
+
+let clockLast = 0, clockRead = null;
+function updateClock(nowMs) {
+  if (nowMs - clockLast < 60000 && clockRead) return;      // once a minute is plenty
+  clockLast = nowMs;
+  const read = clockReading(new Date(nowMs), place.lat, place.lon);
+  if (!read) { clockBand.visible = clockRay.visible = false; return; }
+  clockBand.visible = clockRay.visible = true;
+  clockRead = { body: read.body, az: read.az, course: courseFor(read.az), up: read.up };
+
+  const f = clockRead.course / COURSES;
+  clockBand.position.y = PY_H * f;
+  const r = PY_R * (1 - f) * Math.SQRT2;
+  clockBand.scale.set(r, 1, r);
+
+  const az = read.az * Math.PI / 180, y = PY_H * f * 0.6;
+  const pa = clockRay.geometry.attributes.position;
+  pa.setXYZ(0, 0, y, 0);
+  pa.setXYZ(1, -Math.cos(az) * PY_R * 3.2, y, Math.sin(az) * PY_R * 3.2);
+  pa.needsUpdate = true;
+  clockRay.position.set(0, 0, PY_Z);
+  clockRay.geometry.computeBoundingSphere();
+}
+
 /* ------------------------------------------------------------------- mist
    Banks lying on the water: wide, very soft sprites drifting at different
    depths and speeds, plus a thin band along the horizon that thickens and
@@ -1768,8 +2092,13 @@ function shipUnder(ev) {
 
 renderer.domElement.addEventListener('pointermove', ev => {
   if (dragging) {
-    yaw = Math.max(-0.5, Math.min(0.5, yaw - (ev.clientX - px) * 0.0025));
-    pitch = Math.max(-0.1, Math.min(0.32, pitch + (ev.clientY - py) * 0.0015));
+    /* all the way round. A target can be anywhere on the compass, so the
+       view has to reach anywhere on the compass. */
+    yaw -= (ev.clientX - px) * 0.0032;
+    /* the view has to reach the sky: a body forty degrees up has to be
+       brought into the frame before the drive will engage, and at the old
+       limit of 0.32 it could not be reached at all. */
+    pitch = Math.max(-0.12, Math.min(1.5, pitch + (ev.clientY - py) * 0.0022));
     px = ev.clientX; py = ev.clientY;
     return;
   }
@@ -1794,7 +2123,10 @@ renderer.domElement.addEventListener('pointerup', ev => {
   dragging = false;
   if (Math.abs(ev.clientX - px) + Math.abs(ev.clientY - py) < 6) {
     const s = shipUnder(ev);
-    if (s) choose(s); else release();
+    if (s) { choose(s); craft = s; refreshHud(); return; }
+    const b = bodyUnder(ev);                     // a body in the sky becomes the target
+    if (b) { target = b; refreshHud(); return; }
+    release();
   }
 });
 renderer.domElement.addEventListener('pointerleave', () => {
@@ -1871,7 +2203,8 @@ function stampPlace() {
   const phaseName = names[Math.round(ph * 8) % 8];
   stampEl.textContent =
     `${place.name} · ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ` +
-    `sun ${sa.alt > 0 ? sa.alt.toFixed(0) + '° up' : 'below the horizon'} · moon ${phaseName}`;
+    `sun ${sa.alt > 0 ? sa.alt.toFixed(0) + '° up' : 'below the horizon'} · moon ${phaseName}` +
+    (clockRead ? ` · clock on ${clockRead.body.toLowerCase()}, course ${clockRead.course}` : '');
 }
 stampPlace();
 setInterval(stampPlace, 5000);
@@ -1889,6 +2222,161 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+/* ===================================================== flight =============
+   Pick a craft, lock a body, jump to it.
+
+   THE RULE: a body must be genuinely available before the drive will
+   engage. Two conditions, both real — it has to be ABOVE THE HORIZON at
+   your location and this moment, and it has to be INSIDE THE FRAME. You
+   cannot jump to something that is under the earth or behind you; you have
+   to bring it into view first. That is the whole navigation problem here,
+   and it is the reason the sky is computed rather than decorated.
+
+   Energy is not modelled. Every craft can reach anything it can see.
+   ========================================================================= */
+const hudShip = document.getElementById('hudShip');
+const hudTarget = document.getElementById('hudTarget');
+const hudWhy = document.getElementById('hudWhy');
+const jumpBtn = document.getElementById('jump');
+const backBtn = document.getElementById('backHome');
+const flash = document.getElementById('flash');
+
+let craft = null;            // the ship that flies
+let target = null;           // the body it is locked to
+let flight = null;           // the jump in progress
+let arrived = null;          // where we are, once there
+
+/* how far away things really are, in kilometres, so the arrival can say
+   something true rather than a number chosen to look good */
+const AU = 149597870.7;
+function bodyRange(name, date) {
+  if (name === 'Moon') return 384400;
+  const d = date.getTime() / 86400000 - 10957.5;
+  const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
+                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
+  const pl = helio(ELEMENTS[name], d);
+  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * AU;
+}
+
+/* is this body usable: up, and in the frame? */
+const _v = new THREE.Vector3();
+function targetState(pl) {
+  if (!pl || !pl.sprite) return { ok: false, why: 'no target' };
+  const wp = pl.sprite.getWorldPosition(_v.clone());
+  /* above the horizon */
+  if (wp.y <= 0) return { ok: false, why: pl.name.toLowerCase() + ' is below the horizon' };
+  /* and inside the frame */
+  /* In front of the camera, and inside the frame. The projected depth is
+     useless here — a body nine hundred units out rounds to exactly 1.0
+     against the far plane, so the old test could never pass. What matters
+     is the angle off the axis. */
+  const fwd = new THREE.Vector3();
+  camera.getWorldDirection(fwd);
+  const toBody = wp.clone().sub(camera.position).normalize();
+  if (fwd.dot(toBody) <= 0.15) return { ok: false, why: 'bring ' + pl.name.toLowerCase() + ' into view' };
+  const p = wp.clone().project(camera);
+  const inFrame = Math.abs(p.x) < 0.94 && Math.abs(p.y) < 0.94;
+  if (!inFrame) return { ok: false, why: 'bring ' + pl.name.toLowerCase() + ' into view' };
+  if (pl.sprite.material.opacity < 0.05)
+    return { ok: false, why: pl.name.toLowerCase() + ' is lost in daylight' };
+  return { ok: true, why: 'ready' };
+}
+
+function bodyUnder(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+  ptr.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+  ray.setFromCamera(ptr, camera);
+  ray.params.Sprite = { threshold: 0.1 };
+  const hit = ray.intersectObjects(PLANETS.map(p => p.sprite).filter(Boolean), false)[0];
+  if (!hit) return null;
+  return PLANETS.find(p => p.sprite === hit.object) || null;
+}
+
+function refreshHud() {
+  hudShip.textContent = craft ? craft.userData.project.title : 'none';
+  hudTarget.textContent = target ? target.name : 'none';
+  if (flight) { hudWhy.textContent = 'jumping'; jumpBtn.disabled = true; return; }
+  if (arrived) { hudWhy.textContent = 'arrived'; jumpBtn.disabled = true; return; }
+  if (!craft) { hudWhy.textContent = 'pick a craft'; jumpBtn.disabled = true; return; }
+  if (!target) { hudWhy.textContent = 'pick a body in the sky'; jumpBtn.disabled = true; return; }
+  const st = targetState(target);
+  hudWhy.textContent = st.why;
+  jumpBtn.disabled = !st.ok;
+}
+
+/* -------------------------------------------------------------- the jump */
+const streakGeo = new THREE.BufferGeometry();
+{
+  const N = 260, pos = new Float32Array(N * 6);
+  for (let i = 0; i < N; i++) {
+    const a = Math.random() * Math.PI * 2, r = 6 + Math.random() * 90;
+    const z = -Math.random() * 600;
+    pos[i*6]   = Math.cos(a) * r; pos[i*6+1] = Math.sin(a) * r; pos[i*6+2] = z;
+    pos[i*6+3] = Math.cos(a) * r; pos[i*6+4] = Math.sin(a) * r; pos[i*6+5] = z - 40;
+  }
+  streakGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+}
+const streaks = new THREE.LineSegments(streakGeo, new THREE.LineBasicMaterial({
+  color: 0xdfeaff, transparent: true, opacity: 0, depthWrite: false, fog: false,
+  blending: THREE.AdditiveBlending }));
+streaks.visible = false;
+scene.add(streaks);
+
+/* the body, close up, once you get there */
+const arrivalBody = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 42, 28),
+  new THREE.MeshStandardMaterial({ color: 0xbfc4c8, roughness: 0.92, metalness: 0.02 }));
+arrivalBody.visible = false;
+scene.add(arrivalBody);
+
+const BODY_LOOK = {
+  Moon:    { color: 0xd8d5cc, radius: 1737 },
+  Mercury: { color: 0x9c948a, radius: 2440 },
+  Venus:   { color: 0xe6cf9c, radius: 6052 },
+  Mars:    { color: 0xc1552f, radius: 3390 },
+  Jupiter: { color: 0xd9b48a, radius: 69911 },
+  Saturn:  { color: 0xd9c89a, radius: 58232 }
+};
+
+function beginJump() {
+  const st = targetState(target);
+  if (!craft || !st.ok || flight) return;
+  const wp = target.sprite.getWorldPosition(new THREE.Vector3());
+  flight = { t: 0, from: camera.position.clone(), bearing: wp.clone().normalize(), body: target.name };
+  streaks.visible = true;
+  hideCard();
+  refreshHud();
+}
+function finishJump() {
+  const name = flight.body;
+  const look = BODY_LOOK[name] || BODY_LOOK.Moon;
+  arrivalBody.material.color.setHex(look.color);
+  /* parked at four radii out, which is a photograph rather than a map */
+  const R = 120;
+  arrivalBody.scale.setScalar(R);
+  arrivalBody.position.set(0, R * 0.25, -R * 3.4);
+  arrivalBody.visible = true;
+  arrived = { name, km: bodyRange(name, new Date()), radius: look.radius };
+  flight = null;
+  streaks.visible = false;
+  streaks.material.opacity = 0;
+  backBtn.hidden = false;
+  const km = arrived.km.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const light = arrived.km / 299792.458;
+  hudWhy.textContent = `${km} km · light ${light < 90 ? light.toFixed(0) + 's' : (light/60).toFixed(0) + 'm'}`;
+  jumpBtn.disabled = true;
+}
+function goHome() {
+  arrived = null;
+  arrivalBody.visible = false;
+  backBtn.hidden = true;
+  refreshHud();
+}
+
+jumpBtn.addEventListener('click', beginJump);
+backBtn.addEventListener('click', goHome);
+
 /* ================================================================== render */
 /* the sail's half height, worked out once per geometry */
 function clothHalf(g) {
@@ -1900,6 +2388,7 @@ function clothHalf(g) {
 }
 
 const clock = new THREE.Clock();
+let hudFrame = 0;
 let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
 function frame() {
   const t = clock.getElapsedTime();
@@ -2028,6 +2517,18 @@ function frame() {
   }
 
   for (const pl of PLANETS) {
+    if (!pl.moon && realSky && pl.real) {
+      const pp = planetPosition(pl.real, new Date(), place.lat, place.lon);
+      const ar = pp.alt * Math.PI / 180;
+      pl.sprite.position.set(-Math.cos(pp.az) * Math.cos(ar) * SUN_DIST,
+                             Math.sin(ar) * SUN_DIST,
+                             Math.sin(pp.az) * Math.cos(ar) * SUN_DIST);
+      /* a risen body stays faintly marked in daylight: it is a reference
+         point whether or not the sky is dark enough to show it properly */
+      pl.sprite.material.opacity = Math.max(0, Math.min(1, Math.sin(ar) * 6))
+        * (0.16 + Math.max(0, Math.min(1, (0.10 - alt) * 4)) * 0.84) * pl.mag;
+      continue;
+    }
     if (pl.moon && realMoon) {
       /* the real Moon: its own altitude and azimuth, on the same compass as
          the sun — east is +Z, north is -X */
@@ -2063,12 +2564,39 @@ function frame() {
     }
   }
 
+  {                                                // the sky turns
+    const dS = Date.now() / 86400000 - 10957.5;
+    const gmst = (18.697374558 + 24.06570982441908 * dS) % 24;
+    const lstDeg = ((gmst * 15 + place.lon) % 360 + 360) % 360;
+    starTilt.rotation.z = (90 - place.lat) * Math.PI / 180;
+    starSpin.rotation.y = -lstDeg * Math.PI / 180;
+    starMat.opacity = Math.max(0, Math.min(1, (-alt - 0.02) * 3.4)) * 0.95;
+    /* the frame shows in daylight too, faintly — it is what the opening view
+       has in place of landmarks */
+    const night = Math.max(0, Math.min(1, (0.10 - alt) * 3));
+    ecliptic.material.opacity = (0.13 + night * 0.30) * ecliptic.userData.weight;
+    galactic.material.opacity = (0.09 + night * 0.24) * galactic.userData.weight;
+    draco.material.opacity = 0.05 + night * 0.26;
+    for (const o of namedLabels) o.material.opacity = 0.14 + night * 0.7;
+    updateClock(Date.now());
+    const up = Math.max(0, Math.min(1, (0.16 - alt) * 2.4));
+    clockBand.material.opacity = 0.25 + up * 0.6;
+    clockRay.material.opacity = up * 0.42;
+  }
+
   for (const m of MIST) {                          // drift, breathe, take the sky's colour
     const u = m.userData;
     m.material.map.offset.x += u.drift * 0.016;
     const breathe = 0.55 + 0.45 * Math.sin(t * 0.055 * u.puff + u.puff * 3);
     m.material.opacity = u.base * breathe * (0.55 + dusk * 0.5);
     m.material.color.copy(bandCol).lerp(new THREE.Color(0xffffff), 0.45);
+  }
+
+  for (const pl of PLANETS) {                    // the names, beside their bodies
+    if (!pl.label) continue;
+    pl.label.position.copy(pl.sprite.position).multiplyScalar(0.985);
+    pl.label.position.y -= 46;
+    pl.label.material.opacity = Math.min(0.8, pl.sprite.material.opacity * 1.5);
   }
 
   /* the glitter track lies between the viewer and the sun, and only when the
@@ -2254,10 +2782,59 @@ function frame() {
   const driftX = Math.sin(t * 0.043) * CAM_HOME.z * 0.13 + Math.sin(t * 0.017) * CAM_HOME.z * 0.05;
   const driftY = Math.sin(t * 0.031 + 1.3) * CAM_HOME.y * 0.5 + Math.sin(t * 0.011) * CAM_HOME.y * 0.22;
 
-  camera.position.x += ((CAM_HOME.x + driftX + Math.sin(yaw) * CAM_HOME.z * 0.3) - camera.position.x) * 0.05;
+  /* an orbit rather than a slide: the eye swings round the fleet on the
+     radius the view was fitted at, so the whole sky is reachable */
+  const orbit = CAM_HOME.z;
+  const wantX = CAM_HOME.x + driftX + Math.sin(yaw) * orbit;
+  const wantZ = Math.cos(yaw) * orbit;
+  camera.position.x += (wantX - camera.position.x) * 0.05;
+  camera.position.z += (wantZ - camera.position.z) * 0.05;
   camera.position.y += ((CAM_HOME.y + driftY + (chosen ? 5 : 0) + pitch * 34) - camera.position.y) * 0.05;
   camera.position.z += ((CAM_HOME.z + (chosen ? 14 : 0)) - camera.position.z) * 0.05;
-  camera.lookAt(0, CAM_HOME.y * (VIEWS[view].camera.look), chosen ? 8 : 0);
+  /* looking up: the aim point climbs with the pitch, so dragging upward
+     sweeps the sky rather than merely raising the eye */
+  /* Aim as an ANGLE. Treating the pitch as a height to look at meant the
+     aim ran away with distance — at full tilt the camera pointed almost
+     straight up and skipped over everything between. A bearing and an
+     elevation behave the way a head does. */
+  const baseEl = Math.atan2(CAM_HOME.y * (VIEWS[view].camera.look) - camera.position.y, orbit);
+  const el = baseEl + pitch;
+  const aim = new THREE.Vector3(
+    camera.position.x + (-Math.sin(yaw)) * Math.cos(el) * 100,
+    camera.position.y + Math.sin(el) * 100,
+    camera.position.z + (-Math.cos(yaw)) * Math.cos(el) * 100);
+  camera.lookAt(aim);
+
+  /* ------------------------------------------------------------ the jump
+     Three seconds: the craft swings onto the bearing and runs out ahead,
+     the streaks come up, the frame whites out, and you are there. The
+     camera follows the craft rather than cutting, so the departure reads
+     as a departure. */
+  if (flight) {
+    flight.t += 1 / 60;
+    const k = Math.min(1, flight.t / 3);
+    const ease = k * k * k;                       // slow, then very fast
+    if (craft) {
+      craft.position.addScaledVector(flight.bearing, ease * 26);
+      craft.scale.setScalar(Math.max(0.05, 1 - ease * 0.95));
+    }
+    streaks.material.opacity = Math.min(0.85, k * 1.6) * (1 - Math.max(0, (k - 0.82) / 0.18));
+    streaks.position.copy(camera.position);
+    streaks.lookAt(camera.position.clone().add(flight.bearing));
+    streaks.children;
+    if (k > 0.82) flash.style.opacity = String((k - 0.82) / 0.18 * 0.9);
+    if (k >= 1) {
+      flash.style.opacity = '0';
+      if (craft) { craft.scale.setScalar(1); }    // it is stowed, not destroyed
+      finishJump();
+    }
+  } else if (!arrived) {
+    flash.style.opacity = '0';
+  }
+  if (arrived) {
+    arrivalBody.rotation.y += 0.0009;
+  }
+  if (hudFrame++ % 20 === 0) refreshHud();        // the sky moves; so does the answer
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
