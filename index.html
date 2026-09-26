@@ -1541,7 +1541,7 @@ const waterNrm = waterNormals();
 const water = new THREE.Mesh(waterGeo, new THREE.MeshStandardMaterial({
   color: 0x2e8fb4, roughness: 0.10, metalness: 0.78,
   envMap: sky, envMapIntensity: 1.1,
-  transparent: true, opacity: 0.93,            // so the mirrored hulls read through it
+  transparent: true, opacity: 0.84,            // so the mirrored hulls read through it
   normalMap: waterNrm, normalScale: new THREE.Vector2(0.55, 0.55) }));
 water.renderOrder = 1;
 water.rotation.x = -Math.PI / 2;
@@ -2027,7 +2027,11 @@ PROJECTS.forEach((p, i) => {
    reach: chop breaks the far end of it up long before that. So the twin is
    foreshortened, faded with depth in the shader, and clipped hard at the
    point where there would be nothing left to see anyway. */
-const REF_FLOOR = 9;                       // how deep a reflection survives
+/* The craft hover about seven units up, so their mirror images start seven
+   units DOWN and the old floor of nine cut them off almost immediately.
+   Deeper floor, and the fade is measured from the surface rather than from
+   the craft. */
+const REF_FLOOR = 26;                      // how deep a reflection survives
 renderer.localClippingEnabled = true;
 const refClip = new THREE.Plane(new THREE.Vector3(0, 1, 0), REF_FLOOR);
 
@@ -2055,7 +2059,7 @@ for (const ship of ships) {
      five accents in the water, one under each ship */
   const tint = new THREE.MeshBasicMaterial({
     color: new THREE.Color(ship.userData.project.neon || 0x35e6ff).multiplyScalar(0.55),
-    transparent: true, opacity: 0.30, depthWrite: false, fog: true,
+    transparent: true, opacity: 0.52, depthWrite: false, fog: true,
     clippingPlanes: [refClip] });
   fadeWithDepth(tint);
   twin.traverse(o => {
@@ -2079,6 +2083,7 @@ const ptr = new THREE.Vector2();
 let hovered = null, chosen = null, dragging = false, px = 0, py = 0, yaw = 0, pitch = 0;
 
 function shipUnder(ev) {
+  pointerOn = true;
   const r = renderer.domElement.getBoundingClientRect();
   ptr.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
   ptr.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
@@ -2129,7 +2134,9 @@ renderer.domElement.addEventListener('pointerup', ev => {
     release();
   }
 });
+renderer.domElement.addEventListener('pointerenter', () => { pointerOn = true; });
 renderer.domElement.addEventListener('pointerleave', () => {
+  pointerOn = false;
   dragging = false; tip.classList.remove('on');
   if (hovered) { hovered = null; cardFor(null); }
 });
@@ -2388,7 +2395,7 @@ function clothHalf(g) {
 }
 
 const clock = new THREE.Clock();
-let hudFrame = 0;
+let hudFrame = 0, pointerOn = false, steady = 0;
 let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
 function frame() {
   const t = clock.getElapsedTime();
@@ -2704,11 +2711,13 @@ function frame() {
     s.rotation.y = Math.PI / 2 + Math.sin(t * 0.19 + ph * 0.6) * 0.07;                 // yaw
     const twin = s.userData.twin;
     if (twin) {
-      twin.position.set(s.position.x, -s.position.y * 0.92, s.position.z);
+      /* a true mirror about the waterline, so the gap under the hull is
+         matched by the gap above its reflection */
+      twin.position.set(s.position.x, -s.position.y, s.position.z);
       twin.rotation.set(-s.rotation.x, s.rotation.y, -s.rotation.z);
       /* the swell stretches and shears it */
       twin.scale.set(1 + Math.sin(t * 1.1 + ph) * 0.03,
-                     -(0.55 + Math.sin(t * 0.8 + ph) * 0.05),
+                     -(0.78 + Math.sin(t * 0.8 + ph) * 0.06),
                      1);
       twin.position.x += Math.sin(t * 1.4 + ph) * 0.25;
     }
@@ -2779,8 +2788,23 @@ function frame() {
   /* a slow pass across the fleet and a gentle rise and fall, so the scene is
      never quite still even with the mouse untouched. Two periods that do not
      divide into one another, so it never returns to the same place. */
-  const driftX = Math.sin(t * 0.043) * CAM_HOME.z * 0.13 + Math.sin(t * 0.017) * CAM_HOME.z * 0.05;
-  const driftY = Math.sin(t * 0.031 + 1.3) * CAM_HOME.y * 0.5 + Math.sin(t * 0.011) * CAM_HOME.y * 0.22;
+  /* The drift stands down while the pointer is on the scene. Chasing a
+     target that is itself sliding is the thing that made hovering awkward:
+     the moment the mouse is over the canvas the camera settles, and it
+     picks the wander back up a second after the mouse leaves.
+
+     The pointer also steers, gently — the view leans the way you are
+     looking, which makes reaching a ship at the edge of the frame a matter
+     of moving towards it rather than dragging. */
+  const wantSteady = pointerOn ? 1 : 0;
+  steady += (wantSteady - steady) * 0.035;
+  const roam = 1 - steady;
+  const driftX = (Math.sin(t * 0.043) * CAM_HOME.z * 0.13
+                + Math.sin(t * 0.017) * CAM_HOME.z * 0.05) * roam
+                + ptr.x * CAM_HOME.z * 0.06 * steady;
+  const driftY = (Math.sin(t * 0.031 + 1.3) * CAM_HOME.y * 0.5
+                + Math.sin(t * 0.011) * CAM_HOME.y * 0.22) * roam
+                + ptr.y * CAM_HOME.y * 0.5 * steady;
 
   /* an orbit rather than a slide: the eye swings round the fleet on the
      radius the view was fitted at, so the whole sky is reachable */
