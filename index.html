@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-   REPO: ingram-manor/index.html
+   REPO: moon-racer/index.html
    ==========================================================================
-   INGRAM MANOR LLC — the fleet
+   MOON RACER — the fleet
    ==========================================================================
    Three projects as three caravels, holding formation on the canal, bows to
    the viewer. Hover a ship and it lifts on the swell and names itself.
@@ -30,7 +30,7 @@
 -->
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ingram Manor LLC</title>
+<title>Moon Racer</title>
 <meta name="description" content="Amenti, GannLab, Treasure Chess, Amenti.live, and one unannounced.">
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -63,10 +63,11 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #qr:hover{background:rgba(14,18,24,.75);border-color:var(--gold)}
 #qr svg{display:block;width:100%;height:100%}
 #who{display:flex;flex-direction:column;gap:3px;padding-bottom:3px}
+#who .title{font-size:15px;letter-spacing:.34em;text-transform:uppercase;color:var(--brass);margin-bottom:4px}
 #who .name{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.78)}
 #mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
 #mail:hover{color:var(--brass)}
-@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} }
+@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} #who .title{font-size:12.5px} }
 #hudTab{position:fixed;right:236px;bottom:calc(34px + env(safe-area-inset-bottom,0px));z-index:7;
   transition:right .32s cubic-bezier(.4,0,.2,1);
   writing-mode:vertical-rl;font:inherit;font-size:10px;letter-spacing:.32em;text-transform:uppercase;
@@ -170,7 +171,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 @media (prefers-reduced-motion:reduce){#card{transition:none}}
 </style></head><body>
 
-<div id="brand" hidden><h1>INGRAM MANOR LLC</h1><p>five ships</p></div>
+<div id="brand" hidden><h1>MOON RACER</h1><p>five ships</p></div>
 <div id="views" role="group" aria-label="View">
   <button class="dot" data-view="0" aria-label="View one" title="The fleet"></button>
   <button class="dot" data-view="1" aria-label="View two" title="View two"></button>
@@ -205,6 +206,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" class="segno"><path class="qrline" stroke="#e8dfc8" d="M2 2.5h7m1 0h1m4 0h2m2 0h1m4 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m2 0h2m1 0h1m2 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h4m3 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h4m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h2m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h4m3 0h1m3 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h2m1 0h1m1 0h2m-20 1h1m2 0h6m1 0h3m1 0h1m1 0h6m2 0h1m1 0h3m-29 1h3m2 0h1m3 0h1m1 0h9m3 0h2m1 0h2m-23 1h2m2 0h1m3 0h1m1 0h2m5 0h1m1 0h1m1 0h1m-26 1h4m2 0h3m4 0h1m2 0h2m4 0h1m1 0h1m2 0h1m-29 1h2m1 0h2m1 0h6m4 0h1m3 0h1m1 0h2m4 0h1m-27 1h4m1 0h2m1 0h2m1 0h1m1 0h4m3 0h7m-28 1h1m2 0h4m1 0h1m5 0h1m2 0h3m1 0h1m3 0h1m1 0h1m-29 1h3m9 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m-29 1h2m2 0h4m2 0h1m2 0h3m4 0h1m2 0h1m1 0h1m-26 1h4m4 0h1m1 0h4m1 0h1m2 0h4m2 0h1m1 0h2m-28 1h4m2 0h5m4 0h2m2 0h4m1 0h2m2 0h1m-29 1h2m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m6 0h1m1 0h3m-27 1h3m2 0h3m2 0h1m2 0h1m1 0h1m1 0h2m1 0h8m-20 1h4m2 0h2m1 0h2m1 0h1m3 0h2m-26 1h7m1 0h5m1 0h3m2 0h2m1 0h1m1 0h2m-26 1h1m5 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h4m2 0h7m1 0h1m-28 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h5m1 0h2m6 0h1m-29 1h1m1 0h3m1 0h1m2 0h5m1 0h2m1 0h1m1 0h2m1 0h2m1 0h3m-29 1h1m5 0h1m2 0h1m5 0h1m6 0h5m1 0h1m-29 1h7m1 0h1m2 0h2m6 0h2m2 0h1"/></svg>
   </a>
   <div id="who">
+    <span class="title">Moon Racer</span>
     <span class="name">Ian Ingram</span>
     <a id="mail" href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a>
   </div>
@@ -222,7 +224,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 
 <div id="flash"></div>
 <div id="fallback"><div class="inner">
-  <h1>INGRAM MANOR LLC</h1>
+  <h1>MOON RACER</h1>
   <div id="fbList"></div>
 </div></div>
 
@@ -2606,7 +2608,11 @@ function stirWater(x, z, strength) {
    coming off the water and through the hard turn — and thin on the
    straights. A fixed pool of puffs, placed and faded, so nothing is
    allocated while it is flying. */
-const VAPOUR_N = 150;
+const VAPOUR_N = 260;
+/* THE WIND at altitude, in units a second (a unit is about 1.7 m, so this
+   is a steady ten metres a second), with a little lift. Everything the
+   craft leaves in the air rides it. */
+const WIND = new THREE.Vector3(6, 0.6, 2);
 const vapourTex = (() => {
   const c = document.createElement('canvas');
   c.width = c.height = 64;
@@ -2627,23 +2633,33 @@ for (let i = 0; i < VAPOUR_N; i++) {
     blending: THREE.AdditiveBlending, opacity: 0 }));
   sp.visible = false;
   scene.add(sp);
-  vapour.push({ sp, born: -99, life: 0, size: 0 });
+  vapour.push({ sp, born: -99, life: 0, size: 0, at: new THREE.Vector3(), seed: 0 });
 }
-let vapourNext = 0;
+let vapourNext = 0, vapourLast = -99;
 /* the slide leaves a thin trail too: the field is still working the air */
 function load0Vapour(s, e) {
   if (Math.random() < 0.25) layVapour(s.position, 0.15 + e * 0.15);
   return true;
 }
 
+/* OUTGASSING. Condensation does not blink out after a few seconds: it
+   hangs, spreads, rides the wind and comes apart, and it is gone somewhere
+   between ten and twenty seconds later, thicker puffs lasting longer. A
+   puff every twelfth of a second at most, so the pool holds twenty
+   seconds of it and nothing is stolen from the far end while it drifts. */
 function layVapour(at, strength) {
+  const now = clock.getElapsedTime();
+  if (now - vapourLast < 0.08) return;
+  vapourLast = now;
   const p = vapour[vapourNext++ % VAPOUR_N];
-  p.sp.position.copy(at);
-  p.sp.position.x += (Math.random() - 0.5) * 1.6;
-  p.sp.position.y += (Math.random() - 0.5) * 1.6;
-  p.born = clock.getElapsedTime();
-  p.life = 1.6 + strength * 2.6;          // it hangs longer where it is thicker
+  p.at.copy(at);
+  p.at.x += (Math.random() - 0.5) * 1.6;
+  p.at.y += (Math.random() - 0.5) * 1.6;
+  p.sp.position.copy(p.at);
+  p.born = now;
+  p.life = 10 + strength * 10;            // ten seconds thin, twenty thick
   p.size = 2.5 + strength * 7;            // it was bigger than the ships
+  p.seed = Math.random() * 100;
   p.sp.visible = true;
 }
 
@@ -2654,7 +2670,19 @@ function layVapour(at, strength) {
    at any speed, costs one draw call, and fades along its length: brightest
    at the craft, thinning to nothing at the far end.
 */
-const TRAIL_N = 900;
+/* It used to fade by its place along the line and nothing else, so a
+   stretch laid a minute ago was as solid as one laid ten seconds ago and
+   never moved: a drawn line, corners and all. Each point now carries the
+   moment it was laid. From that it drifts on the wind and wanders, and
+   from ten seconds on the line opens into gaps that widen until nothing
+   is left at twenty. */
+const TRAIL_N = 1000;                            // thirty seconds at the laying rate
+const TRAIL_EVERY = 1 / 33;                      // steady, whatever the frame rate
+const TRAIL_LIFE = 20, TRAIL_BREAK = 10;
+const trailAt = new Float32Array(TRAIL_N * 3);   // where each point was laid
+const trailBorn = new Float32Array(TRAIL_N);
+const trailSeed = new Float32Array(TRAIL_N);
+let trailLast = -99;
 const trailPos = new Float32Array(TRAIL_N * 3);
 const trailCol = new Float32Array(TRAIL_N * 3);
 const trailGeo = new THREE.BufferGeometry();
@@ -2668,19 +2696,51 @@ trailLine.frustumCulled = false;
 scene.add(trailLine);
 let trailCount = 0;
 
-function layTrail(at) {
+function layTrail(at, t) {
+  if (t - trailLast < TRAIL_EVERY) return;
+  trailLast = t;
   if (trailCount >= TRAIL_N) {                  // shuffle down, keeping the newest
-    trailPos.copyWithin(0, 3);
-    trailCol.copyWithin(0, 3);
+    trailAt.copyWithin(0, 3);
+    trailBorn.copyWithin(0, 1);
+    trailSeed.copyWithin(0, 1);
     trailCount = TRAIL_N - 1;
   }
   const i = trailCount * 3;
-  trailPos[i] = at.x; trailPos[i + 1] = at.y; trailPos[i + 2] = at.z;
+  trailAt[i] = at.x; trailAt[i + 1] = at.y; trailAt[i + 2] = at.z;
+  trailBorn[trailCount] = t;
+  /* the seed walks slowly along the line, so neighbouring points break up
+     together and the gaps come as lengths, not as a dotted line */
+  trailSeed[trailCount] = trailCount ? trailSeed[trailCount - 1] + 0.035 + Math.random() * 0.02
+                                     : Math.random() * 50;
   trailCount++;
-  /* fade along the length: the oldest end is nearly gone */
+}
+function updateTrail(t) {
+  if (!trailCount) return;
+  /* drop the points that have gone entirely */
+  let dead = 0;
+  while (dead < trailCount && t - trailBorn[dead] > TRAIL_LIFE) dead++;
+  if (dead) {
+    trailAt.copyWithin(0, dead * 3, trailCount * 3);
+    trailBorn.copyWithin(0, dead, trailCount);
+    trailSeed.copyWithin(0, dead, trailCount);
+    trailCount -= dead;
+  }
   for (let k = 0; k < trailCount; k++) {
-    const f = Math.pow(k / trailCount, 1.6) * 0.75;
-    trailCol[k * 3] = f; trailCol[k * 3 + 1] = f * 1.02; trailCol[k * 3 + 2] = f * 1.08;
+    const age = t - trailBorn[k], sd = trailSeed[k], i = k * 3;
+    /* DRIFT: carried on the wind, and wandering off the straight more the
+       older it is, so the line goes slack and wavy before it goes */
+    const wander = Math.min(age, TRAIL_LIFE) * 2.4;
+    trailPos[i]     = trailAt[i]     + WIND.x * age + Math.sin(sd * 1.7) * wander;
+    trailPos[i + 1] = trailAt[i + 1] + WIND.y * age + Math.sin(sd * 2.3 + 1) * wander * 0.4;
+    trailPos[i + 2] = trailAt[i + 2] + WIND.z * age + Math.cos(sd * 1.3) * wander;
+    /* BREAK-UP: from TRAIL_BREAK on, a slowly varying pattern along the
+       line is cut at a rising threshold, so gaps open and widen until the
+       last shreds go at TRAIL_LIFE */
+    const n = 0.5 + 0.25 * Math.sin(sd * 3.1) + 0.25 * Math.sin(sd * 7.7 + 2);
+    const cut = Math.max(0, (age - TRAIL_BREAK) / (TRAIL_LIFE - TRAIL_BREAK));
+    const keep = Math.min(1, Math.max(0, (n - cut * 1.05) / 0.12));
+    const f = 0.75 * (1 - 0.35 * Math.min(1, age / TRAIL_BREAK)) * keep;
+    trailCol[i] = f; trailCol[i + 1] = f * 1.02; trailCol[i + 2] = f * 1.08;
   }
   trailGeo.attributes.position.needsUpdate = true;
   trailGeo.attributes.color.needsUpdate = true;
@@ -2740,11 +2800,55 @@ function vapourTexPlaceholder() {
   return t2;
 }
 
-const PATROL_SPOOL = 12;                        // off the water, on the field alone
-const PATROL_LAND = 10;                        // and the long settle back into the line
-const PATROL_SLIDE = 2;                        // holding altitude, sliding left
-const PATROL_DUR = 92, PATROL_GAP = 46;        // seconds running, seconds resting
+/* The spool, slide, run and landing times now come with each run's style
+   (pickStyle, below). Only the rest between runs is fixed. */
+const PATROL_GAP = 46;                         // seconds resting between runs
+const sm01 = v => { v = Math.min(1, Math.max(0, v)); return v * v * (3 - 2 * v); };
 let patrol = null;
+
+/* EVERY RUN ITS OWN. The same launch, the same loop and the same approach
+   every forty-six seconds reads as a clip on repeat. Each run now draws its
+   own character when it starts: how the craft leaves the water, how it
+   slides clear, the size and height of the loop and whatever it does on
+   the level, and how it comes home. The ranges are narrow on purpose — it
+   is still the same craft flying the same patrol, just never the same way
+   twice — and every combination has been checked to stay in frame and
+   clear of the pyramid. */
+const TAKEOFFS = {
+  /* the original: twelve seconds, water first, a level steady rise */
+  steady: { spool: 12, rise: 30, shake: 1.0, steps: false, pivot: 0 },
+  /* impatient: less waiting on the water, a lighter tremble, up quickly */
+  brisk:  { spool: 8,  rise: 27, shake: 0.6, steps: false, pivot: 0 },
+  /* labouring: a longer, harder shake and a rise in two lifts with a
+     hesitation between, as if the field took the load twice */
+  heavy:  { spool: 14, rise: 32, shake: 1.45, steps: true, pivot: 0 },
+  /* turning as it rises, so it is already half onto the slide when it
+     reaches height */
+  pivot:  { spool: 11, rise: 30, shake: 0.85, steps: false, pivot: 0.55 }
+};
+const LANDINGS = {
+  /* the original long settle: a turn onto the line, rolling out, a flare */
+  long:  { dur: 10, pts: [[0.35, 0.30, 30, -20], [0.70, 0.62, 24, -14], [0.90, 0.86, 10, -6], [0.98, 0.97, 3, -2]] },
+  /* a wide swing out past the wing and back in, level for longer */
+  sweep: { dur: 12, pts: [[0.30, 0.20, -45, -30], [0.62, 0.45, -38, -12], [0.88, 0.80, -12, -4], [0.98, 0.97, -3, -1]] },
+  /* short and purposeful: most of the height lost early, a brief final */
+  drop:  { dur: 8,  pts: [[0.40, 0.55, 18, -16], [0.75, 0.82, 12, -8], [0.92, 0.93, 5, -3], [0.99, 0.985, 1, -1]] },
+  /* comes in high, stops over the slot and lets itself down */
+  hover: { dur: 13, pts: [[0.45, 0.25, 22, -18], [0.85, 0.45, 6, -4], [0.97, 0.55, 1, -1], [0.995, 0.88, 0, 0]] }
+};
+function pickStyle() {
+  const r = (a, b) => a + Math.random() * (b - a);
+  const pick = o => { const k = Object.keys(o); return k[Math.floor(Math.random() * k.length)]; };
+  const takeoff = pick(TAKEOFFS), landing = pick(LANDINGS);
+  return Object.assign({ takeoff, landing }, TAKEOFFS[takeoff], {
+    slide: r(1.6, 2.8), slideX: r(14, 24), slideZ: r(6, 14),
+    swing: r(250, 340), reach: r(2200, 2900), ceil: r(480, 700),
+    climbTo: r(0.22, 0.32), holdTo: r(0.56, 0.66),
+    weave: Math.random() < 0.5 ? 0 : r(20, 60), weaveN: [3, 4, 5][Math.floor(Math.random() * 3)],
+    hump: Math.random() < 0.4 ? 0 : r(-40, 50),     // a gentle rise or dip on the level
+    dur: r(80, 100), land: LANDINGS[landing].dur
+  });
+}
 /* a frame to point things with, and the turn that brings a -X bow onto +Z */
 const aimer = new THREE.Object3D();
 const BOW_TO_Z = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
@@ -2754,7 +2858,7 @@ const BOW_TO_Z = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1,
    against that, and the panel reports it. */
 const UNITS_PER_MILE = 970;
 
-function patrolPath(home) {
+function patrolPath(home, st) {
   /* THE RUN, defined by formula rather than by waypoints.
 
      Every previous version was a spline through twenty hand-placed points,
@@ -2766,41 +2870,59 @@ function patrolPath(home) {
 
        HEIGHT   a trapezoid, smoothed: climb, hold, descend. Monotonic in
                 each phase by construction, so it cannot bob.
-       TRACK    out and back on one continuous arc, swinging right at the
-                far end and returning on the other side.
+       TRACK    one oval loop: out on the left, round the far end, home
+                on the right. The old track ran straight out and straight
+                back and only swung sideways between the ends, so at the far
+                end the craft was moving neither out nor across — it stopped
+                and reversed, which is the hairpin. An ellipse is never
+                stationary: the far end is a rounded, even turn, and every
+                other bend is gentler still.
   */
   const BASE = home.y;
-  const CEIL = 620;                       // the height it holds
-  const REACH = 2600;                     // how far out it goes
-  const SWING = 900;                      // how wide the arc is
-  const CLIMB_TO = 0.28, HOLD_TO = 0.62;  // when the climb ends and the descent starts
+  const CEIL = st.ceil;                   // the height it holds
+  const REACH = st.reach;                 // how far out it goes
+  /* How wide the loop is. At 900 the craft went so far to the side that,
+     once the eye let go of it at distance, it flew clean out of the frame.
+     320 keeps the whole loop inside the view the camera was built for, and
+     the far end is still a rounded turn, never a reversal. */
+  const SWING = st.swing;                 // how wide the loop is (320 was the tested middle)
+  const CLIMB_TO = st.climbTo, HOLD_TO = st.holdTo;  // when the climb ends and the descent starts
   const smooth = v => v * v * (3 - 2 * v);
 
   const height = f => {
     if (f <= CLIMB_TO) return BASE + (CEIL - BASE) * smooth(f / CLIMB_TO);
-    if (f <= HOLD_TO) return CEIL;
+    /* on the level, sometimes a long gentle rise or dip — sine squared,
+       so it leaves and rejoins the level without a corner */
+    if (f <= HOLD_TO) return CEIL + st.hump * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2);
     return BASE + (CEIL - BASE) * (1 - smooth((f - HOLD_TO) / (1 - HOLD_TO)));
   };
   const track = f => {
     /* one continuous arc: away from the fleet, round to the right, back.
        sin gives the out-and-back in depth, (1-cos) the sideways swing, and
        both are smooth end to end. */
-    const out = Math.sin(f * Math.PI);
-    const side = (1 - Math.cos(f * Math.PI * 2)) / 2;
+    const th = f * Math.PI * 2;
+    const out = (1 - Math.cos(th)) / 2;         // 0 at home, 1 at the far end
+    const side = -Math.sin(th);                 // left going out, right coming home
     /* AND A BERTH ROUND THE STONE. The craft passes the pyramid's depth
        twice — once on the way out while still low, once coming back — and
        a formula track has no reason to avoid it. These are two Gaussian
        nudges, left going out and right coming home, centred on those
        moments. A Gaussian is smooth everywhere, so it steers round the
        stone without putting a kink in the trajectory. */
+    /* the weave: only on the level, faded in and out, small against the
+       loop so the craft is never close to stopping sideways */
+    const weave = f => (f > CLIMB_TO && f < HOLD_TO)
+      ? st.weave * Math.sin(th * st.weaveN) * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2)
+      : 0;
     const berth = (centre, width, amount) =>
       amount * Math.exp(-Math.pow((f - centre) / width, 2));
     return new THREE.Vector3(
-      home.x + SWING * side * (f < 0.5 ? -0.35 : 1)
-             - berth(0.07, 0.085, 430)                 // outbound: wide to the left
-             + berth(0.94, 0.075, 430),                // inbound: wide to the right
+      home.x + SWING * side
+             + weave(f)                                // lazy S-turns on the level, some runs
+             - berth(0.07, 0.085, 150)                 // outbound: the loop is already wide; a nudge
+             + berth(0.94, 0.075, 150),                // inbound: the same
       0,
-      home.z - REACH * Math.pow(out, 0.85)
+      home.z - REACH * out
     );
   };
 
@@ -4110,28 +4232,25 @@ function updateDrive(s, ph, t, thrust, warm) {
          thrown until the craft is clear of the line */
       /* nothing but the water for the first quarter, then the drive lights
          and runs up to white by the time it leaves */
-      if (el < PATROL_SPOOL + PATROL_SLIDE) {
-        const q = el / PATROL_SPOOL;
+      const st = patrol.st;
+      if (el < st.spool + st.slide) {
+        const q = el / st.spool;
         patrol.warm = q < 0.25 ? 0 : Math.min(1, (q - 0.25) / 0.7);
       }
-      thrust = el < PATROL_SPOOL + PATROL_SLIDE ? 0
-             : clear ? Math.min(1, (el - PATROL_SPOOL - PATROL_SLIDE) / 2.5)
+      thrust = el < st.spool + st.slide ? 0
+             : clear ? Math.min(1, (el - st.spool - st.slide) / 2.5)
              : 0;
-
-      /* COMING DOWN, THE PLASMA GOES OFF.
-
-         The jets are for going somewhere. On the way back the craft is
-         losing height and speed, and the field under the keel is what holds
-         it up — so the drive spools down through the descent and is cold
-         long before it reaches the water. Leaving it wide open on approach
-         was the thing that looked wrong: a craft landing under full power. */
+      /* COMING IN COLD. The throttle above has no idea the craft is landing,
+         so it held the jets wide open down the whole approach and only cut
+         them when the craft got inside the line — full plasma to the slot,
+         then nothing. On the way in the drive winds back instead: a third
+         of power at the start of the approach, falling away to nothing by
+         halfway, so the craft settles on its field. The intake cools with
+         it rather than staying white from the departure. */
       if (patrol.land) {
-        const lk = Math.min(1, (t - patrol.land) / PATROL_LAND);
-        thrust *= Math.max(0, 0.22 * (1 - lk * 1.6));      // cold by two-thirds in
-        patrol.warm = Math.max(0, 0.3 * (1 - lk));          // and the intake cools with it
-      } else if (s.position.y < 420 && el > PATROL_SPOOL + PATROL_SLIDE + 20) {
-        /* the descent itself: throttling back as it comes down out of the run */
-        thrust *= 0.15 + Math.min(1, s.position.y / 420) * 0.85;
+        const lk = Math.min(1, (t - patrol.land) / patrol.st.land);
+        thrust = clear ? 0.35 * Math.pow(Math.max(0, 1 - lk / 0.5), 1.5) : 0;
+        patrol.warm = Math.max(0, 1 - lk / 0.7);
       }
       if (thrust > 0 && !patrol.lit) {             // the moment the drive lights
         patrol.lit = true;
@@ -4144,7 +4263,7 @@ function updateDrive(s, ph, t, thrust, warm) {
     updateLights(s, t, ph,
       !mine ? 'station'
       : patrol.land ? 'land'
-      : (t - patrol.t0) < PATROL_SPOOL ? 'spool'
+      : (t - patrol.t0) < patrol.st.spool ? 'spool'
       : 'flight',
       s.position.y);
 
@@ -4153,7 +4272,8 @@ function updateDrive(s, ph, t, thrust, warm) {
          and rising on its field, water boiling under it, before the main
          engines light and it goes. Without this it simply vanished off the
          line, which is the part that looked unearned. */
-      const spool = (t - patrol.t0) / PATROL_SPOOL;
+      const st = patrol.st;
+      const spool = (t - patrol.t0) / st.spool;
       if (spool < 1) {
         /* THE LAUNCH. Twelve seconds, and the water moves first.
 
@@ -4170,10 +4290,14 @@ function updateDrive(s, ph, t, thrust, warm) {
            taken it; a machine on a field goes up level. */
         const hold0 = 0.25, grip = 0.55;
         const lift = spool < grip ? 0 : (spool - grip) / (1 - grip);
-        const e = lift * lift * (3 - 2 * lift);
+        /* a heavy launch rises in two lifts with a pause between; the
+           others in one smooth one */
+        const e = st.steps
+          ? (lift < 0.45 ? 0.55 * sm01(lift / 0.45) : lift < 0.6 ? 0.55 : 0.55 + 0.45 * sm01((lift - 0.6) / 0.4))
+          : lift * lift * (3 - 2 * lift);
 
         /* the tremble: everything before the lift, dying as it takes hold */
-        const shake = spool < grip ? 0.35 + spool * 1.2 : Math.max(0, 0.9 - lift * 1.6);
+        const shake = (spool < grip ? 0.35 + spool * 1.2 : Math.max(0, 0.9 - lift * 1.6)) * st.shake;
         const jx = Math.sin(t * 27.3) * Math.sin(t * 11.7) * shake * 1.4;
         const jy = Math.sin(t * 31.1 + 1.7) * shake * 0.9;
         const jz = Math.sin(t * 23.9 + 0.6) * Math.sin(t * 9.3) * shake * 1.4;
@@ -4183,12 +4307,14 @@ function updateDrive(s, ph, t, thrust, warm) {
         const surge = e;
         s.position.x = patrol.home.x + jx;
         s.position.z = patrol.home.z + jz;
-        s.position.y = patrol.home.y + jy * 0.3 + Math.max(0, surge) * 30;
+        s.position.y = patrol.home.y + jy * 0.3 + Math.max(0, surge) * st.rise;
 
         /* LEVEL. The bow stays on its station heading and the hull stays
            flat — only a slow roll from the air moving under it. */
         aimer.position.copy(s.position);
-        aimer.lookAt(s.position.clone().add(new THREE.Vector3(0, 0, 1)));
+        /* a pivot launch comes round towards the slide as it rises */
+        const turnTo = new THREE.Vector3(0, 0, 1).lerp(new THREE.Vector3(-1, 0, -0.35).normalize(), e * st.pivot).normalize();
+        aimer.lookAt(s.position.clone().add(turnTo));
         const q0 = aimer.quaternion.clone().multiply(BOW_TO_Z);
         q0.premultiply(new THREE.Quaternion().setFromAxisAngle(
           new THREE.Vector3(0, 0, 1), Math.sin(t * 2.1) * 0.06 * (1 - lift * 0.6)));
@@ -4218,7 +4344,7 @@ function updateDrive(s, ph, t, thrust, warm) {
            final at station height, and the slot itself. One spline means
            the descent, the swing and the flare are a single continuous
            motion instead of three that fight each other. */
-        const lk = Math.min(1, (t - patrol.land) / PATROL_LAND);
+        const lk = Math.min(1, (t - patrol.land) / patrol.st.land);
         const e2 = lk < 0.5 ? 2 * lk * lk : 1 - Math.pow(-2 * lk + 2, 2) / 2;
         const at = patrol.landPath.getPointAt(Math.min(0.9999, e2));
         const ahead = patrol.landPath.getPointAt(Math.min(0.9999, e2 + 0.01));
@@ -4236,29 +4362,17 @@ function updateDrive(s, ph, t, thrust, warm) {
             new THREE.Vector3(0, 0, 1), Math.sin(t * 2.2) * 0.09 * Math.pow(1 - lk, 1.5)));
           s.quaternion.slerp(ql, 0.07);
         }
-        /* the field carries it down. The keel thrusters are updated here
-           because the landing returns early — the same trap the main drive
-           fell into: the one craft that needed it was the only one skipping
-           the code. */
-        if (s.userData.thrusters) {
-          const beat = 0.6 + 0.4 * Math.sin(t * 3.1 + ph * 2);
-          const load = 1 + lk * 1.1;                  // harder as the plasma dies
-          for (const sp of s.userData.thrusters) {
-            sp.material.opacity = Math.min(1, (0.45 + beat * 0.4) * load);
-            sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + beat * 0.5) * (1 + lk * 0.5));
-          }
-        }
         if (lk > 0.5 && !patrol.stirL) { patrol.stirL = true; stirWater(patrol.home.x, patrol.home.z, 1.4); }
         if (lk >= 1) { patrol = null; s.userData.settle = t + 3; nextPatrol = t + PATROL_GAP; }
         continue;
       }
 
-      const slide = (t - patrol.t0 - PATROL_SPOOL) / PATROL_SLIDE;
+      const slide = (t - patrol.t0 - st.spool) / st.slide;
       if (slide < 1) {
         const e = slide * slide * (3 - 2 * slide);
-        s.position.x = patrol.lift.x - e * 18;          // out to the left, just clear of the line
+        s.position.x = patrol.lift.x - e * st.slideX;   // out to the left, just clear of the line
         s.position.y = patrol.lift.y + Math.sin(t * 1.1) * 0.6;
-        s.position.z = patrol.lift.z - e * 10;
+        s.position.z = patrol.lift.z - e * st.slideZ;
         /* coming round onto the bearing it is actually sliding along, which
            is out to the left: heading (-1,0,0) wants atan2(0, 1) = 0, so
            the nose swings the full ninety degrees, not half of one. */
@@ -4272,7 +4386,7 @@ function updateDrive(s, ph, t, thrust, warm) {
         if (load0Vapour(s, e)) {}
         continue;
       }
-      const k = Math.min(1, (t - patrol.t0 - PATROL_SPOOL - PATROL_SLIDE) / PATROL_DUR);
+      const k = Math.min(1, (t - patrol.t0 - st.spool - st.slide) / st.dur);
       /* ONE curve, not two branches. The previous easing was piecewise and
          the halves did not meet: at the midpoint the craft jumped a third
          of the way along the path in a single frame. Smoothstep gives the
@@ -4341,7 +4455,7 @@ function updateDrive(s, ph, t, thrust, warm) {
 
       /* above the weather the trail stands: lay it continuously so the
          craft can be followed all the way out and round */
-      if (s.position.y > 190) layTrail(s.position);    // every frame: an unbroken line
+      if (s.position.y > 190) layTrail(s.position, t); // steadily: an unbroken line
 
       /* the pressure wave: it builds with speed and with how hard the craft
          is accelerating, and only up where the air will show it */
@@ -4383,12 +4497,11 @@ function updateDrive(s, ph, t, thrust, warm) {
            lower than the last. */
         const drop = (f, y, dx, dz) =>
           from.clone().lerp(H, f).setY(from.y + (H.y - from.y) * y).add(new THREE.Vector3(dx, 0, dz));
+        /* the approach this run drew: long, sweep, drop or hover (see
+           LANDINGS). Every set keeps its heights falling point to point. */
         patrol.landPath = new THREE.CatmullRomCurve3([
           from,
-          drop(0.35, 0.30, 30, -20),        // the long turn onto the line
-          drop(0.70, 0.62, 24, -14),        // rolling out, still coming down
-          drop(0.90, 0.86, 10, -6),         // short final
-          drop(0.98, 0.97, 3, -2),          // the flare
+          ...LANDINGS[patrol.st.landing].pts.map(([f, y, dx, dz]) => drop(f, y, dx, dz)),
           H.clone()
         ], false, 'catmullrom', 0.15);
         stirWater(patrol.home.x, patrol.home.z, 1.0);   // the water starts turning early
@@ -4448,18 +4561,12 @@ function updateDrive(s, ph, t, thrust, warm) {
       const flicker = 0.86 + 0.14 * Math.sin(t * 2.3 + ph * 1.9);
       pl.material.opacity = (0.72 / spread) * flicker;
     }
-    /* the field carries the weight when the drive is off — the keel
-       thrusters brighten through the approach as the plasma goes cold */
-    const hovering = patrol && patrol.ship === s && patrol.land
-      ? Math.min(1, (t - patrol.land) / PATROL_LAND) : 0;
-
     if (s.userData.thrusters) {                    // the wash under the keel
       const th = 0.6 + 0.4 * Math.sin(t * 3.1 + ph * 2);
       for (let k = 0; k < s.userData.thrusters.length; k++) {
         const sp = s.userData.thrusters[k];
-        /* working hard on the way in: the field is carrying the craft now */
-        sp.material.opacity = (0.45 + th * 0.4) * (1 + hovering * 0.9);
-        sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + th * 0.5) * (1 + hovering * 0.45));
+        sp.material.opacity = 0.45 + th * 0.4;
+        sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + th * 0.5));
       }
     }
     s.rotation.z = Math.sin(t * 0.7 + ph) * 0.075 + Math.sin(t * 0.23 + ph) * 0.03 + shRoll;
@@ -4565,10 +4672,15 @@ function updateDrive(s, ph, t, thrust, warm) {
     farMark.visible = false;
   }
 
+  updateTrail(t);                                  // the contrail drifting and coming apart
   for (const p of vapour) {                        // the vapour ageing
     if (!p.sp.visible) continue;
     const age = (t - p.born) / p.life;
     if (age >= 1) { p.sp.visible = false; p.sp.material.opacity = 0; continue; }
+    const secs = t - p.born, wobble = secs * 0.9;
+    p.sp.position.set(p.at.x + WIND.x * secs + Math.sin(p.seed + secs * 0.3) * wobble,
+                      p.at.y + WIND.y * secs,
+                      p.at.z + WIND.z * secs + Math.cos(p.seed + secs * 0.25) * wobble);
     p.sp.scale.setScalar(p.size * (0.5 + age * 2.6));   // thin as it spreads
     p.sp.material.opacity = Math.sin(Math.min(1, age * 6) * Math.PI / 2) * Math.pow(1 - age, 1.8) * 0.3;
   }
@@ -4621,12 +4733,13 @@ function updateDrive(s, ph, t, thrust, warm) {
   if (!patrol && !arrived && !flight && t > nextPatrol) {
     const x = ships.find(sh => sh.userData.project.id === 'x');
     if (x) {
+      const st = pickStyle();
       const lift = x.position.clone();
-      lift.y += 26;                                      // where the spool leaves it
+      lift.y += st.rise - 4;                             // where the spool leaves it
       const start = lift.clone();
-      start.x -= 18; start.z -= 10;                      // and where the slide leaves it
+      start.x -= st.slideX; start.z -= st.slideZ;        // and where the slide leaves it
       clearTrail();
-      patrol = { ship: x, t0: t, home: x.position.clone(), lift, path: patrolPath(start) };
+      patrol = { ship: x, t0: t, st, home: x.position.clone(), lift, path: patrolPath(start, st) };
       stirWater(x.position.x, x.position.z, 1.15);       // the water it leaves behind
     }
   }
@@ -4697,7 +4810,7 @@ function updateDrive(s, ph, t, thrust, warm) {
      settles. Eased in at the start of the run and out at the end, so the
      view is lent to the patrol rather than snatched. */
   if (patrol) {
-    const kw = Math.min(1, (t - patrol.t0) / PATROL_DUR);
+    const kw = Math.min(1, (t - patrol.t0) / patrol.st.dur);
     /* A lean, not a lock. The craft is in frame for most of its run anyway,
        so the eye only needs to drift its way — enough that you feel the
        scene notice, not so much that the view is dragged around. */
