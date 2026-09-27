@@ -749,6 +749,159 @@ function buildShip(p) {
   ship.add(shadow);
 
 
+  /* ------------------------------------------------------- the machinery
+     An intake in the bow and two exhausts at the stern, so the craft reads
+     as something that moves air rather than a hull that happens to hover.
+
+     The intake is a ring with a dark throat and a lipped cowl; the exhausts
+     are shorter cans with glowing cores, set either side of the sternpost
+     and angled very slightly outboard, as a pair of nozzles is. All three
+     take the craft's own accent colour in their glow. */
+  const nozzleMat = new THREE.MeshStandardMaterial({
+    color: 0x2a2620, roughness: 0.38, metalness: 0.82 });
+  const throatMat = new THREE.MeshBasicMaterial({ color: 0x0a0c0e });
+  const coreMat = new THREE.MeshBasicMaterial({
+    color: p.neon || 0x35e6ff, transparent: true, opacity: 0.9, fog: false });
+
+  /* the intake, standing proud of the bow */
+  const inR = HULL_W * 0.2;
+  const cowl = new THREE.Mesh(
+    new THREE.CylinderGeometry(inR, inR * 0.82, HULL_L * 0.13, 18, 1, true), nozzleMat);
+  cowl.rotation.z = Math.PI / 2;
+  cowl.position.set(bowX - HULL_L * 0.055, HULL_H * 0.66, 0);
+  ship.add(cowl);
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(inR, inR * 0.12, 8, 20), goldMat);
+  lip.rotation.y = Math.PI / 2;
+  lip.position.set(bowX - HULL_L * 0.12, HULL_H * 0.66, 0);
+  ship.add(lip);
+  const throat = new THREE.Mesh(new THREE.CircleGeometry(inR * 0.84, 18), throatMat);
+  throat.rotation.y = -Math.PI / 2;
+  throat.position.set(bowX - HULL_L * 0.105, HULL_H * 0.66, 0);
+  ship.add(throat);
+
+  /* the two exhausts */
+  const exR = HULL_W * 0.15;
+  const exhausts = [];
+  for (const zS of [-1, 1]) {
+    const can = new THREE.Mesh(
+      new THREE.CylinderGeometry(exR * 0.86, exR, HULL_L * 0.17, 16, 1, true), nozzleMat);
+    can.rotation.z = Math.PI / 2;
+    can.rotation.y = zS * 0.09;                  // a touch outboard, as a pair sits
+    can.position.set(HULL_L * 0.52, HULL_H * 0.58, zS * HULL_W * 0.26);
+    ship.add(can);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(exR, exR * 0.1, 8, 18), goldMat);
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(HULL_L * 0.6, HULL_H * 0.58, zS * HULL_W * 0.26);
+    ship.add(ring);
+    const core = new THREE.Mesh(new THREE.CircleGeometry(exR * 0.8, 16), coreMat.clone());
+    core.rotation.y = Math.PI / 2;
+    core.position.set(HULL_L * 0.585, HULL_H * 0.58, zS * HULL_W * 0.26);
+    ship.add(core);
+    exhausts.push(core);
+  }
+  /* PLASMA. The drive tears air apart and throws it out the back, so what
+     leaves the nozzle is not flame but a thin bright column — narrow at the
+     throat, widening a little, and very long when the drive is working. Two
+     cones per craft, additive, flickering fast. */
+  const plasmaMat = new THREE.MeshBasicMaterial({
+    color: p.neon || 0x35e6ff, transparent: true, opacity: 0, depthWrite: false,
+    blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide });
+  const plasmaHot = new THREE.MeshBasicMaterial({
+    color: 0xffffff, transparent: true, opacity: 0, depthWrite: false,
+    blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide });
+  const plumes = [];
+  for (const zS of [-1, 1]) {
+    for (const [mat, rad, len] of [[plasmaMat, exR * 0.78, 1], [plasmaHot, exR * 0.32, 0.6]]) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(rad, 1, 14, 1, true), mat);
+      /* A cone's tip is at +Y. Turning it +90 degrees about Z puts that tip
+         at -X, which is the BOW — so the plasma was firing forwards while
+         the vapour trailed behind, which is the two vectors you saw. It
+         wants -90, so the tip goes aft. */
+      cone.rotation.z = -Math.PI / 2;
+      cone.position.set(HULL_L * 0.6, HULL_H * 0.58, zS * HULL_W * 0.26);
+      cone.userData = { zS, len, base: HULL_L * 0.6 };
+      ship.add(cone);
+      plumes.push(cone);
+    }
+  }
+  ship.userData.plumes = plumes;
+
+  /* The bow shock was a grey cone stuck on the nose and it never read as
+     air — it read as a cone. Dropped. What sells speed here is the trail
+     and the distance, not a bolted-on shape. */
+
+
+
+  /* the intake glows: the ring is lit from inside as the air is taken */
+  lip.material = new THREE.MeshStandardMaterial({
+    color: 0xd4af50, roughness: 0.28, metalness: 0.85,
+    emissive: new THREE.Color(p.neon || 0x35e6ff), emissiveIntensity: 0.6 });
+  const intakeGlow = new THREE.Mesh(new THREE.CircleGeometry(inR * 0.95, 20),
+    new THREE.MeshBasicMaterial({ color: p.neon || 0x35e6ff, transparent: true,
+      opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  intakeGlow.rotation.y = -Math.PI / 2;
+  intakeGlow.position.set(bowX - HULL_L * 0.125, HULL_H * 0.66, 0);
+  ship.add(intakeGlow);
+  ship.userData.intake = { lip, glow: intakeGlow, hue: new THREE.Color(p.neon || 0x35e6ff) };
+
+  /* ------------------------------------------------------------ lights
+     Three sets, and they say what the craft is doing:
+
+       NAVIGATION  red to port, green to starboard, white at the stern.
+                   Always on, dim, the way they are on anything that flies.
+       TAKEOFF     amber strobes along the hull, beating while the drive
+                   spins up and going out once it is away.
+       LANDING     hard white lamps under the bow, blinking on the approach
+                   below five hundred feet, with a pool of light thrown
+                   down onto whatever is beneath.
+  */
+  const lampTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(16, 16, 0.5, 16, 16, 16);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.28, 'rgba(255,255,255,.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 32, 32);
+    const t2 = new THREE.CanvasTexture(c);
+    t2.colorSpace = THREE.SRGBColorSpace;
+    return t2;
+  })();
+  const lamp = (colour, pos, size) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: lampTex, color: colour, transparent: true, depthWrite: false,
+      fog: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+    sp.position.copy(pos);
+    sp.scale.setScalar(size);
+    ship.add(sp);
+    return sp;
+  };
+  const nav = [
+    lamp(0xff2b2b, new THREE.Vector3(0, HULL_H * 0.72, -HULL_W * 0.5), 2.6),   // port
+    lamp(0x2bff6a, new THREE.Vector3(0, HULL_H * 0.72,  HULL_W * 0.5), 2.6),   // starboard
+    lamp(0xffffff, new THREE.Vector3(HULL_L * 0.5, HULL_H * 0.78, 0), 2.2)     // stern
+  ];
+  const strobes = [
+    lamp(0xffb43a, new THREE.Vector3(bowX * 0.55, HULL_H * 0.9, -HULL_W * 0.34), 3.4),
+    lamp(0xffb43a, new THREE.Vector3(bowX * 0.55, HULL_H * 0.9,  HULL_W * 0.34), 3.4),
+    lamp(0xffb43a, new THREE.Vector3(HULL_L * 0.3, HULL_H * 0.9, 0), 3.4)
+  ];
+  const landing = [
+    lamp(0xffffff, new THREE.Vector3(bowX * 0.8, HULL_H * 0.18, -HULL_W * 0.22), 5),
+    lamp(0xffffff, new THREE.Vector3(bowX * 0.8, HULL_H * 0.18,  HULL_W * 0.22), 5)
+  ];
+  /* the pool they throw on the water */
+  const beam = new THREE.Mesh(new THREE.CircleGeometry(HULL_W * 1.4, 24),
+    new THREE.MeshBasicMaterial({ color: 0xeaf2ff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  beam.rotation.x = -Math.PI / 2;
+  beam.renderOrder = 5;
+  scene.add(beam);
+  ship.userData.lights = { nav, strobes, landing, beam };
+
+  ship.userData.exhausts = exhausts;
+
   /* ------------------------------------------------- it does not float
      The hull rides above the water rather than in it. Three things sell
      that: fins raked down and outboard at the stern, thruster glow under
@@ -1022,7 +1175,11 @@ function viewport() {
   const h = renderer && renderer.domElement && renderer.domElement.clientHeight || innerHeight || 0;
   return { w: w > 0 ? w : 1280, h: h > 0 ? h : 720 };
 }
-const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.1, 2200);
+/* The far plane has to reach past the patrol. The craft runs out to about
+   2,900 units and the trail further still — at 2,200 it was simply being
+   clipped away, which is why it vanished mid-flight however bright the
+   marker was. */
+const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.1, 9000);
 const CAM_HOME = new THREE.Vector3(0, 15, 90);
 
 /* The fleet is wide and the window is any shape at all, so the camera works
@@ -1329,7 +1486,7 @@ sunSprite.scale.setScalar(190);
    is the order. At -60 the sun goes down first and the pyramid's faces then
    blend over it, which is what a sun setting BEHIND a translucent pyramid
    looks like. Previously it drew last and sat in front of the stone. */
-sunSprite.renderOrder = -60;
+sunSprite.renderOrder = -60;      // before the mask: the stone occludes the sun, as it should
 scene.add(sunSprite);
 
 /* ---------------------------------------------------------------- planets
@@ -1631,6 +1788,7 @@ for (const st of NAMED) {
   namedLabels.push(pt, lb);
 }
 const starTilt = new THREE.Group(); starTilt.add(starSpin);
+starTilt.renderOrder = -160;      // before the mask, so the stone does not blot the sky
 scene.add(starTilt);
 
 /* the track the sun lays across the water towards the viewer */
@@ -1846,39 +2004,110 @@ const bodyGeo = new THREE.ConeGeometry(PY_R, PY_H, 4, 1, true);
    rises, so the pyramid dissolves towards its own apex and the capstone is
    the one solid thing up there. */
 function pyramidGradient() {
+  const W = 512, H = 512;
   const c = document.createElement('canvas');
-  c.width = 8; c.height = 256;
+  c.width = W; c.height = H;
   const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0.00, '#f2f7f8');      // apex, nearly sky
+
+  /* the stone: pale at the apex, deeper at the base */
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0.00, '#f2f7f8');
   g.addColorStop(0.35, '#dae8ec');
   g.addColorStop(0.72, '#c4d8de');
-  g.addColorStop(1.00, '#a9c4cd');      // base, where it meets the water
+  g.addColorStop(1.00, '#a9c4cd');
   x.fillStyle = g;
-  x.fillRect(0, 0, 8, 256);
+  x.fillRect(0, 0, W, H);
+
+  /* Gold veins. A single flat face reads as a cut-out; veins give it a
+     surface and, more usefully, they catch the light so the faces separate
+     from one another and from the sky. They run mostly upward, the way a
+     seam in rock does, branching as they climb. */
+  x.lineCap = 'round';
+  const vein = (x0, y0, len, w, a, depth) => {
+    let cx = x0, cy = y0;
+    x.strokeStyle = `rgba(198,158,68,${a})`;
+    x.lineWidth = w;
+    x.beginPath();
+    x.moveTo(cx, cy);
+    const steps = 6 + Math.floor(Math.random() * 6);
+    for (let i = 0; i < steps; i++) {
+      cx += (Math.random() - 0.5) * len * 0.5;
+      cy -= len / steps;
+      x.lineTo(cx, cy);
+    }
+    x.stroke();
+    /* a highlight along it, so the gold has an edge that catches */
+    x.strokeStyle = `rgba(255,226,150,${a * 0.5})`;
+    x.lineWidth = w * 0.4;
+    x.stroke();
+    if (depth > 0 && Math.random() > 0.35)
+      vein(cx, cy, len * 0.55, w * 0.6, a * 0.8, depth - 1);
+  };
+  for (let i = 0; i < 26; i++)
+    vein(Math.random() * W, H * (0.75 + Math.random() * 0.3),
+         60 + Math.random() * 190, 1 + Math.random() * 2.6,
+         0.25 + Math.random() * 0.4, 2);
+
+  /* a scatter of fine flecks, so the stone is not glassy between veins */
+  for (let i = 0; i < 400; i++) {
+    x.fillStyle = `rgba(206,170,86,${0.05 + Math.random() * 0.14})`;
+    x.beginPath();
+    x.arc(Math.random() * W, Math.random() * H, 0.5 + Math.random() * 1.4, 0, Math.PI * 2);
+    x.fill();
+  }
+
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
+
 const pyTex = pyramidGradient();
 const body = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({
   map: pyTex,
-  color: 0xffffff, transparent: true, opacity: 0.32, depthWrite: false,
-  fog: false, side: THREE.DoubleSide, roughness: 0.9, metalness: 0.0,
+  color: 0xffffff, transparent: true, opacity: 0.4, depthWrite: false,
+  fog: false, side: THREE.DoubleSide, roughness: 0.62, metalness: 0.25,
   emissive: 0xbcd4dc, emissiveIntensity: 0.12 }));
 body.rotation.y = Math.PI / 4;                   // a face towards the viewer
 body.position.y = PY_H / 2;
 body.renderOrder = -52;
 pyramid.add(body);
 
+/* ------------------------------------------------------------ the mask
+   A depth-only copy of the stone. The pyramid is translucent and writes no
+   depth, so anything behind it — a craft on the far side, a star, the sun —
+   drew straight over the top and looked like it was inside the stone. That
+   is what made every pass behind the pyramid read as a crash.
+
+   This mesh writes depth and no colour. It is drawn after the sky and the
+   clouds and before the fleet, so the sky still shows through the stone as
+   it should, while solid things behind it are properly hidden. */
+const pyMask = new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({
+  colorWrite: false, depthWrite: true, depthTest: true, fog: false }));
+pyMask.rotation.y = Math.PI / 4;
+pyMask.position.y = PY_H / 2;
+pyMask.renderOrder = -40;                 // after sky (-200..-150), before the fleet (0)
+pyramid.add(pyMask);
+
 const edges = new THREE.LineSegments(
   new THREE.EdgesGeometry(bodyGeo),
-  new THREE.LineBasicMaterial({ color: 0xb89a4e, transparent: true,
-    opacity: 0.40, depthWrite: false, fog: false }));
+  new THREE.LineBasicMaterial({ color: 0xffd98a, transparent: true,
+    opacity: 0.9, depthWrite: false, fog: false }));
 edges.rotation.y = Math.PI / 4;
 edges.position.y = PY_H / 2;
 edges.renderOrder = -51;
 pyramid.add(edges);
+
+/* a second pass just outside the first, faint and additive: the edges read
+   as gold catching light rather than as a drawn line, and they survive
+   against a bright sky, which the single line was losing against */
+const edgeGlow = new THREE.LineSegments(edges.geometry, new THREE.LineBasicMaterial({
+  color: 0xffe9b0, transparent: true, opacity: 0.4, depthWrite: false, fog: false,
+  blending: THREE.AdditiveBlending }));
+edgeGlow.rotation.y = Math.PI / 4;
+edgeGlow.position.y = PY_H / 2;
+edgeGlow.scale.setScalar(1.006);
+edgeGlow.renderOrder = -50;
+pyramid.add(edgeGlow);
 
 /* the capstone, floating clear of the apex */
 /* Smaller, and sitting closer to the apex. At 17 per cent of the pyramid's
@@ -2108,6 +2337,109 @@ function mistTexture() {
   return t;
 }
 
+/* ---------------------------------------------------------------- clouds
+   Shells, not billboards.
+
+   Flat planes were wrong in two ways at once. A plane has edges, so panning
+   the view found them; and a plane at a fixed z is either in front of the
+   pyramid or behind it, never wrapped around the scene. What you want is a
+   cylinder centred on the viewer: no edge to find at any bearing, and
+   everything in the bay stands inside it.
+
+   Three shells at increasing radius, each turning at its own rate. Because
+   they are concentric and the eye is near the middle, the near one slides
+   past the far one as you look around — that is the parallax that makes a
+   sky read as deep instead of painted. The texture is drawn to tile, with
+   every blob repeated across the seam so there is no join. */
+/* ----------------------------------------------------------------- cloud
+   Built the way the sea is built, because it is the same problem upside
+   down: one broad plane, a tiling texture, and the offsets scrolled. Seen
+   from underneath, a ceiling converges to the horizon exactly as the water
+   does — that is the perspective doing the work, not a painted backdrop,
+   and it needs no shells and no billboards.
+
+   Two decks at different heights, scrolling at different rates, so the
+   near one slides across the far one. Soft gradients only: no hard shapes,
+   nothing that reads as smoke. */
+function cloudDeckTexture(px, patches, alpha) {
+  const c = document.createElement('canvas');
+  c.width = c.height = px;
+  const x = c.getContext('2d');
+  const blot = (cx, cy, r, a) => {
+    const g = x.createRadialGradient(cx, cy, r * 0.05, cx, cy, r);
+    g.addColorStop(0.00, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.38, `rgba(252,253,255,${a * 0.45})`);
+    g.addColorStop(0.72, `rgba(246,250,255,${a * 0.12})`);
+    g.addColorStop(1.00, 'rgba(244,248,255,0)');
+    x.fillStyle = g;
+    x.beginPath();
+    x.ellipse(cx, cy, r * (1.3 + Math.random() * 0.9), r * (0.6 + Math.random() * 0.4),
+              Math.random() * Math.PI, 0, Math.PI * 2);
+    x.fill();
+  };
+  for (let i = 0; i < patches; i++) {
+    const cx = Math.random() * px, cy = Math.random() * px;
+    const r = px * (0.02 + Math.pow(Math.random(), 2) * 0.13);
+    const a = alpha * (0.35 + Math.random() * 0.65);
+    blot(cx, cy, r, a);
+    /* wrapped in both directions, so the deck tiles without a seam */
+    for (const [dx, dy] of [[px,0],[-px,0],[0,px],[0,-px]])
+      if (cx + dx > -r * 2 && cx + dx < px + r * 2 && cy + dy > -r * 2 && cy + dy < px + r * 2)
+        blot(cx + dx, cy + dy, r, a);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+/* A ramp across the whole deck, which does two jobs at once. Straight
+   overhead the deck is nearest the eye and was the brightest thing in the
+   frame, which put the weight in the wrong place — so it is thinned at the
+   centre. And at the outer rim it falls to nothing, which hides the hard
+   line where the plane ends: the deck now dissolves into the distance
+   instead of stopping. */
+function deckRamp() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0.00, '#262626');      // thin directly overhead
+  g.addColorStop(0.22, '#8a8a8a');
+  g.addColorStop(0.52, '#ffffff');      // full weight towards the horizon
+  g.addColorStop(0.80, '#d8d8d8');
+  g.addColorStop(0.95, '#1a1a1a');
+  g.addColorStop(1.00, '#000000');      // and gone at the rim
+  x.fillStyle = g;
+  x.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
+
+const CLOUDS = [];
+for (const [y, size, rep, patches, alpha, dx, dz, weight, lag] of [
+  [ 300, 5200,  7, 150, 0.55,  0.0038, 0.0011, 1.0,   0],   // the deck overhead
+  [ 560, 7000, 11,  90, 0.34, -0.0021, 0.0006, 0.62, 42]    // thinner stuff above it
+]) {
+  const deck = new THREE.Mesh(
+    new THREE.PlaneGeometry(size, size),
+    new THREE.MeshBasicMaterial({
+      map: cloudDeckTexture(1024, patches, alpha),
+      alphaMap: deckRamp(),               // thin overhead, gone at the rim
+      transparent: true, side: THREE.DoubleSide, depthWrite: false,
+      fog: false, opacity: 0 }));
+  deck.material.map.repeat.set(rep, rep);
+  /* the ramp is NOT tiled: one across the whole deck */
+  deck.material.alphaMap.repeat.set(1, 1);
+  deck.rotation.x = Math.PI / 2;            // facing down, as the sea faces up
+  deck.position.y = y;
+  deck.renderOrder = -150;                  // behind the pyramid, which draws at -52
+  deck.userData = { dx, dz, weight, lag, rep };
+  scene.add(deck);
+  CLOUDS.push(deck);
+}
+
 const mistTex = mistTexture();
 const MIST = [];
 for (let i = 0; i < 7; i++) {
@@ -2133,6 +2465,361 @@ horizonMist.renderOrder = 2;
 horizonMist.userData = { drift: 0.0015, puff: 0.31, base: 0.5 };
 scene.add(horizonMist);
 MIST.push(horizonMist);
+
+/* ------------------------------------------------------------ the vortex
+   A craft leaving or arriving throws the water into a spiral under it. Two
+   parts: a swirl drawn on the surface, spinning and spreading as it decays,
+   and a short lift in the water's own chop so the whole sea near the event
+   is disturbed rather than just the patch beneath the hull.
+
+   Two rings, counter-rotating, which is what stops it reading as a single
+   spinning decal. */
+function vortexTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const x = c.getContext('2d');
+  const cx = 256, cy = 256;
+  x.lineCap = 'round';
+  /* log-spiral arms: tight at the eye, opening out */
+  for (let arm = 0; arm < 7; arm++) {
+    const a0 = (arm / 7) * Math.PI * 2;
+    x.beginPath();
+    for (let i = 0; i <= 90; i++) {
+      const th = a0 + i * 0.055;
+      const r = 14 * Math.exp(0.049 * i);
+      const px = cx + Math.cos(th) * r, py = cy + Math.sin(th) * r;
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    x.strokeStyle = 'rgba(255,255,255,.5)';
+    x.lineWidth = 7;
+    x.stroke();
+    x.strokeStyle = 'rgba(214,240,255,.85)';
+    x.lineWidth = 2.5;
+    x.stroke();
+  }
+  /* the eye, and a broken outer ring of foam */
+  const g = x.createRadialGradient(cx, cy, 2, cx, cy, 70);
+  g.addColorStop(0, 'rgba(255,255,255,.55)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g;
+  x.beginPath(); x.arc(cx, cy, 70, 0, Math.PI * 2); x.fill();
+  for (let i = 0; i < 60; i++) {
+    const th = Math.random() * Math.PI * 2, r = 150 + Math.random() * 90;
+    x.fillStyle = `rgba(255,255,255,${0.1 + Math.random() * 0.4})`;
+    x.beginPath();
+    x.ellipse(cx + Math.cos(th) * r, cy + Math.sin(th) * r,
+              6 + Math.random() * 20, 2 + Math.random() * 5, th, 0, Math.PI * 2);
+    x.fill();
+  }
+  /* soft to nothing at the rim */
+  const fade = x.createRadialGradient(cx, cy, 170, cx, cy, 256);
+  fade.addColorStop(0, 'rgba(0,0,0,0)');
+  fade.addColorStop(1, 'rgba(0,0,0,1)');
+  x.globalCompositeOperation = 'destination-out';
+  x.fillStyle = fade;
+  x.fillRect(0, 0, 512, 512);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+const vortexTex = vortexTexture();
+const VORTEX = [0, 1].map(i => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({ map: vortexTex, transparent: true, depthWrite: false,
+      fog: false, opacity: 0, blending: THREE.AdditiveBlending }));
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = 0.3 + i * 0.05;
+  m.renderOrder = 4;
+  m.visible = false;
+  m.userData = { spin: i ? -1.9 : 2.7, scale: i ? 1.35 : 1 };
+  scene.add(m);
+  return m;
+});
+/* Water torn off the surface and carried round: a ring of soft puffs that
+   orbit the eye of the vortex, climbing and spreading as they go. The flat
+   swirl on the water says where the disturbance is; this is the part that
+   says it is in the air. */
+const SPRAY_N = 90;
+const sprayTex = (() => {              // its own puff: this block runs before the vapour's
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 1, 32, 32, 32);
+  g.addColorStop(0.00, 'rgba(255,255,255,.85)');
+  g.addColorStop(0.4, 'rgba(255,255,255,.28)');
+  g.addColorStop(1.00, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  const t2 = new THREE.CanvasTexture(c);
+  t2.colorSpace = THREE.SRGBColorSpace;
+  return t2;
+})();
+const spray = [];
+for (let i = 0; i < SPRAY_N; i++) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: sprayTex, color: 0xeef6ff, transparent: true, depthWrite: false,
+    fog: false, blending: THREE.NormalBlending, opacity: 0 }));
+  sp.visible = false;
+  scene.add(sp);
+  spray.push({ sp, a0: Math.random() * Math.PI * 2, r0: 8 + Math.random() * 26,
+               rise: 0.5 + Math.random() * 1.6, spin: 1.6 + Math.random() * 1.9,
+               size: 4 + Math.random() * 9, lag: Math.random() * 0.35 });
+}
+
+let swirl = null;                        // { x, z, t0, dur }
+
+function stirWater(x, z, strength) {
+  /* it has to last as long as the engines take to wind up, so the water is
+     still turning when the craft finally goes */
+  swirl = { x, z, t0: clock.getElapsedTime(), dur: Math.max(7.5, 4.2 * strength), strength };
+  for (const v of VORTEX) v.visible = true;
+  /* The rest of the fleet feels it. Each craft takes a shove away from the
+     event and a roll, both falling off with distance — the near ones get
+     knocked about, the far wing barely notices. */
+  for (const sh of ships) {
+    const dx = sh.position.x - x, dz = sh.position.z - z;
+    const d = Math.max(8, Math.hypot(dx, dz));
+    const push = (strength * 2100) / (d * d);      // they get properly knocked about
+    sh.userData.shock = {
+      t0: clock.getElapsedTime(),
+      dur: 3.4,
+      x: (dx / d) * push, z: (dz / d) * push,
+      lift: push * 0.85,
+      roll: (dx / d) * push * 0.1
+    };
+  }
+}
+
+/* ------------------------------------------------------------- the patrol
+   One craft leaves the line, runs out to the pyramid, climbs around it and
+   comes home. Thirty seconds, on a loop with a long gap between runs.
+
+   The path is a spline through waypoints rather than a set of tweens, so
+   the craft is always on a smooth curve and its heading can be read off the
+   tangent — which means it banks into its turns because the geometry says
+   to, not because a number was animated. The speed is eased: it slips out
+   of formation slowly, opens up on the straight, holds through the turn and
+   settles back onto station. */
+/* ------------------------------------------------------------ the vapour
+   At five miles out the craft is a speck, but the trail is not: a line of
+   condensation laid behind it, heaviest where the air is worked hardest —
+   coming off the water and through the hard turn — and thin on the
+   straights. A fixed pool of puffs, placed and faded, so nothing is
+   allocated while it is flying. */
+const VAPOUR_N = 150;
+const vapourTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 1, 32, 32, 32);
+  g.addColorStop(0.00, 'rgba(255,255,255,.9)');
+  g.addColorStop(0.35, 'rgba(255,255,255,.3)');
+  g.addColorStop(1.00, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+})();
+const vapour = [];
+for (let i = 0; i < VAPOUR_N; i++) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: vapourTex, transparent: true, depthWrite: false, fog: false,
+    blending: THREE.AdditiveBlending, opacity: 0 }));
+  sp.visible = false;
+  scene.add(sp);
+  vapour.push({ sp, born: -99, life: 0, size: 0 });
+}
+let vapourNext = 0;
+/* the slide leaves a thin trail too: the field is still working the air */
+function load0Vapour(s, e) {
+  if (Math.random() < 0.25) layVapour(s.position, 0.15 + e * 0.15);
+  return true;
+}
+
+function layVapour(at, strength) {
+  const p = vapour[vapourNext++ % VAPOUR_N];
+  p.sp.position.copy(at);
+  p.sp.position.x += (Math.random() - 0.5) * 1.6;
+  p.sp.position.y += (Math.random() - 0.5) * 1.6;
+  p.born = clock.getElapsedTime();
+  p.life = 1.6 + strength * 2.6;          // it hangs longer where it is thicker
+  p.size = 2.5 + strength * 7;            // it was bigger than the ships
+  p.sp.visible = true;
+}
+
+/* --------------------------------------------------- the high contrail
+   A LINE, not a row of puffs. Sprites laid every few frames left gaps at
+   speed — a dotted trail — and laying one every frame spent the pool in
+   seconds. A rolling buffer of points drawn as a single line is continuous
+   at any speed, costs one draw call, and fades along its length: brightest
+   at the craft, thinning to nothing at the far end.
+*/
+const TRAIL_N = 900;
+const trailPos = new Float32Array(TRAIL_N * 3);
+const trailCol = new Float32Array(TRAIL_N * 3);
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
+trailGeo.setAttribute('color', new THREE.BufferAttribute(trailCol, 3));
+trailGeo.setDrawRange(0, 0);
+const trailLine = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({
+  vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
+  fog: false, blending: THREE.AdditiveBlending }));
+trailLine.frustumCulled = false;
+scene.add(trailLine);
+let trailCount = 0;
+
+function layTrail(at) {
+  if (trailCount >= TRAIL_N) {                  // shuffle down, keeping the newest
+    trailPos.copyWithin(0, 3);
+    trailCol.copyWithin(0, 3);
+    trailCount = TRAIL_N - 1;
+  }
+  const i = trailCount * 3;
+  trailPos[i] = at.x; trailPos[i + 1] = at.y; trailPos[i + 2] = at.z;
+  trailCount++;
+  /* fade along the length: the oldest end is nearly gone */
+  for (let k = 0; k < trailCount; k++) {
+    const f = Math.pow(k / trailCount, 1.6) * 0.75;
+    trailCol[k * 3] = f; trailCol[k * 3 + 1] = f * 1.02; trailCol[k * 3 + 2] = f * 1.08;
+  }
+  trailGeo.attributes.position.needsUpdate = true;
+  trailGeo.attributes.color.needsUpdate = true;
+  trailGeo.setDrawRange(0, trailCount);
+}
+function clearTrail() { trailCount = 0; trailGeo.setDrawRange(0, 0); }
+
+/* ------------------------------------------------------- ignition rings
+   When the main drive lights, the air in front of it is thrown outward in
+   a series of concentric rings — the shock structure standing in the
+   exhaust. They expand, slow and hang there long after the craft has gone,
+   which is the part that was missing: they flashed once and vanished. */
+const RING_N = 7;
+const rings = [];
+for (let i = 0; i < RING_N; i++) {
+  const m = new THREE.Mesh(new THREE.RingGeometry(1, 1.18, 48),
+    new THREE.MeshBasicMaterial({ color: 0xdfeaff, transparent: true, opacity: 0,
+      depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+      fog: false }));
+  m.visible = false;
+  scene.add(m);
+  rings.push({ m, born: -99, delay: i * 0.22, spread: 1 + i * 0.16 });
+}
+const RING_LIFE = 9;                     // they hang for a long while
+let ringScale = 1;
+function fireRings(at, dir, scale) {
+  const now = clock.getElapsedTime();
+  ringScale = scale || 1;
+  for (const r of rings) {
+    r.born = now;
+    r.m.position.copy(at);
+    r.m.lookAt(at.clone().add(dir));     // face the way the drive is pointing
+    r.m.visible = true;
+  }
+}
+
+/* -------------------------------------------------------- the far marker
+   Past a mile the craft is smaller than a pixel and disappears entirely.
+   A point of light scaled by distance keeps it findable — it is what you
+   actually see of an aircraft at height: not the shape, the glint. */
+const farMark = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: vapourTexPlaceholder(), transparent: true, depthWrite: false, depthTest: false,
+  blending: THREE.AdditiveBlending, fog: false, opacity: 0 }));
+farMark.visible = false;
+scene.add(farMark);
+function vapourTexPlaceholder() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(16, 16, 0.5, 16, 16, 16);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.3, 'rgba(240,248,255,.6)');
+  g.addColorStop(1, 'rgba(220,235,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 32, 32);
+  const t2 = new THREE.CanvasTexture(c);
+  t2.colorSpace = THREE.SRGBColorSpace;
+  return t2;
+}
+
+const PATROL_SPOOL = 12;                        // off the water, on the field alone
+const PATROL_LAND = 10;                        // and the long settle back into the line
+const PATROL_SLIDE = 2;                        // holding altitude, sliding left
+const PATROL_DUR = 92, PATROL_GAP = 46;        // seconds running, seconds resting
+let patrol = null;
+/* a frame to point things with, and the turn that brings a -X bow onto +Z */
+const aimer = new THREE.Object3D();
+const BOW_TO_Z = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+
+/* SCALE. A hull is 15 units and a caravel is about 25 metres, so one unit
+   is roughly 1.7 m and a mile is about 970 units. The run below is measured
+   against that, and the panel reports it. */
+const UNITS_PER_MILE = 970;
+
+function patrolPath(home) {
+  /* THE RUN, defined by formula rather than by waypoints.
+
+     Every previous version was a spline through twenty hand-placed points,
+     and a spline through hand-placed points ripples between them — which is
+     why the trajectory kept looking like a chart of something rather than a
+     flight. Here the height and the ground track are each a smooth function
+     of progress, sampled finely. There is nothing between the points for
+     the curve to wander into.
+
+       HEIGHT   a trapezoid, smoothed: climb, hold, descend. Monotonic in
+                each phase by construction, so it cannot bob.
+       TRACK    out and back on one continuous arc, swinging right at the
+                far end and returning on the other side.
+  */
+  const BASE = home.y;
+  const CEIL = 620;                       // the height it holds
+  const REACH = 2600;                     // how far out it goes
+  const SWING = 900;                      // how wide the arc is
+  const CLIMB_TO = 0.28, HOLD_TO = 0.62;  // when the climb ends and the descent starts
+  const smooth = v => v * v * (3 - 2 * v);
+
+  const height = f => {
+    if (f <= CLIMB_TO) return BASE + (CEIL - BASE) * smooth(f / CLIMB_TO);
+    if (f <= HOLD_TO) return CEIL;
+    return BASE + (CEIL - BASE) * (1 - smooth((f - HOLD_TO) / (1 - HOLD_TO)));
+  };
+  const track = f => {
+    /* one continuous arc: away from the fleet, round to the right, back.
+       sin gives the out-and-back in depth, (1-cos) the sideways swing, and
+       both are smooth end to end. */
+    const out = Math.sin(f * Math.PI);
+    const side = (1 - Math.cos(f * Math.PI * 2)) / 2;
+    /* AND A BERTH ROUND THE STONE. The craft passes the pyramid's depth
+       twice — once on the way out while still low, once coming back — and
+       a formula track has no reason to avoid it. These are two Gaussian
+       nudges, left going out and right coming home, centred on those
+       moments. A Gaussian is smooth everywhere, so it steers round the
+       stone without putting a kink in the trajectory. */
+    const berth = (centre, width, amount) =>
+      amount * Math.exp(-Math.pow((f - centre) / width, 2));
+    return new THREE.Vector3(
+      home.x + SWING * side * (f < 0.5 ? -0.35 : 1)
+             - berth(0.07, 0.085, 430)                 // outbound: wide to the left
+             + berth(0.94, 0.075, 430),                // inbound: wide to the right
+      0,
+      home.z - REACH * Math.pow(out, 0.85)
+    );
+  };
+
+  const pts = [];
+  for (let i = 0; i <= 72; i++) {
+    const f = i / 72;
+    const g = track(f);
+    g.y = height(f);
+    pts.push(g);
+  }
+  pts[0].copy(home);
+  pts[pts.length - 1].copy(home);
+  return new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.02);
+}
+
+
+
+
+        // seconds running, seconds resting
 
 /* ================================================== the fleet, in formation
    A shallow V with its point towards the viewer, every bow turned to face
@@ -2715,6 +3402,7 @@ function beginJump() {
   flight = { t: 0, dur: Math.max(2, Math.min(14, pendingCost)),
              from: camera.position.clone(), bearing: wp.clone().normalize(), body: target.name };
   streaks.visible = true;
+  if (craft) stirWater(craft.position.x, craft.position.z, 1.25);
   hideCard();
   refreshHud();
 }
@@ -2762,6 +3450,7 @@ function homeScene(on) {
   water.visible = on;
   pyramid.visible = on;
   for (const m of MIST) m.visible = on;
+  for (const c of CLOUDS) c.visible = on;
   for (const sh of ships) {
     sh.visible = on;
     if (sh.userData.twin) sh.userData.twin.visible = on;
@@ -2986,6 +3675,7 @@ function setMoon(on) {
   /* the bay's own furniture stays behind; the pyramid and the fleet come */
   water.visible = !on;
   for (const m of MIST) m.visible = !on;
+  for (const c of CLOUDS) c.visible = !on;   // no air, no weather
   pyramid.visible = true;
   for (const sh of ships) {
     sh.visible = true;
@@ -3047,6 +3737,11 @@ function clothHalf(g) {
 
 const clock = new THREE.Clock();
 let hudFrame = 0, pointerOn = false, steady = 0;
+let patrolFrame = 0;
+let nextPatrol = 8;        // the first run, eight seconds in
+let watch = 0;             // how much the eye is on the patrol
+let farRelease = 0;        // and how much of that it has let go of sideways
+const watchAt = new THREE.Vector3(0, 10, 0);
 let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
 function frame() {
   const t = clock.getElapsedTime();
@@ -3119,7 +3814,10 @@ function frame() {
   /* the disc goes from white overhead to deep orange on the horizon */
   const low = Math.max(0, 1 - Math.max(0, alt) / 0.5);
   sunSprite.material.color.setRGB(1, 1 - low * 0.30, 1 - low * 0.62);
-  sunSprite.scale.setScalar(150 + Math.max(0, 1 - Math.abs(alt) * 3) * 130);   // swollen at the horizon
+  /* the disc swells near the horizon, but is reined in when it is high —
+     at noon the glare was running off the top of the frame */
+  const highUp = Math.max(0, alt - 0.35) / 0.65;
+  sunSprite.scale.setScalar((150 + Math.max(0, 1 - Math.abs(alt) * 3) * 130) * (1 - highUp * 0.42));
 
   /* The canvas is only repainted a few times a second — it is a paint job and
      eight frames is plenty. Everything else keyed to the sun is updated every
@@ -3243,6 +3941,29 @@ function frame() {
     clockRay.material.opacity = up * 0.42;
   }
 
+  /* The weather runs on its own five-minute cycle: the cover thins away to
+     a clear sky, then builds back to a full deck. It is a raised cosine, so
+     there is no moment where it turns — the sky just keeps going, clearing
+     and closing over.
+
+     The high deck lags the low one by about forty seconds, which is what
+     stops the two moving as one sheet: the thin stuff overhead clears
+     first and comes back last, as it does outside. */
+  const WEATHER = 300;                             // seconds, clear to clear
+  const coverAt = lag => 0.5 - 0.5 * Math.cos(((t + lag) % WEATHER) / WEATHER * Math.PI * 2);
+  for (const c of CLOUDS) {
+    c.material.map.offset.x += c.userData.dx * 0.016;
+    c.material.map.offset.y += c.userData.dz * 0.016;
+    const lit = 0.4 + Math.max(0, alt) * 0.45 + dusk * 0.55;
+    const cover = coverAt(c.userData.lag);
+    c.material.opacity = Math.min(0.85, c.userData.weight * lit) * cover;
+    /* thinning cover also spreads out: as it clears, what is left is
+       stretched thinner rather than merely fainter */
+    const rep = c.userData.rep * (1 + (1 - cover) * 0.5);
+    c.material.map.repeat.set(rep, rep);
+    c.material.color.copy(bandCol).lerp(new THREE.Color(0xffffff), 0.25);
+  }
+
   for (const m of MIST) {                          // drift, breathe, take the sky's colour
     const u = m.userData;
     m.material.map.offset.x += u.drift * 0.016;
@@ -3278,6 +3999,67 @@ function frame() {
   waterGeo.attributes.position.needsUpdate = true;
   waterNrm.offset.set(t * 0.012, t * 0.02);            // the chop drifts
 
+/* The drive is updated for EVERY craft at the top of the loop, flying or
+   not. It used to sit below the patrol branch, which returns early — so the
+   one craft actually under power was the only one that never lit up. */
+const WHITE_HOT = new THREE.Color(0xffffff);
+const FIVE_HUNDRED_FEET = 90;        // a unit is about 1.7 m, so 500 ft is 90 units
+
+/* the lights, driven by what the craft is doing rather than by a timer */
+function updateLights(s, t, ph, mode, height) {
+  const L = s.userData.lights;
+  if (!L) return;
+  for (const n of L.nav) n.material.opacity = 0.5 + 0.1 * Math.sin(t * 1.3 + ph);
+
+  /* takeoff: amber, a quick double beat running down the hull */
+  const takingOff = mode === 'spool';
+  L.strobes.forEach((sp, i) => {
+    const phase = (t * 1.6 + i * 0.16) % 1;
+    const flash = phase < 0.07 || (phase > 0.14 && phase < 0.2) ? 1 : 0;
+    sp.material.opacity = takingOff ? flash : 0;
+  });
+
+  /* landing: hard white, blinking, only under five hundred feet on the way in */
+  const low = height < FIVE_HUNDRED_FEET;
+  const landingNow = (mode === 'land' || mode === 'approach') && low;
+  const blink = Math.sin(t * 7.5) > 0.1 ? 1 : 0.08;
+  for (const sp of L.landing) sp.material.opacity = landingNow ? blink : 0;
+  L.beam.visible = landingNow;
+  if (landingNow) {
+    L.beam.position.set(s.position.x, 0.45, s.position.z);
+    const near = 1 - height / FIVE_HUNDRED_FEET;        // tighter and brighter as it drops
+    L.beam.scale.setScalar(1.6 - near * 0.8);
+    L.beam.material.opacity = blink * (0.12 + near * 0.34);
+  }
+}
+function updateDrive(s, ph, t, thrust, warm) {
+  if (!s.userData.exhausts) return;
+  const heatIn = Math.max(thrust, (warm || 0) * 0.85);
+  const beat = 0.7 + 0.3 * Math.sin(t * 7 + ph * 3);
+  for (const core of s.userData.exhausts)
+    core.material.opacity = (0.45 + thrust * 0.5) * beat;
+  /* the plume: long and bright under power, a stub at rest, rattling fast
+     enough to read as plasma rather than flame */
+  for (const pl of s.userData.plumes) {
+    const jitter = 0.82 + 0.18 * Math.sin(t * 41 + pl.userData.zS * 2 + ph * 5);
+    const L = (1.4 + thrust * 15) * pl.userData.len * jitter;   // a jet, not a tail
+    pl.scale.set(1, L, 1);
+    pl.position.x = pl.userData.base + L / 2;
+    pl.material.opacity = (0.1 + thrust * 0.8) * jitter;
+  }
+  const ik = s.userData.intake;
+  if (ik) {
+    /* The ring runs up through its own colour to WHITE as the drive reaches
+       launch readiness — the metal is not just lit, it is hot. */
+    const heat = Math.min(1, heatIn * 1.25);
+    ik.lip.material.emissive.copy(ik.hue).lerp(WHITE_HOT, Math.pow(heat, 1.6));
+    ik.lip.material.emissiveIntensity = 0.3 + heat * 3.4;
+    ik.glow.material.color.copy(ik.hue).lerp(WHITE_HOT, Math.pow(heat, 1.4));
+    ik.glow.material.opacity = (0.16 + heat * 0.8) * (0.85 + 0.15 * Math.sin(t * 9 + ph));
+    ik.glow.scale.setScalar(1 + heat * 0.5);
+  }
+}
+
   for (const s of ships) {                             // every ship rides it
     const ph = s.userData.phase, home = s.userData.home;
     const lift = (s === hovered ? 0.5 : 0) + (s === chosen ? 1.1 : 0);
@@ -3312,6 +4094,309 @@ function frame() {
       s.userData.neonMats[0].opacity = (0.55 + s.userData.near * 0.4) * beatN;
       s.userData.neonMats[1].opacity = (0.18 + s.userData.near * 0.22) * beatN;
     }
+    /* the patrol overrides station keeping for the craft that is out */
+    /* the throttle: idling on station, winding up through the departure,
+       and wide open once the engines have it */
+    let thrust = 0.16;
+    if (patrol && patrol.ship === s) {
+      const el = t - patrol.t0;
+      /* The main engines do not light in the middle of the formation. The
+         craft lifts and slides clear on its field alone — the thrusters
+         under the keel and nothing more — and the plasma only comes in
+         once it is out of the line and heading away. */
+      const clear = ships.every(o => o === s ||
+        Math.hypot(o.position.x - s.position.x, o.position.z - s.position.z) > 34);
+      /* the intake heats while the drive winds up, even though no plasma is
+         thrown until the craft is clear of the line */
+      /* nothing but the water for the first quarter, then the drive lights
+         and runs up to white by the time it leaves */
+      if (el < PATROL_SPOOL + PATROL_SLIDE) {
+        const q = el / PATROL_SPOOL;
+        patrol.warm = q < 0.25 ? 0 : Math.min(1, (q - 0.25) / 0.7);
+      }
+      thrust = el < PATROL_SPOOL + PATROL_SLIDE ? 0
+             : clear ? Math.min(1, (el - PATROL_SPOOL - PATROL_SLIDE) / 2.5)
+             : 0;
+
+      /* COMING DOWN, THE PLASMA GOES OFF.
+
+         The jets are for going somewhere. On the way back the craft is
+         losing height and speed, and the field under the keel is what holds
+         it up — so the drive spools down through the descent and is cold
+         long before it reaches the water. Leaving it wide open on approach
+         was the thing that looked wrong: a craft landing under full power. */
+      if (patrol.land) {
+        const lk = Math.min(1, (t - patrol.land) / PATROL_LAND);
+        thrust *= Math.max(0, 0.22 * (1 - lk * 1.6));      // cold by two-thirds in
+        patrol.warm = Math.max(0, 0.3 * (1 - lk));          // and the intake cools with it
+      } else if (s.position.y < 420 && el > PATROL_SPOOL + PATROL_SLIDE + 20) {
+        /* the descent itself: throttling back as it comes down out of the run */
+        thrust *= 0.15 + Math.min(1, s.position.y / 420) * 0.85;
+      }
+      if (thrust > 0 && !patrol.lit) {             // the moment the drive lights
+        patrol.lit = true;
+        const back = new THREE.Vector3(1, 0, 0).applyQuaternion(s.quaternion);
+        fireRings(s.position.clone(), back);
+      }
+    }
+    updateDrive(s, ph, t, thrust, patrol && patrol.ship === s ? (patrol.warm || 0) : 0);
+    const mine = patrol && patrol.ship === s;
+    updateLights(s, t, ph,
+      !mine ? 'station'
+      : patrol.land ? 'land'
+      : (t - patrol.t0) < PATROL_SPOOL ? 'spool'
+      : 'flight',
+      s.position.y);
+
+    if (patrol && patrol.ship === s) {
+      /* The departure: five seconds of the craft pulling itself off station
+         and rising on its field, water boiling under it, before the main
+         engines light and it goes. Without this it simply vanished off the
+         line, which is the part that looked unearned. */
+      const spool = (t - patrol.t0) / PATROL_SPOOL;
+      if (spool < 1) {
+        /* THE LAUNCH. Twelve seconds, and the water moves first.
+
+             0.00-0.25  NOTHING BUT THE WATER. The craft sits on station,
+                        barely trembling. Under it the sea turns, mist
+                        comes off the surface, the air starts to move.
+             0.25-0.55  the drive takes hold: engines lighting, the wind
+                        rising, the craft straining but still down
+             0.55-1.00  it lifts — LEVEL, not nose-up — rising in surges
+                        and holding steady while the intake runs white
+
+           The craft stays flat the whole way. Pitching the nose up on the
+           first move made it look like it had lost the load rather than
+           taken it; a machine on a field goes up level. */
+        const hold0 = 0.25, grip = 0.55;
+        const lift = spool < grip ? 0 : (spool - grip) / (1 - grip);
+        const e = lift * lift * (3 - 2 * lift);
+
+        /* the tremble: everything before the lift, dying as it takes hold */
+        const shake = spool < grip ? 0.35 + spool * 1.2 : Math.max(0, 0.9 - lift * 1.6);
+        const jx = Math.sin(t * 27.3) * Math.sin(t * 11.7) * shake * 1.4;
+        const jy = Math.sin(t * 31.1 + 1.7) * shake * 0.9;
+        const jz = Math.sin(t * 23.9 + 0.6) * Math.sin(t * 9.3) * shake * 1.4;
+
+        /* the rise: steady. It used to surge and settle on the way up,
+           which read as the craft struggling rather than lifting. */
+        const surge = e;
+        s.position.x = patrol.home.x + jx;
+        s.position.z = patrol.home.z + jz;
+        s.position.y = patrol.home.y + jy * 0.3 + Math.max(0, surge) * 30;
+
+        /* LEVEL. The bow stays on its station heading and the hull stays
+           flat — only a slow roll from the air moving under it. */
+        aimer.position.copy(s.position);
+        aimer.lookAt(s.position.clone().add(new THREE.Vector3(0, 0, 1)));
+        const q0 = aimer.quaternion.clone().multiply(BOW_TO_Z);
+        q0.premultiply(new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1), Math.sin(t * 2.1) * 0.06 * (1 - lift * 0.6)));
+        s.quaternion.slerp(q0, 0.06);
+
+        /* the water keeps working: a second turn as the drive grips, a
+           third as it breaks free */
+        /* the sea is worked the whole way up, not stirred once: five turns
+           across the twelve seconds, each a little harder than the last */
+        for (const [at, str, flag] of [[0.16, 1.0, 'sA'], [0.34, 1.2, 'sB'],
+                                       [0.52, 1.35, 'sC'], [0.68, 1.5, 'sD'],
+                                       [0.84, 1.3, 'sE']])
+          if (spool > at && !patrol[flag]) { patrol[flag] = true; stirWater(s.position.x, s.position.z, str); }
+        continue;
+      }
+
+      /* Two seconds at the altitude it reached, sliding out to the left,
+         before the engines take it up. It is the beat between leaving the
+         line and being under way. */
+      /* THE APPROACH. Ten seconds of coming in: a long curving descent that
+         overshoots the station slightly and swings back, sinking in stages
+         with the craft rocking as it bleeds off speed, water turning under
+         it the whole way. It used to simply arrive. */
+      if (patrol.land) {
+        /* THE APPROACH, on a curve rather than a lerp with a wobble added.
+           Four points: where it arrived, a long turn onto the line, a short
+           final at station height, and the slot itself. One spline means
+           the descent, the swing and the flare are a single continuous
+           motion instead of three that fight each other. */
+        const lk = Math.min(1, (t - patrol.land) / PATROL_LAND);
+        const e2 = lk < 0.5 ? 2 * lk * lk : 1 - Math.pow(-2 * lk + 2, 2) / 2;
+        const at = patrol.landPath.getPointAt(Math.min(0.9999, e2));
+        const ahead = patrol.landPath.getPointAt(Math.min(0.9999, e2 + 0.01));
+        s.position.copy(at);
+        s.position.y += Math.sin(t * 1.6) * 0.8 * (1 - lk);      // a little air under it
+
+        const dir2 = ahead.clone().sub(at);
+        if (dir2.lengthSq() > 1e-6) {
+          dir2.normalize();
+          aimer.position.copy(at);
+          aimer.lookAt(at.clone().add(dir2));
+          const ql = aimer.quaternion.clone().multiply(BOW_TO_Z);
+          /* rolls level as it comes in, rather than rocking to the end */
+          ql.premultiply(new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 0, 1), Math.sin(t * 2.2) * 0.09 * Math.pow(1 - lk, 1.5)));
+          s.quaternion.slerp(ql, 0.07);
+        }
+        /* the field carries it down. The keel thrusters are updated here
+           because the landing returns early — the same trap the main drive
+           fell into: the one craft that needed it was the only one skipping
+           the code. */
+        if (s.userData.thrusters) {
+          const beat = 0.6 + 0.4 * Math.sin(t * 3.1 + ph * 2);
+          const load = 1 + lk * 1.1;                  // harder as the plasma dies
+          for (const sp of s.userData.thrusters) {
+            sp.material.opacity = Math.min(1, (0.45 + beat * 0.4) * load);
+            sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + beat * 0.5) * (1 + lk * 0.5));
+          }
+        }
+        if (lk > 0.5 && !patrol.stirL) { patrol.stirL = true; stirWater(patrol.home.x, patrol.home.z, 1.4); }
+        if (lk >= 1) { patrol = null; s.userData.settle = t + 3; nextPatrol = t + PATROL_GAP; }
+        continue;
+      }
+
+      const slide = (t - patrol.t0 - PATROL_SPOOL) / PATROL_SLIDE;
+      if (slide < 1) {
+        const e = slide * slide * (3 - 2 * slide);
+        s.position.x = patrol.lift.x - e * 18;          // out to the left, just clear of the line
+        s.position.y = patrol.lift.y + Math.sin(t * 1.1) * 0.6;
+        s.position.z = patrol.lift.z - e * 10;
+        /* coming round onto the bearing it is actually sliding along, which
+           is out to the left: heading (-1,0,0) wants atan2(0, 1) = 0, so
+           the nose swings the full ninety degrees, not half of one. */
+        /* sliding left and a little forward: same frame again */
+        const go = new THREE.Vector3(-1, 0.05, -0.35).normalize();
+        aimer.position.copy(s.position);
+        aimer.lookAt(s.position.clone().add(go));
+        const q = aimer.quaternion.clone().multiply(BOW_TO_Z);
+        q.premultiply(new THREE.Quaternion().setFromAxisAngle(go, -0.2 * e));
+        s.quaternion.slerp(q, 0.06);
+        if (load0Vapour(s, e)) {}
+        continue;
+      }
+      const k = Math.min(1, (t - patrol.t0 - PATROL_SPOOL - PATROL_SLIDE) / PATROL_DUR);
+      /* ONE curve, not two branches. The previous easing was piecewise and
+         the halves did not meet: at the midpoint the craft jumped a third
+         of the way along the path in a single frame. Smoothstep gives the
+         same shape — slow out of the line, quick through the middle,
+         settling at the end — and is continuous in value and in speed. */
+      /* Smoothstep is slowest exactly in the middle of the run, which is
+         where the craft should be flat out — that is the sag you saw. This
+         eases only the first and last tenth and holds full speed between. */
+      /* the boost: real speed, not a flash. It adds distance along the path
+         over about five seconds, ramping up and off so nothing jumps. */
+      if (patrol.burst) {
+        const bt = (t - patrol.burst) / 5;
+        /* 0.00085 a frame for five seconds is a quarter of the whole path —
+           the craft levelled out, lit the boosters and skipped the entire
+           level run, landing in the descent. That is the hairpin. A tenth
+           of that is a shove, not a teleport. */
+        if (bt < 1) patrol.extra = (patrol.extra || 0) + Math.sin(bt * Math.PI) * 0.00009;
+      }
+      const E = 0.1;
+      const u0 = Math.min(0.9999,
+        k < E ? (k * k) / (2 * E * (1 - E))
+      : k > 1 - E ? 1 - ((1 - k) * (1 - k)) / (2 * E * (1 - E))
+      : (k - E / 2) / (1 - E));
+      const u = Math.min(0.9999, u0 + (patrol.extra || 0));
+      const at = patrol.path.getPointAt(u);
+      s.position.copy(at);
+
+      /* Heading and bank from the CURVE, sampled either side of where the
+         craft is, rather than from the difference between one frame and the
+         last. Frame-to-frame differencing made the roll jitter, because it
+         measured the frame rate as much as the turn. */
+      const back = patrol.path.getPointAt(Math.max(0, u - 0.012));
+      const fwd = patrol.path.getPointAt(Math.min(0.9999, u + 0.012));
+      const dir = fwd.clone().sub(back);
+      /* ORIENTATION, built from the direction of travel rather than from
+         three Euler angles I had to guess the signs of. The hull's bow is
+         its -X end, so: point a frame's +Z along the heading, then turn it
+         ninety degrees about Y to bring the bow round onto it. Pitch comes
+         out of the same frame, which is why the nose now rises on the climb
+         instead of dropping — that was a sign error in the old Euler path.
+
+         The bank is then applied about the heading itself, which is what
+         banking is. */
+      dir.normalize();
+      aimer.position.copy(at);
+      aimer.lookAt(at.clone().add(dir));
+      const want = aimer.quaternion.clone().multiply(BOW_TO_Z);
+
+      const inLeg = at.clone().sub(back), outLeg = fwd.clone().sub(at);
+      let d = Math.atan2(outLeg.x, outLeg.z) - Math.atan2(inLeg.x, inLeg.z);
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      const rollWant = Math.max(-0.6, Math.min(0.6, -d * 6));
+      s.userData.roll = (s.userData.roll || 0) + (rollWant - (s.userData.roll || 0)) * 0.035;
+      want.premultiply(new THREE.Quaternion().setFromAxisAngle(dir, s.userData.roll));
+
+      s.quaternion.slerp(want, 0.1);            // eased, so nothing snaps
+
+      /* how hard the air is being worked: the bite of the turn, the speed
+         along the curve, and a burst while it is still low over the water */
+      const speed = at.distanceTo(fwd) / 0.024;
+      const load = Math.min(1, Math.abs(d) * 5) * 0.75
+                 + Math.min(1, speed / 150) * 0.35
+                 + Math.max(0, 1 - s.position.y / 70) * 0.5;
+      if (load > 0.12) layVapour(s.position, Math.min(1, load));
+
+      /* above the weather the trail stands: lay it continuously so the
+         craft can be followed all the way out and round */
+      if (s.position.y > 190) layTrail(s.position);    // every frame: an unbroken line
+
+      /* the pressure wave: it builds with speed and with how hard the craft
+         is accelerating, and only up where the air will show it */
+      const accel = Math.max(0, speed - (patrol.lastSpeed || speed));
+      patrol.lastSpeed = speed;
+      const high = Math.min(1, Math.max(0, (s.position.y - 120) / 260));
+      const push = Math.min(1, speed / 190) * high;
+      /* It shows only when the craft is ACCELERATING, high, and far enough
+         off that it is barely a speck — which is the only time you would
+         see one. It was on constantly through the climb, which is what
+         made it look overdone. */
+      /* THE SECOND IGNITION. At the top of the climb the craft flattens
+         out, and once it is level the main boosters light: a single hard
+         push that throws a large ring off the stern and sends it streaking
+         at the horizon. It happens once per run, and only up high where
+         there is room for it. */
+      /* 0.14 was too strict: the craft was still easing out of the climb
+         and the boosters did not light until it was already into the turn.
+         A quarter catches the moment it comes level. */
+      const levelNow = Math.abs(dir.y) < 0.25;
+      if (!patrol.burst && levelNow && s.position.y > 420 && k > 0.2) {
+        patrol.burst = t;
+        const aft = new THREE.Vector3(1, 0, 0).applyQuaternion(s.quaternion);
+        fireRings(s.position.clone(), aft, 1.7);        // larger than the launch ring, not vast
+      }
+
+      /* The boost means the craft reaches the end of the path before the
+         clock reaches the end of the run — it was arriving home and then
+         sitting there until k caught up, which is the hang. Finish on
+         whichever comes first. */
+      if (k >= 1 || u >= 0.9995) {
+        /* hand over to the landing rather than dropping straight onto
+           station: the approach is its own ten seconds */
+        patrol.land = t;
+        const from = s.position.clone(), H = patrol.home;
+        /* Heights must fall the whole way. The previous set put the short
+           final HIGHER than the turn before it, so the craft sank, rose
+           again and sank — the bump in the approach. Each point is now
+           lower than the last. */
+        const drop = (f, y, dx, dz) =>
+          from.clone().lerp(H, f).setY(from.y + (H.y - from.y) * y).add(new THREE.Vector3(dx, 0, dz));
+        patrol.landPath = new THREE.CatmullRomCurve3([
+          from,
+          drop(0.35, 0.30, 30, -20),        // the long turn onto the line
+          drop(0.70, 0.62, 24, -14),        // rolling out, still coming down
+          drop(0.90, 0.86, 10, -6),         // short final
+          drop(0.98, 0.97, 3, -2),          // the flare
+          H.clone()
+        ], false, 'catmullrom', 0.15);
+        stirWater(patrol.home.x, patrol.home.z, 1.0);   // the water starts turning early
+      }
+
+      continue;
+    }
+
     /* ------------------------------------------------- station keeping
        Each craft wanders around its own place in the formation on three
        slow cycles that never line up, so the drift never repeats. It is
@@ -3330,7 +4415,20 @@ function frame() {
     /* a proper sea state: heave on two periods so it never repeats cleanly,
        roll, pitch, a slow yaw as the hull hunts around its anchor, and a
        surge back and forth along its own length. */
-    const heave = Math.sin(t * 0.9 + ph) * 0.42 + Math.sin(t * 0.37 + ph * 1.7) * 0.22;
+    /* a shove from a takeoff or a landing nearby, dying away */
+    let shx = 0, shz = 0, shLift = 0, shRoll = 0;
+    const sk = s.userData.shock;
+    if (sk) {
+      const q = (t - sk.t0) / sk.dur;
+      if (q >= 1) s.userData.shock = null;
+      else {
+        const fall = Math.pow(1 - q, 2) * Math.cos(q * 22) ;   // a knock, then rocking
+        shx = sk.x * fall; shz = sk.z * fall;
+        shLift = sk.lift * Math.pow(1 - q, 2.2) * Math.sin(q * 26);
+        shRoll = sk.roll * fall;
+      }
+    }
+    const heave = Math.sin(t * 0.9 + ph) * 0.42 + Math.sin(t * 0.37 + ph * 1.7) * 0.22 + shLift;
     /* it hovers: the resting height is well clear of the water, and the
        heave is the craft holding station on its field rather than a hull
        riding a swell. */
@@ -3350,15 +4448,21 @@ function frame() {
       const flicker = 0.86 + 0.14 * Math.sin(t * 2.3 + ph * 1.9);
       pl.material.opacity = (0.72 / spread) * flicker;
     }
+    /* the field carries the weight when the drive is off — the keel
+       thrusters brighten through the approach as the plasma goes cold */
+    const hovering = patrol && patrol.ship === s && patrol.land
+      ? Math.min(1, (t - patrol.land) / PATROL_LAND) : 0;
+
     if (s.userData.thrusters) {                    // the wash under the keel
       const th = 0.6 + 0.4 * Math.sin(t * 3.1 + ph * 2);
       for (let k = 0; k < s.userData.thrusters.length; k++) {
         const sp = s.userData.thrusters[k];
-        sp.material.opacity = 0.45 + th * 0.4;
-        sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + th * 0.5));
+        /* working hard on the way in: the field is carrying the craft now */
+        sp.material.opacity = (0.45 + th * 0.4) * (1 + hovering * 0.9);
+        sp.scale.setScalar((s.userData.len * 0.055) * (2.4 + th * 0.5) * (1 + hovering * 0.45));
       }
     }
-    s.rotation.z = Math.sin(t * 0.7 + ph) * 0.075 + Math.sin(t * 0.23 + ph) * 0.03;   // roll
+    s.rotation.z = Math.sin(t * 0.7 + ph) * 0.075 + Math.sin(t * 0.23 + ph) * 0.03 + shRoll;
     s.rotation.x = Math.cos(t * 0.55 + ph) * 0.045;                                    // pitch
     s.rotation.y = Math.PI / 2 + Math.sin(t * 0.19 + ph * 0.6) * 0.07;                 // yaw
     const twin = s.userData.twin;
@@ -3387,11 +4491,20 @@ function frame() {
     const room = Math.max(0, CAM_HOME.z - 34 - home.z);
     const tz = home.z + Math.min(wanted, room) + wz;
     const tx = home.x + (s === chosen ? -home.x * 0.25 : 0) + wx;
-    s.position.z += (tz - s.position.z) * 0.045;
-    s.position.x += (tx - s.position.x) * 0.045;
-    s.position.x += Math.sin(t * 0.31 + ph) * 0.06;        // slow sideways set
-    s.position.z += Math.sin(t * 0.44 + ph * 1.3) * 0.05;  // surge
+    /* a craft just off patrol is pulled home harder for a couple of seconds,
+       then settles to the normal gentle hold */
+    const settling = (s.userData.settle || 0) > t ? 0.09 : 0.045;
+    s.position.z += (tz - s.position.z) * settling;
+    s.position.x += (tx - s.position.x) * settling;
+    s.position.x += Math.sin(t * 0.31 + ph) * 0.06 + shx;  // slow sideways set, plus any shock
+    s.position.z += Math.sin(t * 0.44 + ph * 1.3) * 0.05 + shz;
   }
+
+  /* The stone turns: one revolution every four minutes. Slow enough that
+     you only notice by the light moving — a face brightening as it comes
+     round to the sun, the gold edges catching and going out — which is the
+     point of turning it at all. */
+  pyramid.rotation.y = t * (Math.PI * 2 / 240);
 
   /* the capstone drifts and turns, slowly enough to notice only on a second
      look, which is the point of it */
@@ -3424,6 +4537,100 @@ function frame() {
   const draw = 0.20 + beat * 0.80;
   bm.scale.set(draw, 1, draw);
 
+  for (const r of rings) {                         // the ignition rings, hanging
+    if (!r.m.visible) continue;
+    const age = (t - r.born - r.delay) / RING_LIFE;
+    if (age < 0) { r.m.scale.setScalar(0.001); continue; }
+    if (age >= 1) { r.m.visible = false; continue; }
+    /* fast at first, then barely moving — the way a shock ring stalls */
+    const grow = Math.pow(age, 0.42);
+    r.m.scale.setScalar(2 + grow * 120 * r.spread * ringScale);
+    r.m.material.opacity = Math.min(1, age * 12) * Math.pow(1 - age, 1.4) * 0.5;
+  }
+
+  /* the marker: a glint where the craft is, once it is too far to resolve */
+  if (patrol) {
+    const d = camera.position.distanceTo(patrol.ship.position);
+    farMark.visible = d > 420;
+    farMark.position.copy(patrol.ship.position);
+    /* Small and bright, not big and faint. At two and a half thousand units
+       the old scaling drew an eighteen-pixel blob; this holds it to five or
+       six pixels — a hard point of light — and makes up the visibility in
+       brightness instead. A slow twinkle, because that is what a distant
+       thing in moving air does. */
+    farMark.scale.setScalar(Math.max(4, d * 0.0055));
+    const twinkle = 0.86 + 0.14 * Math.sin(t * 6.3 + Math.sin(t * 2.1) * 2);
+    farMark.material.opacity = Math.min(1, Math.max(0, (d - 420) / 450)) * twinkle;
+  } else if (farMark.visible) {
+    farMark.visible = false;
+  }
+
+  for (const p of vapour) {                        // the vapour ageing
+    if (!p.sp.visible) continue;
+    const age = (t - p.born) / p.life;
+    if (age >= 1) { p.sp.visible = false; p.sp.material.opacity = 0; continue; }
+    p.sp.scale.setScalar(p.size * (0.5 + age * 2.6));   // thin as it spreads
+    p.sp.material.opacity = Math.sin(Math.min(1, age * 6) * Math.PI / 2) * Math.pow(1 - age, 1.8) * 0.3;
+  }
+
+  /* the vortex decaying: it spreads, slows and fades, and the sea's own
+     chop is lifted for as long as it lasts */
+  /* the mist: each puff rides round the eye, climbing and widening, and
+     thinning to nothing as the disturbance dies */
+  if (swirl) {
+    for (const q of spray) {
+      const k2 = (t - swirl.t0) / swirl.dur - q.lag;
+      if (k2 < 0 || k2 >= 1) { q.sp.visible = false; continue; }
+      const ang = q.a0 + k2 * q.spin * 6;
+      const rad = q.r0 + k2 * 70 * Math.min(1.3, swirl.strength);
+      q.sp.visible = true;
+      q.sp.position.set(swirl.x + Math.cos(ang) * rad,
+                        1 + k2 * 22 * q.rise * Math.min(1.3, swirl.strength),
+                        swirl.z + Math.sin(ang) * rad);
+      q.sp.scale.setScalar(q.size * (0.5 + k2 * 1.2) * Math.min(1.2, swirl.strength));
+      q.sp.material.opacity = Math.sin(Math.min(1, k2 * 5) * Math.PI / 2) *
+                              Math.pow(1 - k2, 1.7) * 0.3;
+    }
+  } else {
+    for (const q of spray) if (q.sp.visible) { q.sp.visible = false; }
+  }
+
+  if (swirl) {
+    const k = (t - swirl.t0) / swirl.dur;
+    if (k >= 1) {
+      swirl = null;
+      for (const v of VORTEX) { v.visible = false; v.material.opacity = 0; }
+      water.material.normalScale.set(0.55, 0.55);
+    } else {
+      /* It was growing past seven hundred units at full additive opacity —
+         a white disc across the whole frame, which is what bleached the
+         fleet and the sails. */
+      const grow = 30 + k * 95 * swirl.strength;
+      for (const v of VORTEX) {
+        v.position.set(swirl.x, v.position.y, swirl.z);
+        v.scale.setScalar(grow * v.userData.scale);
+        v.rotation.z += v.userData.spin * (1 - k) * 0.055;
+        v.material.opacity = Math.pow(1 - k, 1.5) * Math.min(0.55, 0.42 * swirl.strength);
+      }
+      const rough = 0.55 + (1 - k) * 1.5 * swirl.strength;
+      water.material.normalScale.set(rough, rough);
+    }
+  }
+
+  /* X takes a turn round the pyramid, every so often */
+  if (!patrol && !arrived && !flight && t > nextPatrol) {
+    const x = ships.find(sh => sh.userData.project.id === 'x');
+    if (x) {
+      const lift = x.position.clone();
+      lift.y += 26;                                      // where the spool leaves it
+      const start = lift.clone();
+      start.x -= 18; start.z -= 10;                      // and where the slide leaves it
+      clearTrail();
+      patrol = { ship: x, t0: t, home: x.position.clone(), lift, path: patrolPath(start) };
+      stirWater(x.position.x, x.position.z, 1.15);       // the water it leaves behind
+    }
+  }
+
   /* keep their distance: any pair closer than a hull length and a half is
      eased apart, along the line between them. Cheap at five craft, and it
      is what stops the wander turning into a collision. */
@@ -3431,6 +4638,7 @@ function frame() {
   for (let i = 0; i < ships.length; i++) {
     for (let j = i + 1; j < ships.length; j++) {
       const a = ships[i], b = ships[j];
+      if (patrol && (patrol.ship === a || patrol.ship === b)) continue;   // the one out of line
       const dx = b.position.x - a.position.x, dz = b.position.z - a.position.z;
       const d = Math.hypot(dx, dz);
       if (d > KEEP || d < 0.001) continue;
@@ -3484,6 +4692,34 @@ function frame() {
   camera.position.z += ((CAM_HOME.z + (chosen ? 14 : 0)) - camera.position.z) * 0.05;
   /* looking up: the aim point climbs with the pitch, so dragging upward
      sweeps the sky rather than merely raising the eye */
+  /* The eye follows the craft that has broken formation — it turns to watch
+     it go, tracks it round the pyramid and comes back to the fleet as it
+     settles. Eased in at the start of the run and out at the end, so the
+     view is lent to the patrol rather than snatched. */
+  if (patrol) {
+    const kw = Math.min(1, (t - patrol.t0) / PATROL_DUR);
+    /* A lean, not a lock. The craft is in frame for most of its run anyway,
+       so the eye only needs to drift its way — enough that you feel the
+       scene notice, not so much that the view is dragged around. */
+    /* The eye lets go once the craft is far off. While it tracked all the
+       way out, the craft sat dead centre through the whole level dash and
+       so appeared not to move at all — the flattening was invisible because
+       the camera was flattening with it. Beyond about nine hundred units
+       the view holds still and lets the craft cross the frame. */
+    const away = Math.min(1, Math.max(0, (camera.position.distanceTo(patrol.ship.position) - 700) / 500));
+    /* A partial release, not a full one. Letting go entirely put the craft
+       forty-three degrees up and clean out of a twenty-three degree frame;
+       holding on entirely kept it dead centre and hid the dash. A third of
+       the lean keeps it in view while still letting it cross. */
+    farRelease = away;
+    const hold = Math.min(1, kw / 0.2) * Math.min(1, (1 - kw) / 0.22);
+    watch += (hold - watch) * 0.022;
+    watchAt.lerp(patrol.ship.position, 0.03);
+  } else {
+    watch += (0 - watch) * 0.03;
+    farRelease = 0;
+  }
+
   /* Aim as an ANGLE. Treating the pitch as a height to look at meant the
      aim ran away with distance — at full tilt the camera pointed almost
      straight up and skipped over everything between. A bearing and an
@@ -3494,6 +4730,30 @@ function frame() {
     camera.position.x + (-Math.sin(yaw)) * Math.cos(el) * 100,
     camera.position.y + Math.sin(el) * 100,
     camera.position.z + (-Math.cos(yaw)) * Math.cos(el) * 100);
+  /* blend the formation's aim with the craft's, by however much the patrol
+     has the eye */
+  if (watch > 0.001) {
+    /* Follow in ELEVATION, not in BEARING.
+
+       These two pull against each other: track fully and the craft sits
+       dead centre, so a level dash across the sky looks like hovering;
+       let go entirely and it climbs clean out of the top of the frame. The
+       answer is to split them. The eye tilts up to keep the craft in view
+       — it is forty degrees high out there — but once the craft is far off
+       it stops turning to follow it sideways, so the dash sweeps across
+       the frame the way it should. */
+    /* aim is a point a hundred units ahead of the eye, so the target has to
+       be the craft's DIRECTION carried out to the same distance. Lerping
+       towards the craft's absolute height instead aimed hundreds of units
+       past it and put the craft below the frame. */
+    const toShip = camera.position.clone()
+      .addScaledVector(watchAt.clone().sub(camera.position).normalize(), 100);
+    const wv = watch * 0.7;                        // vertical: hold it in frame
+    const wh = watch * 0.7 * (1 - farRelease);     // sideways: let it run
+    aim.x += (toShip.x - aim.x) * wh;
+    aim.z += (toShip.z - aim.z) * wh;
+    aim.y += (toShip.y - aim.y) * wv;
+  }
   camera.lookAt(aim);
 
   /* ------------------------------------------------------------ the jump
