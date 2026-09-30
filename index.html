@@ -136,6 +136,12 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 @media (max-width:520px){ #hud{width:198px;font-size:9.5px;padding:14px 11px}
   #hudTab{right:198px}
   #hudTab.out{right:0} }
+/* the speaker: visible rather than hidden, and it remembers */
+#sound{position:fixed;right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:7;
+  width:30px;height:30px;border-radius:50%;cursor:pointer;font:inherit;font-size:13px;
+  background:rgba(12,18,26,.42);color:var(--brass);border:1px solid rgba(255,255,255,.18)}
+#sound:hover{border-color:var(--brass)}
+#sound[aria-pressed="false"]{color:rgba(255,255,255,.35)}
 #stamp{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
   max-width:none;white-space:nowrap;
   font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);
@@ -218,6 +224,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
     <a id="mail" href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a>
   </div>
 </div>
+<button id="sound" type="button" aria-pressed="true" title="Sound">&#9673;</button>
 <div id="hint">drag to look &middot; click a ship</div>
 <div id="tip"></div>
 
@@ -2559,7 +2566,7 @@ const VORTEX = [0, 1].map(i => {
    orbit the eye of the vortex, climbing and spreading as they go. The flat
    swirl on the water says where the disturbance is; this is the part that
    says it is in the air. */
-const SPRAY_N = 90;
+const SPRAY_N = 140;
 const sprayTex = (() => {              // its own puff: this block runs before the vapour's
   const c = document.createElement('canvas');
   c.width = c.height = 64;
@@ -2580,17 +2587,32 @@ for (let i = 0; i < SPRAY_N; i++) {
     fog: false, blending: THREE.NormalBlending, opacity: 0 }));
   sp.visible = false;
   scene.add(sp);
-  spray.push({ sp, a0: Math.random() * Math.PI * 2, r0: 8 + Math.random() * 26,
-               rise: 0.5 + Math.random() * 1.6, spin: 1.6 + Math.random() * 1.9,
-               size: 4 + Math.random() * 9, lag: Math.random() * 0.35 });
+  /* Two populations now. The SPRAY is what it always was: water torn off the
+     surface, thrown wide and climbing fast. The GROUND GAS is the other
+     thing you see on a pad — cold, heavy vapour that boils off and does not
+     rise, it spreads and lies there and rolls outward at ankle height. It
+     starts nearer the craft, climbs almost not at all, is bigger, slower and
+     denser, and it lingers after the spray has gone. */
+  const heavy = i >= SPRAY_N * 0.45;
+  spray.push({ sp, heavy,
+               a0: Math.random() * Math.PI * 2,
+               r0: heavy ? 3 + Math.random() * 14 : 8 + Math.random() * 26,
+               rise: heavy ? 0.04 + Math.random() * 0.13 : 0.5 + Math.random() * 1.6,
+               spin: heavy ? 0.5 + Math.random() * 0.8 : 1.6 + Math.random() * 1.9,
+               size: heavy ? 11 + Math.random() * 18 : 4 + Math.random() * 9,
+               lag: heavy ? Math.random() * 0.5 : Math.random() * 0.35 });
 }
 
 let swirl = null;                        // { x, z, t0, dur }
 
-function stirWater(x, z, strength) {
-  /* it has to last as long as the engines take to wind up, so the water is
-     still turning when the craft finally goes */
-  swirl = { x, z, t0: clock.getElapsedTime(), dur: Math.max(7.5, 4.2 * strength), strength };
+function stirWater(x, z, strength, life) {
+  /* IT HAS TO OUTLAST WHAT CAUSED IT. The default was max(7.5, 4.2x), so a
+     launch stir ran 7.5 seconds against a 12-second spool — the water had
+     gone still four and a half seconds before the craft left. Callers now
+     say how long they need, and the disturbance is allowed to hang about
+     afterwards rather than being cut at the event. */
+  swirl = { x, z, t0: clock.getElapsedTime(),
+            dur: life || Math.max(7.5, 4.2 * strength), strength };
   for (const v of VORTEX) v.visible = true;
   /* The rest of the fleet feels it. Each craft takes a shove away from the
      event and a roll, both falling off with distance — the near ones get
@@ -2792,6 +2814,270 @@ function fireRings(at, dir, scale) {
     r.m.lookAt(at.clone().add(dir));     // face the way the drive is pointing
     r.m.visible = true;
   }
+}
+
+/* ================================================================= sound
+   Synthesised, not sampled: a few oscillators and some filtered noise, so
+   there is no audio file to host and nothing to load.
+
+   IT ONLY EXISTS BECAUSE THE LAUNCH IS A CLICK NOW. Browsers refuse to make
+   noise until the user asks for something, and while the patrol ran on a
+   timer there was no honest moment to start — it would have been silent or
+   it would have been nagging. A deliberate click on a spacecraft both
+   unlocks the audio and makes sound the expected outcome.
+
+   Nothing plays on load. Ever.
+   ========================================================================= */
+let AC = null, master = null, soundOn = true;
+try { soundOn = localStorage.getItem('manorSound') !== 'off'; } catch (e) {}
+
+function audio() {
+  if (AC) return AC;
+  const C = window.AudioContext || window.webkitAudioContext;
+  if (!C) return null;
+  AC = new C();
+  master = AC.createGain();
+  master.gain.value = soundOn ? 0.9 : 0;
+  master.connect(AC.destination);
+  return AC;
+}
+function noiseBuffer(sec) {
+  const n = Math.floor(AC.sampleRate * sec), b = AC.createBuffer(1, n, AC.sampleRate);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  return b;
+}
+
+/* THE SPOOL. Twelve seconds of wind-up, and the wind-up is the part that
+   sells a launch — not the bang. Filtered noise for the cold gas, and a low
+   oscillator coming up underneath it as the drive takes hold. Both are
+   driven by the same spool value the lights and the water read, so what you
+   hear and what you see are the same number. */
+let spoolVoice = null;
+function startSpool(seconds) {
+  if (!audio() || !soundOn) return;
+  stopSpool();
+  const t0 = AC.currentTime;
+
+  /* THE DISTANCE STAGE. Everything the craft makes passes through here, and
+     this is what the fan rides out on. Two things happen as it goes away:
+     it gets quieter, and it gets DARKER — air absorbs the top end long
+     before it absorbs the bottom, which is why a distant aircraft is a hum
+     and a near one is a roar. Both are driven per frame from the real
+     distance to the camera. */
+  const far = AC.createGain(); far.gain.value = 1;
+  const air = AC.createBiquadFilter(); air.type = 'lowpass';
+  air.frequency.value = 20000;
+  far.connect(air); air.connect(master);
+  const gas = AC.createBufferSource();
+  gas.buffer = noiseBuffer(Math.max(2, seconds)); gas.loop = true;
+  const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
+  /* THE GAS STAYS DOWN. It was sweeping to 1.4 kHz at a third of full level,
+     which put a hiss on top of everything and made the whole launch read as
+     a fan rather than as mass being moved. It now tops out at 520 Hz and
+     well under half the level: present, but under the hum rather than over
+     it. */
+  bp.frequency.setValueAtTime(190, t0);
+  bp.Q.value = 0.7;
+  const gGas = AC.createGain(); gGas.gain.setValueAtTime(0.0001, t0);
+  gGas.gain.exponentialRampToValueAtTime(0.07, t0 + seconds * 0.30);   // the gas comes first
+  gGas.gain.exponentialRampToValueAtTime(0.12, t0 + seconds * 0.85);
+  bp.frequency.exponentialRampToValueAtTime(520, t0 + seconds);
+  gas.connect(bp); bp.connect(gGas); gGas.connect(far); gas.start();
+
+  /* THE DRIVE, AN OCTAVE DOWN. A sawtooth climbing to 190 Hz with the filter
+     opening to 2.6 kHz is a turbine. Ending at 82 Hz with the filter barely
+     past 700 is a machine you feel through the deck, which is the thing
+     that was missing. */
+  /* NOT A SAWTOOTH. That was the buzz: at 22-82 Hz with the filter at 700
+     it was still passing eight or nine harmonics, and a sawtooth's
+     harmonics are exactly what buzzy means. A triangle has a fraction of
+     the harmonic content and they fall away far faster, so under a low
+     filter it contributes weight rather than edge — which is all this layer
+     was ever for. Quieter too: the noise carries the launch, this just
+     gives it a floor. */
+  const drive = AC.createOscillator(); drive.type = 'triangle';
+  drive.frequency.setValueAtTime(20, t0);
+  drive.frequency.exponentialRampToValueAtTime(64, t0 + seconds);       // the spin-up
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(90, t0);
+  lp.frequency.exponentialRampToValueAtTime(300, t0 + seconds);
+  const gDrv = AC.createGain(); gDrv.gain.setValueAtTime(0.0001, t0);
+  gDrv.gain.exponentialRampToValueAtTime(0.02, t0 + seconds * 0.35);    // dark until it grips
+  gDrv.gain.exponentialRampToValueAtTime(0.11, t0 + seconds);
+  drive.connect(lp); lp.connect(gDrv); gDrv.connect(far); drive.start();
+
+  /* THE TURBULENT HUM. A launch is not a clean tone — it is a lot of air
+     being moved badly. Low noise through a narrow lowpass gives the body of
+     it, and a slow wobble on the cutoff and the level gives the churn: the
+     sound breathes rather than sits. Two LFOs at incommensurate rates, so
+     the pattern never repeats audibly. */
+  const hum = AC.createBufferSource();
+  hum.buffer = noiseBuffer(Math.max(3, seconds)); hum.loop = true;
+  const hlp = AC.createBiquadFilter(); hlp.type = 'lowpass';
+  hlp.frequency.setValueAtTime(52, t0);
+  hlp.frequency.exponentialRampToValueAtTime(105, t0 + seconds);
+  hlp.Q.value = 4.5;                                   // narrower: a pitch, not a rumble
+  const gHum = AC.createGain(); gHum.gain.setValueAtTime(0.0001, t0);
+  gHum.gain.exponentialRampToValueAtTime(0.46, t0 + seconds * 0.45);
+  gHum.gain.exponentialRampToValueAtTime(0.72, t0 + seconds);   // the loudest thing in the launch
+
+  const churn = AC.createOscillator(); churn.type = 'sine';
+  churn.frequency.value = 0.37;                      // the slow breath
+  const churnAmt = AC.createGain(); churnAmt.gain.value = 26;
+  churn.connect(churnAmt); churnAmt.connect(hlp.frequency); churn.start();
+
+  const beat = AC.createOscillator(); beat.type = 'sine';
+  beat.frequency.value = 1.9;                        // the faster flutter
+  const beatAmt = AC.createGain(); beatAmt.gain.value = 0.11;
+  beat.connect(beatAmt); beatAmt.connect(gHum.gain); beat.start();
+
+  hum.connect(hlp); hlp.connect(gHum); gHum.connect(far); hum.start();
+
+  spoolVoice = { gas, drive, hum, churn, beat, gGas, gDrv, gHum, far, air };
+}
+
+/* Called every frame while the craft is out. It is the only thing between
+   the launch and the landing that keeps the sound honest: the fan does not
+   stop at the top of the climb, it recedes. */
+function engineAt(distance) {
+  if (!spoolVoice || !AC) return;
+  const d = Math.max(1, distance);
+  const near = 120;                                  // where it is at full voice
+  const level = near / (near + d * 0.9);             // simple inverse falloff
+  const cut = 180 + 9000 / (1 + d / 220);            // and the air takes the top off
+  spoolVoice.far.gain.setTargetAtTime(level, AC.currentTime, 0.12);
+  spoolVoice.air.frequency.setTargetAtTime(cut, AC.currentTime, 0.18);
+}
+function stopSpool(fade = 0.5) {
+  if (!spoolVoice || !AC) return;
+  const t0 = AC.currentTime, v = spoolVoice;
+  spoolVoice = null;
+  for (const g of [v.gGas, v.gDrv, v.gHum]) {
+    g.gain.cancelScheduledValues(t0);
+    g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + fade);
+  }
+  setTimeout(() => {
+    try { v.gas.stop(); v.drive.stop(); v.hum.stop(); v.churn.stop(); v.beat.stop(); } catch (e) {}
+  }, fade * 1000 + 60);
+}
+
+/* THE BOOM. At the top of the climb the craft goes supersonic, and what
+   reaches the ground is not an explosion — it is an N-wave: two shocks, the
+   bow and the tail, a hundred-odd milliseconds apart. Hence the double
+   crack rather than one bang.
+
+   AND IT ARRIVES LATE. Sound covers about 343 metres a second, so a craft
+   six hundred units up and a thousand out is heard some three seconds after
+   it is seen. The delay is computed from the real distance, which means the
+   flash and the report separate exactly as they should. */
+function boom(distance) {
+  if (!audio() || !soundOn) return;
+  const delay = Math.min(8, distance / 343);
+
+  /* WHY IT SOUNDED LIKE TRASH CANS. Two things, and neither was the pitch —
+     that was fixed last time.
+
+     FIVE DISCRETE ARRIVALS. I spaced separate hits at 85, 190, 410 and 780
+     milliseconds. Separate hits at audible spacings are heard as separate
+     OBJECTS: several things being struck one after another. A real boom
+     rolls, which means the reflections have to arrive so densely they
+     smear into one continuous tail rather than landing as events.
+
+     A RESONANT PEAK. +7 dB at 95 Hz with any Q at all is a shell tone —
+     it rings, and a ringing low mid over a broadband hit is exactly the
+     sound of a bin lid.
+
+     So: two shocks, because an N-wave has two, and then one continuous
+     rumble whose diffusion is baked into the buffer as hundreds of random
+     taps rather than scheduled as a handful of copies. And everything
+     lower — nothing above 400 Hz survives. */
+
+  /* the shock: instant pressure step, long thinning decay, no resonance */
+  const shock = (at, level, cutoff) => {
+    const dur = 2.2, n = Math.floor(AC.sampleRate * dur);
+    const b = AC.createBuffer(1, n, AC.sampleRate);
+    const d = b.getChannelData(0);
+    const a = Math.floor(AC.sampleRate * 0.003);
+    for (let k = 0; k < n; k++) {
+      const x = k / n;
+      d[k] = (Math.random() * 2 - 1) * (k < a ? k / a : 1) *
+             (Math.exp(-x * 14) * 0.85 + Math.exp(-x * 3) * 0.3);
+    }
+    const src = AC.createBufferSource(); src.buffer = b;
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = cutoff; lp.Q.value = 0.2;
+    const hp = AC.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 20;
+    const g = AC.createGain(); g.gain.value = level;
+    src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(master);
+    src.start(at); src.stop(at + dur + 0.05);
+  };
+
+  /* the roll: one buffer, hundreds of reflections inside it. Each tap is a
+     random time and a random sign, thinning as the tail goes on, so the
+     reflections overlap into a continuous rumble instead of arriving as
+     four audible bangs. */
+  const roll = (at, level) => {
+    const dur = 4.5, n = Math.floor(AC.sampleRate * dur);
+    const b = AC.createBuffer(1, n, AC.sampleRate);
+    const d = b.getChannelData(0);
+    for (let k = 0; k < 900; k++) {
+      const when = Math.pow(Math.random(), 0.7) * 0.85;      // dense early, thinning
+      const pos = Math.floor(when * n);
+      const amp = (Math.random() * 2 - 1) * Math.exp(-when * 4.5);
+      const len = Math.floor(AC.sampleRate * (0.02 + Math.random() * 0.06));
+      for (let q = 0; q < len && pos + q < n; q++)
+        d[pos + q] += amp * (Math.random() * 2 - 1) * (1 - q / len);
+    }
+    let peak = 0;
+    for (let k = 0; k < n; k++) peak = Math.max(peak, Math.abs(d[k]));
+    if (peak > 0) for (let k = 0; k < n; k++) d[k] /= peak;
+    const src = AC.createBufferSource(); src.buffer = b;
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(240, at);
+    lp.frequency.exponentialRampToValueAtTime(90, at + dur);   // darkens as it dies
+    lp.Q.value = 0.2;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(level, at + 0.12);          // swells in behind the crack
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    src.connect(lp); lp.connect(g); g.connect(master);
+    src.start(at); src.stop(at + dur + 0.05);
+  };
+
+  const t0 = AC.currentTime + delay;
+  const gap = 0.085 + Math.random() * 0.05;   // never twice the same, or the two comb
+  shock(t0, 0.55, 360);                       // bow
+  shock(t0 + gap, 0.40, 260);                 // tail
+  roll(t0 + 0.06, 0.34);                      // and the world giving it back
+}
+
+/* the touchdown: the field taking the weight, then water */
+function landSound(seconds) {
+  if (!audio() || !soundOn) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuffer(Math.max(2, seconds)); src.loop = true;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(1800, t0);
+  lp.frequency.exponentialRampToValueAtTime(240, t0 + seconds);
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.18, t0 + seconds * 0.35);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + seconds);
+  src.connect(lp); lp.connect(g); g.connect(master);
+  src.start(); src.stop(t0 + seconds + 0.2);
+}
+
+function setSound(on) {
+  soundOn = on;
+  try { localStorage.setItem('manorSound', on ? 'on' : 'off'); } catch (e) {}
+  if (master && AC) master.gain.setTargetAtTime(on ? 0.9 : 0, AC.currentTime, 0.05);
+  if (!on) stopSpool(0.2);
+  const b = document.getElementById('sound');
+  if (b) { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '\u25C9' : '\u25CB'; }
 }
 
 /* -------------------------------------------------------- the far marker
@@ -3241,6 +3527,7 @@ function choose(s) {
      its link, so nothing is taken away from it. */
   if (s.userData.project.id === 'x' && !patrol && !arrived && !flight) {
     nextPatrol = 0;
+    audio();                    /* the gesture that unlocks it is this click */
   }
 }
 function release() {
@@ -3984,7 +4271,12 @@ function clothHalf(g) {
 const clock = new THREE.Clock();
 let hudFrame = 0, pointerOn = false, steady = 0;
 let patrolFrame = 0;
-let nextPatrol = 8;        // the first run, eight seconds in
+let nextPatrol = Infinity;   /* IT WAITS TO BE ASKED. The patrol used to fire
+                                eight seconds in and every forty-six after,
+                                so the launch was usually happening to nobody.
+                                Infinity means the timer never comes due;
+                                clicking Moon Racer sets it to zero and the
+                                next frame starts the spool. */
 let watch = 0;             // how much the eye is on the patrol
 let farRelease = 0;        // and how much of that it has let go of sideways
 const watchAt = new THREE.Vector3(0, 10, 0);
@@ -3993,7 +4285,11 @@ function frame() {
   const t = clock.getElapsedTime();
 
   const { w, h } = viewport();                       // a pane sized after load
-  if (w !== lastW || h !== lastH) { lastW = w; lastH = h; resize(); }
+  if (w !== lastW || h !== lastH) { lastW = w; lastH = h; const soundBtn = document.getElementById('sound');
+if (soundBtn) soundBtn.onclick = () => { audio(); setSound(!soundOn); };
+setSound(soundOn);      /* reflect the stored choice; still makes no noise */
+
+resize(); }
 
   /* the sky warms and cools on a ninety-second cycle. Repainted at about
      eight frames a second, which is smooth at this speed and costs almost
@@ -4463,6 +4759,7 @@ function updateDrive(s, ph, t, thrust, warm) {
          with the craft rocking as it bleeds off speed, water turning under
          it the whole way. It used to simply arrive. */
       if (patrol.land) {
+        if (!patrol.landSfx) { patrol.landSfx = true; landSound(patrol.st.land); stopSpool(2.2); }
         /* THE APPROACH, on a curve rather than a lerp with a wobble added.
            Four points: where it arrived, a long turn onto the line, a short
            final at station height, and the slot itself. One spline means
@@ -4500,8 +4797,11 @@ function updateDrive(s, ph, t, thrust, warm) {
             new THREE.Vector3(0, 0, 1), Math.sin(t * 2.2) * 0.09 * Math.pow(1 - lk, 1.5)));
           s.quaternion.slerp(ql, 0.07);
         }
-        if (lk > 0.5 && !patrol.stirL) { patrol.stirL = true; stirWater(patrol.home.x, patrol.home.z, 1.4); }
-        if (lk >= 1) { patrol = null; s.userData.settle = t + 3; nextPatrol = t + PATROL_GAP; }
+        /* AFTER TOUCHDOWN IS THE LONGEST ONE. Everything the craft has been
+           holding up goes into the water at once and then has nowhere to be:
+           it spins hard and takes eighteen seconds to give up. */
+        if (lk > 0.5 && !patrol.stirL) { patrol.stirL = true; stirWater(patrol.home.x, patrol.home.z, 1.7, 18); }
+        if (lk >= 1) { patrol = null; s.userData.settle = t + 3; nextPatrol = Infinity; }   // back on station, waiting again
         continue;
       }
 
@@ -4561,6 +4861,7 @@ function updateDrive(s, ph, t, thrust, warm) {
          craft is, rather than from the difference between one frame and the
          last. Frame-to-frame differencing made the roll jitter, because it
          measured the frame rate as much as the turn. */
+      engineAt(s.position.distanceTo(camera.position));   // the fan, receding
       const back = patrol.path.getPointAt(Math.max(0, u - 0.012));
       const fwd = patrol.path.getPointAt(Math.min(0.9999, u + 0.012));
       const dir = fwd.clone().sub(back);
@@ -4623,6 +4924,11 @@ function updateDrive(s, ph, t, thrust, warm) {
         patrol.burst = t;
         const aft = new THREE.Vector3(1, 0, 0).applyQuaternion(s.quaternion);
         fireRings(s.position.clone(), aft, 1.7);        // larger than the launch ring, not vast
+        boom(s.position.distanceTo(camera.position));   // the report, on its way
+        /* the fan is NOT cut here any more. It used to stop dead at the top
+           of the climb, which is exactly when the craft is furthest away and
+           the sound should be thinning out instead. engineAt takes it from
+           here and lets it recede. */
       }
 
       /* The boost means the craft reaches the end of the path before the
@@ -4837,14 +5143,30 @@ function updateDrive(s, ph, t, thrust, warm) {
       const k2 = (t - swirl.t0) / swirl.dur - q.lag;
       if (k2 < 0 || k2 >= 1) { q.sp.visible = false; continue; }
       const ang = q.a0 + k2 * q.spin * 6;
-      const rad = q.r0 + k2 * 70 * Math.min(1.3, swirl.strength);
+      const st2 = Math.min(1.3, swirl.strength);
       q.sp.visible = true;
-      q.sp.position.set(swirl.x + Math.cos(ang) * rad,
-                        1 + k2 * 22 * q.rise * Math.min(1.3, swirl.strength),
-                        swirl.z + Math.sin(ang) * rad);
-      q.sp.scale.setScalar(q.size * (0.5 + k2 * 1.2) * Math.min(1.2, swirl.strength));
-      q.sp.material.opacity = Math.sin(Math.min(1, k2 * 5) * Math.PI / 2) *
-                              Math.pow(1 - k2, 1.7) * 0.3;
+      if (q.heavy) {
+        /* it rolls out rather than up: quick spread early, then creeping,
+           and it stays low the whole time */
+        /* the gas wanders as it rolls out — it is not on rails */
+        const rad = q.r0 + Math.pow(k2, 0.55) * 52 * st2
+                    + 4 * Math.sin(t * 1.1 + q.a0 * 3);
+        q.sp.position.set(swirl.x + Math.cos(ang) * rad,
+                          0.6 + k2 * 6 * q.rise * st2 + 0.7 * Math.sin(t * 1.6 + q.a0),
+                          swirl.z + Math.sin(ang) * rad);
+        q.sp.scale.setScalar(q.size * (0.7 + k2 * 1.9) * Math.min(1.2, swirl.strength));
+        /* denser than the spray, and slower to clear */
+        q.sp.material.opacity = Math.sin(Math.min(1, k2 * 7) * Math.PI / 2) *
+                                Math.pow(1 - k2, 1.1) * 0.5;
+      } else {
+        const rad = q.r0 + k2 * 70 * st2 + 3 * Math.sin(t * 1.5 + q.a0 * 2.2);
+        q.sp.position.set(swirl.x + Math.cos(ang) * rad,
+                          1 + k2 * 22 * q.rise * st2 + 1.4 * Math.sin(t * 2.1 + q.a0),
+                          swirl.z + Math.sin(ang) * rad);
+        q.sp.scale.setScalar(q.size * (0.5 + k2 * 1.2) * Math.min(1.2, swirl.strength));
+        q.sp.material.opacity = Math.sin(Math.min(1, k2 * 5) * Math.PI / 2) *
+                                Math.pow(1 - k2, 1.7) * 0.3;
+      }
     }
   } else {
     for (const q of spray) if (q.sp.visible) { q.sp.visible = false; }
@@ -4860,12 +5182,29 @@ function updateDrive(s, ph, t, thrust, warm) {
       /* It was growing past seven hundred units at full additive opacity —
          a white disc across the whole frame, which is what bleached the
          fleet and the sails. */
+      /* IT DANCES RATHER THAN DIMS. Before, every ring grew at one rate and
+         faded on one curve, so the whole thing was a disc getting bigger and
+         paler — a fade, not a disturbance.
+
+         Now each ring breathes on its own: the growth carries a wobble, the
+         spin keeps most of its speed to the very end instead of easing to a
+         stop, and the opacity flutters. The rates are deliberately unrelated
+         so the rings drift in and out of step and the pattern never settles
+         into a pulse. */
       const grow = 30 + k * 95 * swirl.strength;
-      for (const v of VORTEX) {
+      for (let vi = 0; vi < VORTEX.length; vi++) {
+        const v = VORTEX[vi];
+        const ph = vi * 1.7;
+        const breathe = 1 + 0.085 * Math.sin(t * 1.35 + ph) + 0.05 * Math.sin(t * 2.7 + ph * 1.9);
         v.position.set(swirl.x, v.position.y, swirl.z);
-        v.scale.setScalar(grow * v.userData.scale);
-        v.rotation.z += v.userData.spin * (1 - k) * 0.055;
-        v.material.opacity = Math.pow(1 - k, 1.5) * Math.min(0.55, 0.42 * swirl.strength);
+        v.scale.setScalar(grow * v.userData.scale * breathe);
+        /* spin holds up: 35% of full even as it dies, so it is still
+           turning when it goes rather than coasting to a halt first */
+        v.rotation.z += v.userData.spin * (0.35 + 0.65 * (1 - k)) * 0.075
+                        * (1 + 0.3 * Math.sin(t * 0.9 + ph));
+        const flutter = 1 + 0.16 * Math.sin(t * 3.1 + ph * 2.3);
+        v.material.opacity = Math.pow(1 - k, 1.5) * flutter *
+                             Math.min(0.55, 0.42 * swirl.strength);
       }
       const rough = 0.55 + (1 - k) * 1.5 * swirl.strength;
       water.material.normalScale.set(rough, rough);
@@ -4883,7 +5222,11 @@ function updateDrive(s, ph, t, thrust, warm) {
       start.x -= st.slideX; start.z -= st.slideZ;        // and where the slide leaves it
       clearTrail();
       patrol = { ship: x, t0: t, st, home: x.position.clone(), lift, path: patrolPath(start, st) };
-      stirWater(x.position.x, x.position.z, 1.15);       // the water it leaves behind
+      /* the whole wind-up, plus six seconds of it still turning after the
+         craft has gone: water does not stop when the thing that stirred it
+         leaves */
+      stirWater(x.position.x, x.position.z, 1.15, st.spool + 6);
+      startSpool(st.spool);                              // and the wind-up, the same length
     }
   }
 
