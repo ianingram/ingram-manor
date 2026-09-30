@@ -169,6 +169,9 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #fallback a{color:var(--brass);text-decoration:none;font-size:16px}
 #fallback p{margin:.4em 0 0;font:15px/1.6 Georgia,serif;color:var(--dim)}
 @media (prefers-reduced-motion:reduce){#card{transition:none}}
+
+/* a project without a destination yet: shown, but not offered as a link */
+[data-nolink] { pointer-events: none; opacity: .72; }
 </style></head><body>
 
 <div id="brand" hidden><h1>MOON RACER</h1><p>five ships</p></div>
@@ -233,20 +236,20 @@ import * as THREE from 'three';
 
 /* ================================================================ the four */
 const PROJECTS = [
-  { id:'amenti', drive: 1.35, neon: 0xffd23a, title:'Amenti Interface', kind:'platform', emblem:'\u2625',
-    url:'',
+  { id:'amenti', drive: 1.35, neon: 0xffd23a, title:'Amenti-AI', kind:'platform', emblem:'\u2625',
+    url:'https://ianingram.github.io/Amenti.live/Page1.html',
     blurb:'The Library of Legends. An AI-powered platform built on a database of historical figures \u2014 live chat with authentic historical characters, grounded in high quality primary source data.' },
   { id:'gannlab', drive: 1.0, neon: 0x35e6ff, title:'GannLab', kind:'research', emblem:'\u2691',
-    url:'https://ianingram.github.io/GannLab/',
-    blurb:'Fifty-nine pre-registered trading-hypothesis experiments, their run files, and an honest account of what survived. Mostly nothing did. The failures are the content.' },
+    url:'https://ianingram.github.io/GannLab/desk.html',
+    blurb:'Sixty-one pre-registered trading-hypothesis experiments, their run files, and an honest account of what survived. Mostly nothing did. The failures are the content.' },
   { id:'chess', drive: 0.86, neon: 0xff2bd6, title:'Treasure Chess', kind:'game', emblem:'\u265E',
-    url:'',
+    url:'https://ianingram.github.io/Amenti.live/game01.html',
     blurb:'Sea-battle chess played with a roster of historical characters. Fleets hold a wedge until the first move, then sail into the back rank. Every piece is somebody.' },
-  { id:'x', drive: 1.15, neon: 0x7cff4f, title:'X', kind:'unannounced', emblem:'\u2715',
-    url:'',
-    blurb:'Not named yet. The hull is in the water and the rest follows.' },
+  { id:'x', drive: 1.15, neon: 0x7cff4f, title:'Moon Racer', kind:'game', emblem:'\u263D',
+    url:'https://ianingram.github.io/moon-racer/',
+    blurb:'Racing between real places on Earth \u2014 and later the planets \u2014 through orbital lanes and low-level stages over real terrain. Fuel comes from water, heat comes from the air.' },
   { id:'amentilive', drive: 0.94, neon: 0xff7a18, title:'Amenti.live', kind:'live', emblem:'\u2609',
-    url:'',
+    url:'https://amenti.live/',
     blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' }
 ];
 
@@ -256,7 +259,7 @@ const tip = document.getElementById('tip');
 const hint = document.getElementById('hint');
 
 document.getElementById('fbList').innerHTML = PROJECTS.map(p =>
-  `<article><a href="${p.url || '#'}">${p.title}</a><p>${p.blurb}</p></article>`).join('');
+  `<article><a href="${p.url || '#'}" ${p.url ? '' : 'data-nolink="1" tabindex="-1" aria-disabled="true"'}>${p.title}</a><p>${p.blurb}</p></article>`).join('');
 
 /* WebGL first: an old machine gets the list, not a blank rectangle. */
 function hasWebGL() {
