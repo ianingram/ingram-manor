@@ -3126,7 +3126,24 @@ function startAmbient() {
   const t0 = AC.currentTime;
   const bed = AC.createGain(); bed.gain.value = 0.0001;
   bed.gain.exponentialRampToValueAtTime(1, t0 + 9);        // fades up slowly, never snaps on
-  bed.connect(master);
+
+  /* THE CALM. Everything above ran at a constant level, so however quiet
+     it was set it was quiet ALL THE TIME — and a sound that never varies
+     stops being background and becomes a hum you are waiting out.
+
+     Real open water has long stretches of almost nothing between the
+     stretches where something is happening. This is a slow gate on the
+     whole bed: three sines at periods of roughly forty, seventy and a
+     hundred seconds, which between them take the scene from near-silent to
+     full and back without ever repeating the same shape. Most of the time
+     it sits low. */
+  const calm = AC.createGain(); calm.gain.value = 0.42;
+  for (const [rate, depth] of [[0.0271, 0.3], [0.0143, 0.22], [0.0097, 0.14]]) {
+    const o = AC.createOscillator(); o.type = 'sine'; o.frequency.value = rate;
+    const a = AC.createGain(); a.gain.value = depth;
+    o.connect(a); a.connect(calm.gain); o.start();
+  }
+  bed.connect(calm); calm.connect(master);
 
   /* WHY IT WAS ALL AIR. The sea was a lowpass at 420 Hz — under what a
      laptop or a phone can move — so the only thing left was the wind band
@@ -3139,7 +3156,8 @@ function startAmbient() {
 
   /* the swell underneath: the body, mostly felt */
   const sea = AC.createBufferSource();
-  sea.buffer = noiseBuffer(9); sea.loop = true;
+  sea.buffer = noiseBuffer(53); sea.loop = true;
+  sea.playbackRate.value = 0.95 + Math.random() * 0.1;
   const slp = AC.createBiquadFilter(); slp.type = 'lowpass';
   slp.frequency.value = 500; slp.Q.value = 0.5;
   const sgain = AC.createGain(); sgain.gain.value = 0.05;
@@ -3149,81 +3167,190 @@ function startAmbient() {
   swell.connect(swellAmt); swellAmt.connect(slp.frequency); swell.start();
   sea.connect(slp); slp.connect(sgain); sgain.connect(bed); sea.start();
 
-  /* THE WASH: this is the part you actually hear as water. Broad, bright,
-     and breathing on a seven-second cycle — each breath is one wave
-     arriving and drawing back. The gain swings nearly to nothing between
-     them, which is what stops it being a hiss. */
-  const foam = AC.createBufferSource();
-  foam.buffer = noiseBuffer(13); foam.loop = true;
-  const fbp = AC.createBiquadFilter(); fbp.type = 'bandpass';
-  fbp.frequency.value = 1250; fbp.Q.value = 0.42;
-  const fgain = AC.createGain(); fgain.gain.value = 0.075;
-  const breath = AC.createOscillator(); breath.type = 'sine';
-  breath.frequency.value = 0.14;                            // about seven seconds a wave
-  const breathAmt = AC.createGain(); breathAmt.gain.value = 0.055;
-  breath.connect(breathAmt); breathAmt.connect(fgain.gain); breath.start();
-  const bright = AC.createOscillator(); bright.type = 'sine';
-  bright.frequency.value = 0.097;                           // and it brightens as it breaks
-  const brightAmt = AC.createGain(); brightAmt.gain.value = 520;
-  bright.connect(brightAmt); brightAmt.connect(fbp.frequency); bright.start();
-  foam.connect(fbp); fbp.connect(fgain); fgain.connect(bed); foam.start();
+  /* THERE IS NO SURF HERE. The fleet sits on open water. A broad bright
+     wash is a beach — breaking waves a few metres away — and putting one
+     under this scene was the same error as putting a boom in the sub-bass:
+     technically water, wrong water.
 
-  /* the wind, now genuinely in the background where it belongs */
+     Two things replace it. Far off, past the pyramid, there IS a shoreline,
+     and what reaches you from it is a dull line of surf with the top end
+     already gone — no crash in it, just a rise and fall on a long cycle.
+     Close by there is only the sea touching the hulls. */
+
+  /* THE HULL WASH. The missing piece. Discrete events, however good, are
+     heard as events — drips, knocks, taps. What makes a scene sound like
+     it is ON water is a quiet continuous movement underneath, always
+     there, with the individual slaps riding on top of it rather than
+     standing alone in silence. */
+  const wash = AC.createBufferSource();
+  wash.buffer = noiseBuffer(43); wash.loop = true;
+  wash.playbackRate.value = 0.9 + Math.random() * 0.2;
+  const wlp = AC.createBiquadFilter(); wlp.type = 'lowpass';
+  wlp.frequency.value = 900; wlp.Q.value = 0.3;
+  const whp = AC.createBiquadFilter(); whp.type = 'highpass';
+  whp.frequency.value = 160;                        // no rumble: this is surface movement
+  const wgain = AC.createGain(); wgain.gain.value = 0.045;
+  /* it stirs on three unrelated clocks, so it never settles into a pulse */
+  for (const [rate, depth, target] of [[0.19, 0.022, 'g'], [0.071, 0.016, 'g'], [0.113, 320, 'f']]) {
+    const o = AC.createOscillator(); o.type = 'sine'; o.frequency.value = rate;
+    const a = AC.createGain(); a.gain.value = depth;
+    o.connect(a);
+    a.connect(target === 'g' ? wgain.gain : wlp.frequency);
+    o.start();
+  }
+  wash.connect(whp); whp.connect(wlp); wlp.connect(wgain); wgain.connect(bed); wash.start();
+
+  /* the far line of surf, over by the stone */
+  const surf = AC.createBufferSource();
+  surf.buffer = noiseBuffer(41); surf.loop = true;
+  surf.playbackRate.value = 0.96 + Math.random() * 0.09;
+  const sbp = AC.createBiquadFilter(); sbp.type = 'lowpass';
+  sbp.frequency.value = 620; sbp.Q.value = 0.4;             // distance has taken the rest
+  const surfGain = AC.createGain(); surfGain.gain.value = 0.026;
+  const sets = AC.createOscillator(); sets.type = 'sine';
+  sets.frequency.value = 0.062;                             // sixteen seconds: sets, not waves
+  const setsAmt = AC.createGain(); setsAmt.gain.value = 0.016;
+  sets.connect(setsAmt); setsAmt.connect(surfGain.gain); sets.start();
+  const sets2 = AC.createOscillator(); sets2.type = 'sine';
+  sets2.frequency.value = 0.0237;                           // forty-two seconds, unrelated
+  const sets2Amt = AC.createGain(); sets2Amt.gain.value = 0.011;
+  sets2.connect(sets2Amt); sets2Amt.connect(surfGain.gain); sets2.start();
+  surf.connect(sbp); sbp.connect(surfGain); surfGain.connect(bed); surf.start();
+
+  /* THE HISS WAS A LOOP. An eleven-second noise buffer played round and
+     round IS the same eleven seconds of hiss, again and again — and one
+     sine on the gain gives an identical swell each time, so the ear finds
+     the period within about half a minute and then cannot unhear it. That
+     is the gas-being-released-repeatedly sound.
+
+     Three things break it. The buffer is far longer, so a repeat is a
+     minute away. It plays slightly off speed, which is another detuning
+     against everything else. And the gust is TWO oscillators at rates with
+     no common multiple, so the swells never land the same way twice. */
   const air = AC.createBufferSource();
-  air.buffer = noiseBuffer(11); air.loop = true;
+  air.buffer = noiseBuffer(47); air.loop = true;
+  air.playbackRate.value = 0.93 + Math.random() * 0.14;
   const ahp = AC.createBiquadFilter(); ahp.type = 'bandpass';
   ahp.frequency.value = 2400; ahp.Q.value = 0.5;
   const again = AC.createGain(); again.gain.value = 0.012;
   const gust = AC.createOscillator(); gust.type = 'sine';
   gust.frequency.value = 0.041;                             // twenty-four seconds
-  const gustAmt = AC.createGain(); gustAmt.gain.value = 0.008;
+  const gustAmt = AC.createGain(); gustAmt.gain.value = 0.007;
   gust.connect(gustAmt); gustAmt.connect(again.gain); gust.start();
+  const gust2 = AC.createOscillator(); gust2.type = 'sine';
+  gust2.frequency.value = 0.0173;                           // fifty-eight, and no common multiple
+  const gust2Amt = AC.createGain(); gust2Amt.gain.value = 0.006;
+  gust2.connect(gust2Amt); gust2Amt.connect(again.gain); gust2.start();
+  /* and the band itself drifts, so it is not always the same colour of hiss */
+  const colour = AC.createOscillator(); colour.type = 'sine';
+  colour.frequency.value = 0.029;
+  const colourAmt = AC.createGain(); colourAmt.gain.value = 700;
+  colour.connect(colourAmt); colourAmt.connect(ahp.frequency); colour.start();
   air.connect(ahp); ahp.connect(again); again.connect(bed); air.start();
 
-  ambient = { bed, sea, foam, air, swell, breath, bright, gust, timer: null };
+  ambient = { bed, calm, sea, surf, air, swell, sets, sets2, gust, gust2, colour, timer: null, lapTimer: null };
   scheduleGull(8 + Math.random() * 10);    // nothing calls the instant you arrive
+  scheduleLap(0.4 + Math.random());
 }
 
-/* one cry: a glide down through a narrow band, with a rasp on it */
-function gullCry(at, near, pan) {
-  /* QUIETER, AND FURTHER. A gull you notice every time is a gull you
-     stop hearing as scenery. These sit under the sea until one happens to
-     come past. */
-  const level = near ? 0.10 : 0.055;
-  const top = near ? 1500 : 1100;
-  const p = AC.createStereoPanner ? AC.createStereoPanner() : null;
-  const out = AC.createGain(); out.gain.value = level;
-  if (p) { p.pan.value = pan; out.connect(p); p.connect(master); } else out.connect(master);
+/* THE LAPPING. What you actually hear sitting on water: the sea touching
+   the hulls. Each one is small and soft-edged — a slap, not a splash — and
+   they come at their own irregular pace from wherever a hull happens to be,
+   so they wander across the stereo field. This is the near sound; the surf
+   is the far one. */
+function lap() {
+  if (!AC || !soundOn) return;
 
-  const notes = near ? 3 + Math.floor(Math.random() * 3) : 2 + Math.floor(Math.random() * 2);
-  let when = at;
-  for (let n = 0; n < notes; n++) {
-    const dur = 0.22 + Math.random() * 0.16;
-    const f0 = top * (0.9 + Math.random() * 0.25);
-    const osc = AC.createOscillator(); osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(f0, when);
-    osc.frequency.exponentialRampToValueAtTime(f0 * 0.55, when + dur);   // the glide down
-    const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
-    bp.frequency.setValueAtTime(f0 * 1.15, when);
-    bp.frequency.exponentialRampToValueAtTime(f0 * 0.7, when + dur);
-    /* Q 9 was so narrow the far cry was a sine with nothing left of the
-       bird in it, and at that level it vanished under the sea. Wider, and
-       it survives the distance. */
-    bp.Q.value = near ? 4 : 6;
-    /* the rasp: a fast wobble on the pitch, which is what makes it a bird
-       rather than a whistle */
-    const rasp = AC.createOscillator(); rasp.type = 'sine';
-    rasp.frequency.value = 34 + Math.random() * 16;
-    const raspAmt = AC.createGain(); raspAmt.gain.value = f0 * 0.05;
-    rasp.connect(raspAmt); raspAmt.connect(osc.frequency); rasp.start(when); rasp.stop(when + dur);
-    const g = AC.createGain();
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(1, when + 0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    osc.connect(bp); bp.connect(g); g.connect(out);
-    osc.start(when); osc.stop(when + dur + 0.02);
-    when += dur + 0.10 + n * 0.05 + Math.random() * 0.08;   // gaps lengthen: running out of breath
-  }
+  /* THIS WAS THE REPETITION, not the loops. It fired roughly once a second
+     with one envelope — twenty milliseconds in, the same Q, the same decay
+     — and anything with a fixed shape recurring that often is heard as a
+     machine. A soft noise burst on repeat is precisely the sound of gas
+     being let out in puffs.
+
+     Water against a hull is not one sound. Sometimes it is a slap, sharp
+     and bright and gone. Sometimes a swell rolls under and it is a low
+     glug with almost no edge. Sometimes it barely happens at all. So there
+     are three kinds here, weighted, and every parameter has real range
+     rather than a token wobble. */
+  const roll = Math.random();
+  const kind = roll < 0.42 ? 'slap' : roll < 0.82 ? 'glug' : 'trickle';
+
+  /* WHY IT WAS INAUDIBLE. Two reasons, and the gain number was lying about
+     both. A bandpass at Q 2 throws away nearly all of a noise burst's
+     energy — what reaches you is a narrow slice, far quieter than the level
+     suggests. And a hundred-millisecond transient is much harder to hear
+     than a continuous hiss at the same figure: the ear integrates over
+     time, so brief loses to constant.
+
+     So: the bands are wide now (Q under 1.2, which is a splash rather than
+     a whistle) and the levels are three to four times what they were. */
+  /* everything is longer and softer-edged than before. A four-millisecond
+     attack is a click; water arriving against a hull takes a few tens of
+     milliseconds to build even when it slaps. */
+  const spec = kind === 'slap'
+    ? { f: 300 + Math.random() * 380, dur: 0.35 + Math.random() * 0.45,
+        atk: 0.025 + Math.random() * 0.045, lvl: 0.075 + Math.random() * 0.09 }
+    : kind === 'glug'
+    ? { f: 130 + Math.random() * 190, dur: 0.55 + Math.random() * 0.8,
+        atk: 0.06 + Math.random() * 0.12, lvl: 0.065 + Math.random() * 0.08 }
+    : { f: 420 + Math.random() * 520, dur: 0.22 + Math.random() * 0.3,
+        atk: 0.015 + Math.random() * 0.03, lvl: 0.04 + Math.random() * 0.05 };
+
+  const at = AC.currentTime + 0.01;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuffer(spec.dur + 0.12);
+  src.playbackRate.value = 0.8 + Math.random() * 0.45;      // never the same grain twice
+  /* A LOWPASS THAT FALLS, not a bandpass. A bandpass keeps one narrow
+     slice, and one narrow slice of noise with an envelope on it is a
+     plink. Water is broadband and it DARKENS as it settles — the fizz goes
+     first and the body drains after — so the right shape is everything up
+     to a corner that slides down through the event. */
+  const bp = AC.createBiquadFilter(); bp.type = 'lowpass';
+  bp.frequency.setValueAtTime(spec.f * 3.2, at);
+  bp.frequency.exponentialRampToValueAtTime(spec.f * 0.5, at + spec.dur);
+  bp.Q.value = 0.25;                                        // no resonance at all
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.linearRampToValueAtTime(spec.lvl, at + spec.atk);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + spec.dur);
+  const p = AC.createStereoPanner ? AC.createStereoPanner() : null;
+  src.connect(bp); bp.connect(g);
+  if (p) { p.pan.value = (Math.random() * 2 - 1) * 0.85; g.connect(p); p.connect(master); }
+  else g.connect(master);
+  /* NO SPATTER. A short bright burst over the top was meant to say "wet";
+     what it actually says is "small hard object". Anything with a fast
+     high-frequency edge reads as a drip on metal, and adding it was me
+     making the plink worse while trying to make the water louder. */
+
+  src.start(at); src.stop(at + spec.dur + 0.12);
+}
+
+/* THE PACE IS UNEVEN TOO. Water does not tick. Most of the time there is a
+   gap of a second or three; now and then two or three come almost together
+   as a swell passes under; and now and then it goes quiet for the better
+   part of ten seconds. The old version picked from one narrow range, which
+   is a metronome with jitter, not a sea. */
+function scheduleLap(after) {
+  if (!ambient) return;
+  ambient.lapTimer = setTimeout(() => {
+    if (soundOn) {
+      lap();
+      /* a swell passing: a couple more right behind it */
+      if (Math.random() < 0.15) {
+        setTimeout(() => { if (soundOn) lap(); }, 90 + Math.random() * 220);
+        if (Math.random() < 0.4) setTimeout(() => { if (soundOn) lap(); }, 340 + Math.random() * 420);
+      }
+    }
+    /* MOSTLY NOTHING. Two in five gaps are now a proper lull — up to twenty
+       seconds of no hull sound at all — because the silences are what make
+       the slaps land. Before, something happened every second or two and
+       the ear never got a rest. */
+    const r = Math.random();
+    const gap = r < 0.4  ? 7 + Math.random() * 13        // a lull, and a long one
+              : r < 0.82 ? 2.5 + Math.random() * 4.5     // the usual
+              :            1.0 + Math.random() * 1.6;    // a busier patch
+    scheduleLap(gap);
+  }, after * 1000);
 }
 
 function scheduleGull(after) {
@@ -3235,7 +3362,7 @@ function scheduleGull(after) {
     const pan = near ? (Math.random() * 2 - 1) * 0.5 : (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.4);
     gullCry(AC.currentTime + 0.05, near, pan);
     if (near && Math.random() < 0.3) gullCry(AC.currentTime + 1.1 + Math.random(), true, -pan);
-    scheduleGull(near ? 22 + Math.random() * 22 : 11 + Math.random() * 20);
+    scheduleGull(near ? 35 + Math.random() * 40 : 20 + Math.random() * 45);
   }, after * 1000);
 }
 
