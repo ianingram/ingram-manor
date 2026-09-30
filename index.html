@@ -2593,13 +2593,27 @@ for (let i = 0; i < SPRAY_N; i++) {
      rise, it spreads and lies there and rolls outward at ankle height. It
      starts nearer the craft, climbs almost not at all, is bigger, slower and
      denser, and it lingers after the spray has gone. */
-  const heavy = i >= SPRAY_N * 0.45;
-  spray.push({ sp, heavy,
+  /* THREE POPULATIONS. Spray is water thrown wide. Gas is the cold, heavy
+     vapour that boils off and lies on the surface. ICE is the third: a few
+     bright grains that come off with the gas, catch the light and tumble —
+     they are what make it read as cold rather than as smoke.
+
+     The gas also SPIRALS now rather than orbiting. Its angular speed is
+     highest at the start and unwinds as the radius grows, which is what a
+     real vortex does: fast and tight at the eye, slow and wide at the rim. */
+  const ice = i < SPRAY_N * 0.12;
+  const heavy = !ice && i >= SPRAY_N * 0.42;
+  if (ice) {
+    sp.material.blending = THREE.AdditiveBlending;
+    sp.material.color.setHex(0xdff2ff);
+  }
+  spray.push({ sp, heavy, ice,
                a0: Math.random() * Math.PI * 2,
-               r0: heavy ? 3 + Math.random() * 14 : 8 + Math.random() * 26,
-               rise: heavy ? 0.04 + Math.random() * 0.13 : 0.5 + Math.random() * 1.6,
-               spin: heavy ? 0.5 + Math.random() * 0.8 : 1.6 + Math.random() * 1.9,
-               size: heavy ? 11 + Math.random() * 18 : 4 + Math.random() * 9,
+               r0: ice ? 2 + Math.random() * 10 : heavy ? 3 + Math.random() * 14 : 8 + Math.random() * 26,
+               rise: ice ? 0.5 + Math.random() * 1.9 : heavy ? 0.04 + Math.random() * 0.13 : 0.5 + Math.random() * 1.6,
+               spin: ice ? 3.4 + Math.random() * 2.6 : heavy ? 2.6 + Math.random() * 2.2 : 1.6 + Math.random() * 1.9,
+               size: ice ? 1.2 + Math.random() * 2.4 : heavy ? 11 + Math.random() * 18 : 4 + Math.random() * 9,
+               twk: 6 + Math.random() * 9,
                lag: heavy ? Math.random() * 0.5 : Math.random() * 0.35 });
 }
 
@@ -2976,82 +2990,142 @@ function boom(distance) {
   if (!audio() || !soundOn) return;
   const delay = Math.min(8, distance / 343);
 
-  /* WHY IT SOUNDED LIKE TRASH CANS. Two things, and neither was the pitch —
-     that was fixed last time.
+  /* THUNDER, NOT A BALLOON.
 
-     FIVE DISCRETE ARRIVALS. I spaced separate hits at 85, 190, 410 and 780
-     milliseconds. Separate hits at audible spacings are heard as separate
-     OBJECTS: several things being struck one after another. A real boom
-     rolls, which means the reflections have to arrive so densely they
-     smear into one continuous tail rather than landing as events.
+     The pop was the attack. Three milliseconds is a burst — and at the
+     distances this craft is at, no such edge survives the trip. Air
+     scatters and delays the high frequencies more than the low, so a shock
+     that leaves as a step arrives as a SLOPE. That is the whole reason
+     distant thunder rumbles and close thunder cracks: it is the same event,
+     smeared by how far it travelled.
 
-     A RESONANT PEAK. +7 dB at 95 Hz with any Q at all is a shell tone —
-     it rings, and a ringing low mid over a broadband hit is exactly the
-     sound of a bin lid.
+     So the attack is now computed from the distance. Near, it still has
+     some snap. Far, it swells over a fifth of a second and there is no
+     crack left in it at all.
 
-     So: two shocks, because an N-wave has two, and then one continuous
-     rumble whose diffusion is baked into the buffer as hundreds of random
-     taps rather than scheduled as a handful of copies. And everything
-     lower — nothing above 400 Hz survives. */
+     And the balance is inverted. The shocks used to lead and the roll
+     followed; now the roll IS the sound — seven seconds of it, undulating,
+     with the shocks only giving it a front edge. Thunder is mostly tail. */
+  /* IT HAS TO LIVE WHERE SPEAKERS LIVE. The last version put everything
+     below 210 Hz, which is beneath what a laptop or a phone can reproduce
+     at all — so it was filtered into silence. Real thunder still carries to
+     a kilohertz or two, and that upper body is the part small drivers
+     actually render. The attack stays slow, because that is what makes it
+     thunder rather than a pop; the spectrum comes back up. */
+  const far = Math.min(1, distance / 900);          // 0 overhead, 1 a long way off
+  const attack = 0.012 + far * 0.17;                // the smear
+  const topEnd = 1500 - far * 700;                  // and the colour it arrives in
 
-  /* the shock: instant pressure step, long thinning decay, no resonance */
   const shock = (at, level, cutoff) => {
-    const dur = 2.2, n = Math.floor(AC.sampleRate * dur);
+    const dur = 2.6, n = Math.floor(AC.sampleRate * dur);
     const b = AC.createBuffer(1, n, AC.sampleRate);
     const d = b.getChannelData(0);
-    const a = Math.floor(AC.sampleRate * 0.003);
+    const a = Math.max(1, Math.floor(AC.sampleRate * attack));
     for (let k = 0; k < n; k++) {
       const x = k / n;
-      d[k] = (Math.random() * 2 - 1) * (k < a ? k / a : 1) *
-             (Math.exp(-x * 14) * 0.85 + Math.exp(-x * 3) * 0.3);
+      /* a smooth swell in, never a step */
+      const rise = k < a ? Math.pow(k / a, 1.6) : 1;
+      d[k] = (Math.random() * 2 - 1) * rise *
+             (Math.exp(-x * 7) * 0.7 + Math.exp(-x * 2.2) * 0.4);
     }
     const src = AC.createBufferSource(); src.buffer = b;
     const lp = AC.createBiquadFilter();
     lp.type = 'lowpass'; lp.frequency.value = cutoff; lp.Q.value = 0.2;
-    const hp = AC.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = 20;
+    const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 30;
+    /* a broad, gentle lift where small speakers actually work. Q 0.6 is
+       wide enough that it colours rather than rings — the narrow version of
+       this is what made it a bin lid two attempts ago. */
+    const body = AC.createBiquadFilter();
+    body.type = 'peaking'; body.frequency.value = 260; body.Q.value = 0.6; body.gain.value = 5;
     const g = AC.createGain(); g.gain.value = level;
-    src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(master);
+    src.connect(hp); hp.connect(lp); lp.connect(body); body.connect(g); g.connect(master);
     src.start(at); src.stop(at + dur + 0.05);
   };
 
-  /* the roll: one buffer, hundreds of reflections inside it. Each tap is a
-     random time and a random sign, thinning as the tail goes on, so the
-     reflections overlap into a continuous rumble instead of arriving as
-     four audible bangs. */
+  /* THE ROLL. Seven seconds, and it undulates — thunder does not decay
+     smoothly, it comes in waves as reflections from different distances
+     arrive in clumps. Fifteen hundred random taps give the density; three
+     slow swells baked into the envelope give the rolling. */
   const roll = (at, level) => {
-    const dur = 4.5, n = Math.floor(AC.sampleRate * dur);
+    const dur = 7.0, n = Math.floor(AC.sampleRate * dur);
     const b = AC.createBuffer(1, n, AC.sampleRate);
     const d = b.getChannelData(0);
-    for (let k = 0; k < 900; k++) {
-      const when = Math.pow(Math.random(), 0.7) * 0.85;      // dense early, thinning
+    for (let k = 0; k < 1500; k++) {
+      const when = Math.pow(Math.random(), 0.8) * 0.9;
       const pos = Math.floor(when * n);
-      const amp = (Math.random() * 2 - 1) * Math.exp(-when * 4.5);
-      const len = Math.floor(AC.sampleRate * (0.02 + Math.random() * 0.06));
+      const amp = (Math.random() * 2 - 1) * Math.exp(-when * 3.0);
+      const len = Math.floor(AC.sampleRate * (0.03 + Math.random() * 0.12));
       for (let q = 0; q < len && pos + q < n; q++)
         d[pos + q] += amp * (Math.random() * 2 - 1) * (1 - q / len);
+    }
+    /* the swells: unrelated rates, so it never becomes a pulse */
+    for (let k = 0; k < n; k++) {
+      const x = k / n, tt = x * dur;
+      const wave = 1 + 0.42 * Math.sin(tt * 1.15 + 0.7)
+                     + 0.26 * Math.sin(tt * 0.47)
+                     + 0.18 * Math.sin(tt * 2.3 + 1.9);
+      d[k] *= Math.max(0.12, wave) * Math.exp(-x * 1.5);
     }
     let peak = 0;
     for (let k = 0; k < n; k++) peak = Math.max(peak, Math.abs(d[k]));
     if (peak > 0) for (let k = 0; k < n; k++) d[k] /= peak;
     const src = AC.createBufferSource(); src.buffer = b;
     const lp = AC.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.setValueAtTime(240, at);
-    lp.frequency.exponentialRampToValueAtTime(90, at + dur);   // darkens as it dies
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(topEnd * 0.85, at);
+    lp.frequency.exponentialRampToValueAtTime(190, at + dur);   // darkens, but stays audible
     lp.Q.value = 0.2;
     const g = AC.createGain();
     g.gain.setValueAtTime(0.0001, at);
-    g.gain.linearRampToValueAtTime(level, at + 0.12);          // swells in behind the crack
+    g.gain.linearRampToValueAtTime(level, at + attack + 0.15);
     g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
     src.connect(lp); lp.connect(g); g.connect(master);
     src.start(at); src.stop(at + dur + 0.05);
   };
 
   const t0 = AC.currentTime + delay;
-  const gap = 0.085 + Math.random() * 0.05;   // never twice the same, or the two comb
-  shock(t0, 0.55, 360);                       // bow
-  shock(t0 + gap, 0.40, 260);                 // tail
-  roll(t0 + 0.06, 0.34);                      // and the world giving it back
+  const gap = 0.09 + Math.random() * 0.06;
+  /* the shocks only edge it now — the roll carries the sound */
+  shock(t0, 0.62 * (1 - far * 0.3), topEnd);
+  shock(t0 + gap, 0.46 * (1 - far * 0.3), topEnd * 0.75);
+  roll(t0, 0.95);
+
+  /* AND THE ENGINE GETS OUT OF THE WAY. The fan is still running when the
+     report arrives and was sitting right on top of it. Ducking it by two
+     thirds for a second and a half is what a loud event does to everything
+     else anyway. */
+  if (spoolVoice && spoolVoice.far) {
+    const gp = spoolVoice.far.gain, now = t0;
+    gp.cancelScheduledValues(now);
+    gp.setValueAtTime(gp.value, now);
+    gp.linearRampToValueAtTime(gp.value * 0.35, now + 0.08);
+    gp.linearRampToValueAtTime(gp.value, now + 1.6);
+  }
+}
+
+/* THE PLASMA CATCHING. Not a bang and not a boom — a low rumble that
+   swells as the jets take hold and then settles back under the fan. It is
+   the moment the craft stops being lifted and starts being driven, so it
+   wants weight rather than event: noise under a low filter, up over a
+   second and a half, gone over five. */
+function plasmaRumble() {
+  if (!audio() || !soundOn) return;
+  const t0 = AC.currentTime, dur = 6.5;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuffer(dur); src.loop = false;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(70, t0);
+  lp.frequency.exponentialRampToValueAtTime(260, t0 + 1.4);   // it opens as it catches
+  lp.frequency.exponentialRampToValueAtTime(110, t0 + dur);
+  lp.Q.value = 0.4;
+  const body = AC.createBiquadFilter();
+  body.type = 'peaking'; body.frequency.value = 110; body.Q.value = 0.7; body.gain.value = 5;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(0.5, t0 + 1.5);              // the swell
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);      // and the settle
+  src.connect(lp); lp.connect(body); body.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + dur + 0.1);
 }
 
 /* the touchdown: the field taking the weight, then water */
@@ -3127,15 +3201,15 @@ let patrol = null;
    clear of the pyramid. */
 const TAKEOFFS = {
   /* the original: twelve seconds, water first, a level steady rise */
-  steady: { spool: 12, rise: 30, shake: 1.0, steps: false, pivot: 0 },
+  steady: { spool: 15, rise: 30, shake: 1.0, steps: false, pivot: 0 },
   /* impatient: less waiting on the water, a lighter tremble, up quickly */
-  brisk:  { spool: 8,  rise: 27, shake: 0.6, steps: false, pivot: 0 },
+  brisk:  { spool: 11,  rise: 27, shake: 0.6, steps: false, pivot: 0 },
   /* labouring: a longer, harder shake and a rise in two lifts with a
      hesitation between, as if the field took the load twice */
-  heavy:  { spool: 14, rise: 32, shake: 1.45, steps: true, pivot: 0 },
+  heavy:  { spool: 17, rise: 32, shake: 1.45, steps: true, pivot: 0 },
   /* turning as it rises, so it is already half onto the slide when it
      reaches height */
-  pivot:  { spool: 11, rise: 30, shake: 0.85, steps: false, pivot: 0.55 }
+  pivot:  { spool: 14, rise: 30, shake: 0.85, steps: false, pivot: 0.55 }
 };
 const LANDINGS = {
   /* the original long settle: a turn onto the line, rolling out, a flare */
@@ -4674,6 +4748,7 @@ function updateDrive(s, ph, t, thrust, warm) {
       }
       if (thrust > 0 && !patrol.lit) {             // the moment the drive lights
         patrol.lit = true;
+        plasmaRumble();                              // the jets taking hold
         const back = new THREE.Vector3(1, 0, 0).applyQuaternion(s.quaternion);
         fireRings(s.position.clone(), back);
       }
@@ -5142,10 +5217,22 @@ function updateDrive(s, ph, t, thrust, warm) {
     for (const q of spray) {
       const k2 = (t - swirl.t0) / swirl.dur - q.lag;
       if (k2 < 0 || k2 >= 1) { q.sp.visible = false; continue; }
-      const ang = q.a0 + k2 * q.spin * 6;
+      /* a spiral, not a circle: fast at the eye, unwinding as it widens */
+      const ang = q.a0 + q.spin * 6 * Math.pow(k2, 0.45);
       const st2 = Math.min(1.3, swirl.strength);
       q.sp.visible = true;
-      if (q.heavy) {
+      if (q.ice) {
+        /* grains flung up and out, tumbling: the twinkle is the facet
+           catching the sun as it turns */
+        const rad = q.r0 + Math.pow(k2, 0.4) * 46 * st2;
+        q.sp.position.set(swirl.x + Math.cos(ang) * rad,
+                          1 + k2 * 30 * q.rise * st2,
+                          swirl.z + Math.sin(ang) * rad);
+        q.sp.scale.setScalar(q.size * (1 + k2 * 0.6));
+        const tw = 0.45 + 0.55 * Math.pow(Math.abs(Math.sin(t * q.twk + q.a0)), 3);
+        q.sp.material.opacity = Math.sin(Math.min(1, k2 * 8) * Math.PI / 2) *
+                                Math.pow(1 - k2, 1.4) * 0.9 * tw;
+      } else if (q.heavy) {
         /* it rolls out rather than up: quick spread early, then creeping,
            and it stays low the whole time */
         /* the gas wanders as it rolls out — it is not on rails */
