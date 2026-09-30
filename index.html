@@ -3103,6 +3103,142 @@ function boom(distance) {
   }
 }
 
+/* ============================================================== ambience
+   Sea, wind and gulls. It runs under everything and is meant to be noticed
+   only when it stops.
+
+   THE SEA is two noise bands rather than one. A single filtered hiss is a
+   radio between stations; what makes water sound like water is that the
+   band MOVES — swell under, spray over, each breathing at its own rate and
+   never quite together.
+
+   THE GULLS are synthesised, not sampled. A gull's cry is a short glide
+   down through a narrow band with a rasp on it, repeated a few times with
+   the gaps lengthening as it runs out of breath. Mostly they are far off:
+   quiet, dark, hard left or right. Now and then one comes close, and when
+   it does you get the brightness and the rasp and it crosses the stereo
+   field, because it is going somewhere.
+   ========================================================================= */
+let ambient = null;
+
+function startAmbient() {
+  if (!audio() || ambient) return;
+  const t0 = AC.currentTime;
+  const bed = AC.createGain(); bed.gain.value = 0.0001;
+  bed.gain.exponentialRampToValueAtTime(1, t0 + 9);        // fades up slowly, never snaps on
+  bed.connect(master);
+
+  /* WHY IT WAS ALL AIR. The sea was a lowpass at 420 Hz — under what a
+     laptop or a phone can move — so the only thing left was the wind band
+     at 900, and the bed became weather with no water in it.
+
+     Water is not actually a low sound. The swell is low, but what you HEAR
+     is the foam: a broad wash from roughly 700 Hz to 3 kHz that rises and
+     falls as each one breaks. So there are three layers now, and the wash
+     is the loudest of them. */
+
+  /* the swell underneath: the body, mostly felt */
+  const sea = AC.createBufferSource();
+  sea.buffer = noiseBuffer(9); sea.loop = true;
+  const slp = AC.createBiquadFilter(); slp.type = 'lowpass';
+  slp.frequency.value = 500; slp.Q.value = 0.5;
+  const sgain = AC.createGain(); sgain.gain.value = 0.05;
+  const swell = AC.createOscillator(); swell.type = 'sine';
+  swell.frequency.value = 0.083;                            // twelve seconds a breath
+  const swellAmt = AC.createGain(); swellAmt.gain.value = 190;
+  swell.connect(swellAmt); swellAmt.connect(slp.frequency); swell.start();
+  sea.connect(slp); slp.connect(sgain); sgain.connect(bed); sea.start();
+
+  /* THE WASH: this is the part you actually hear as water. Broad, bright,
+     and breathing on a seven-second cycle — each breath is one wave
+     arriving and drawing back. The gain swings nearly to nothing between
+     them, which is what stops it being a hiss. */
+  const foam = AC.createBufferSource();
+  foam.buffer = noiseBuffer(13); foam.loop = true;
+  const fbp = AC.createBiquadFilter(); fbp.type = 'bandpass';
+  fbp.frequency.value = 1250; fbp.Q.value = 0.42;
+  const fgain = AC.createGain(); fgain.gain.value = 0.075;
+  const breath = AC.createOscillator(); breath.type = 'sine';
+  breath.frequency.value = 0.14;                            // about seven seconds a wave
+  const breathAmt = AC.createGain(); breathAmt.gain.value = 0.055;
+  breath.connect(breathAmt); breathAmt.connect(fgain.gain); breath.start();
+  const bright = AC.createOscillator(); bright.type = 'sine';
+  bright.frequency.value = 0.097;                           // and it brightens as it breaks
+  const brightAmt = AC.createGain(); brightAmt.gain.value = 520;
+  bright.connect(brightAmt); brightAmt.connect(fbp.frequency); bright.start();
+  foam.connect(fbp); fbp.connect(fgain); fgain.connect(bed); foam.start();
+
+  /* the wind, now genuinely in the background where it belongs */
+  const air = AC.createBufferSource();
+  air.buffer = noiseBuffer(11); air.loop = true;
+  const ahp = AC.createBiquadFilter(); ahp.type = 'bandpass';
+  ahp.frequency.value = 2400; ahp.Q.value = 0.5;
+  const again = AC.createGain(); again.gain.value = 0.012;
+  const gust = AC.createOscillator(); gust.type = 'sine';
+  gust.frequency.value = 0.041;                             // twenty-four seconds
+  const gustAmt = AC.createGain(); gustAmt.gain.value = 0.008;
+  gust.connect(gustAmt); gustAmt.connect(again.gain); gust.start();
+  air.connect(ahp); ahp.connect(again); again.connect(bed); air.start();
+
+  ambient = { bed, sea, foam, air, swell, breath, bright, gust, timer: null };
+  scheduleGull(8 + Math.random() * 10);    // nothing calls the instant you arrive
+}
+
+/* one cry: a glide down through a narrow band, with a rasp on it */
+function gullCry(at, near, pan) {
+  /* QUIETER, AND FURTHER. A gull you notice every time is a gull you
+     stop hearing as scenery. These sit under the sea until one happens to
+     come past. */
+  const level = near ? 0.10 : 0.055;
+  const top = near ? 1500 : 1100;
+  const p = AC.createStereoPanner ? AC.createStereoPanner() : null;
+  const out = AC.createGain(); out.gain.value = level;
+  if (p) { p.pan.value = pan; out.connect(p); p.connect(master); } else out.connect(master);
+
+  const notes = near ? 3 + Math.floor(Math.random() * 3) : 2 + Math.floor(Math.random() * 2);
+  let when = at;
+  for (let n = 0; n < notes; n++) {
+    const dur = 0.22 + Math.random() * 0.16;
+    const f0 = top * (0.9 + Math.random() * 0.25);
+    const osc = AC.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(f0, when);
+    osc.frequency.exponentialRampToValueAtTime(f0 * 0.55, when + dur);   // the glide down
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(f0 * 1.15, when);
+    bp.frequency.exponentialRampToValueAtTime(f0 * 0.7, when + dur);
+    /* Q 9 was so narrow the far cry was a sine with nothing left of the
+       bird in it, and at that level it vanished under the sea. Wider, and
+       it survives the distance. */
+    bp.Q.value = near ? 4 : 6;
+    /* the rasp: a fast wobble on the pitch, which is what makes it a bird
+       rather than a whistle */
+    const rasp = AC.createOscillator(); rasp.type = 'sine';
+    rasp.frequency.value = 34 + Math.random() * 16;
+    const raspAmt = AC.createGain(); raspAmt.gain.value = f0 * 0.05;
+    rasp.connect(raspAmt); raspAmt.connect(osc.frequency); rasp.start(when); rasp.stop(when + dur);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(1, when + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(bp); bp.connect(g); g.connect(out);
+    osc.start(when); osc.stop(when + dur + 0.02);
+    when += dur + 0.10 + n * 0.05 + Math.random() * 0.08;   // gaps lengthen: running out of breath
+  }
+}
+
+function scheduleGull(after) {
+  if (!ambient) return;
+  ambient.timer = setTimeout(() => {
+    if (!ambient || !soundOn) { scheduleGull(10 + Math.random() * 14); return; }
+    /* one in six comes close enough to look the ship over */
+    const near = Math.random() < 0.07;      // one in fourteen, not one in six
+    const pan = near ? (Math.random() * 2 - 1) * 0.5 : (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.4);
+    gullCry(AC.currentTime + 0.05, near, pan);
+    if (near && Math.random() < 0.3) gullCry(AC.currentTime + 1.1 + Math.random(), true, -pan);
+    scheduleGull(near ? 22 + Math.random() * 22 : 11 + Math.random() * 20);
+  }, after * 1000);
+}
+
 /* THE PLASMA CATCHING. Not a bang and not a boom — a low rumble that
    swells as the jets take hold and then settles back under the fan. It is
    the moment the craft stops being lifted and starts being driven, so it
@@ -3278,7 +3414,9 @@ function patrolPath(home, st) {
     if (f <= CLIMB_TO) return BASE + (CEIL - BASE) * smooth(f / CLIMB_TO);
     /* on the level, sometimes a long gentle rise or dip — sine squared,
        so it leaves and rejoins the level without a corner */
-    if (f <= HOLD_TO) return CEIL + st.hump * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2);
+    /* the hump, but not through the dash: it runs dead level there */
+    if (f <= HOLD_TO) return CEIL + st.hump * dashMute(f) *
+      Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2);
     return BASE + (CEIL - BASE) * (1 - smooth((f - HOLD_TO) / (1 - HOLD_TO)));
   };
   /* THE DASH. An ellipse turns everywhere, so the craft was banking from
@@ -3319,6 +3457,22 @@ function patrolPath(home, st) {
     }
     for (let n = 0; n <= SW_N; n++) swTab[n] /= acc;                       // end at exactly 1
   }
+  /* WHAT THE DASH TURNS OFF. The level run carries two deliberate
+     wanderings: a WEAVE, lazy S-turns side to side, and a HUMP, a gentle
+     rise or dip in height. Both exist so the craft is not a ruler between
+     the climb and the descent — and both are exactly wrong during a burst
+     of speed, which is why the line fell and squiggled just when it should
+     have been flat and straight.
+
+     This mutes them across the dash and eases them back afterwards, on the
+     same shoulders the swing uses, so nothing switches on or off. */
+  const dashMute = f => {
+    if (f <= D0 || f >= D1) return 1;
+    if (f < D0 + SHOULDER) { const x = (f - D0) / SHOULDER; return 1 - x * x * (3 - 2 * x); }
+    if (f > D1 - SHOULDER) { const x = (D1 - f) / SHOULDER; return 1 - x * x * (3 - 2 * x); }
+    return 0;
+  };
+
   const swingPhase = f => {
     const x = Math.max(0, Math.min(1, f)) * SW_N, n = Math.floor(x);
     return n >= SW_N ? 1 : swTab[n] + (swTab[n + 1] - swTab[n]) * (x - n);
@@ -3341,7 +3495,8 @@ function patrolPath(home, st) {
     /* the weave: only on the level, faded in and out, small against the
        loop so the craft is never close to stopping sideways */
     const weave = f => (f > CLIMB_TO && f < HOLD_TO)
-      ? st.weave * Math.sin(th * st.weaveN) * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2)
+      ? st.weave * dashMute(f) * Math.sin(th * st.weaveN)
+        * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2)
       : 0;
     const berth = (centre, width, amount) =>
       amount * Math.exp(-Math.pow((f - centre) / width, 2));
@@ -3602,6 +3757,7 @@ function choose(s) {
   if (s.userData.project.id === 'x' && !patrol && !arrived && !flight) {
     nextPatrol = 0;
     audio();                    /* the gesture that unlocks it is this click */
+    startAmbient();
   }
 }
 function release() {
@@ -4360,7 +4516,14 @@ function frame() {
 
   const { w, h } = viewport();                       // a pane sized after load
   if (w !== lastW || h !== lastH) { lastW = w; lastH = h; const soundBtn = document.getElementById('sound');
-if (soundBtn) soundBtn.onclick = () => { audio(); setSound(!soundOn); };
+if (soundBtn) soundBtn.onclick = () => { audio(); setSound(!soundOn); startAmbient(); };
+/* the sea starts on the first gesture of any kind — a click on a ship, a
+   drag to look around — because that is the earliest a browser will allow
+   it. Once only. */
+addEventListener('pointerdown', function first() {
+  removeEventListener('pointerdown', first);
+  if (soundOn) { audio(); startAmbient(); }
+}, { passive: true });
 setSound(soundOn);      /* reflect the stored choice; still makes no noise */
 
 resize(); }
