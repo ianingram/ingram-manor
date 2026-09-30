@@ -1176,8 +1176,18 @@ scene.fog = new THREE.Fog(0xbcdeea, 60, 330);
    distance into Infinity, which renders a sky and nothing else. Every size
    read goes through here, and the loop re-fits whenever the number changes. */
 function viewport() {
-  const w = renderer && renderer.domElement && renderer.domElement.clientWidth || innerWidth || 0;
-  const h = renderer && renderer.domElement && renderer.domElement.clientHeight || innerHeight || 0;
+  /* MEASURE THE WINDOW, NOT THE CANVAS. This used to read the canvas's own
+     clientWidth — and the canvas carries an inline pixel size that setSize
+     wrote at load. So after the phone turned, the canvas was still the width
+     it had been in portrait, clientWidth reported that old width, and the
+     new size was computed from the stale one. It could never grow: the
+     measurement was downstream of the thing being measured.
+
+     visualViewport is the honest number on iOS, where the URL bar and the
+     safe-area insets move the goalposts; innerWidth is the fallback. */
+  const vv = typeof visualViewport !== 'undefined' && visualViewport;
+  const w = (vv && vv.width) || innerWidth || 0;
+  const h = (vv && vv.height) || innerHeight || 0;
   return { w: w > 0 ? w : 1280, h: h > 0 ? h : 720 };
 }
 /* The far plane has to reach past the patrol. The craft runs out to about
@@ -2784,8 +2794,16 @@ function fireRings(at, dir, scale) {
    Past a mile the craft is smaller than a pixel and disappears entirely.
    A point of light scaled by distance keeps it findable — it is what you
    actually see of an aircraft at height: not the shape, the glint. */
+/* IT TESTS DEPTH. It was built ignoring depth so that distance could never
+   hide it — and that meant the stone could not hide it either, so the glint
+   sat on top of the pyramid while the craft was behind it. The hull was
+   always masked correctly; this was the thing showing through.
+
+   depthTest true costs nothing it needs: against open sky there is nothing
+   in front of it, so it still carries to the far plane. It is only hidden
+   when something solid is genuinely in the way, which is the point. */
 const farMark = new THREE.Sprite(new THREE.SpriteMaterial({
-  map: vapourTexPlaceholder(), transparent: true, depthWrite: false, depthTest: false,
+  map: vapourTexPlaceholder(), transparent: true, depthWrite: false, depthTest: true,
   blending: THREE.AdditiveBlending, fog: false, opacity: 0 }));
 farMark.visible = false;
 scene.add(farMark);
@@ -2899,13 +2917,57 @@ function patrolPath(home, st) {
     if (f <= HOLD_TO) return CEIL + st.hump * Math.pow(Math.sin(Math.PI * (f - CLIMB_TO) / (HOLD_TO - CLIMB_TO)), 2);
     return BASE + (CEIL - BASE) * (1 - smooth((f - HOLD_TO) / (1 - HOLD_TO)));
   };
+  /* THE DASH. An ellipse turns everywhere, so the craft was banking from
+     the moment it levelled off — it lit the boosters and immediately began
+     coming home, which is what reads as turning back too early.
+
+     A straight leg is added by PAUSING THE SIDEWAYS SWING while the depth
+     keeps advancing. Both used to come off one angle, so holding one held
+     the other; here the swing runs on its own warped parameter, flat across
+     the dash window and slightly quicker either side to make up the ground.
+     During the dash the craft holds its heading and simply goes, then the
+     turn resumes exactly where it left off.
+
+     The warp is smooth in value AND in slope, so there is no corner at
+     either end of the straight — the same reason the track is a formula and
+     not a spline through waypoints. */
+  const D0 = 0.25, D1 = 0.40, SHOULDER = 0.035;   // the straight leg, and its eases
+  /* The warp is built by INTEGRATING a slope profile rather than shaping the
+     position directly. The slope is 1 normally and 0 across the dash, with
+     smoothstep shoulders so it never steps. Integrate, normalise to end at
+     1, and the swing is genuinely frozen through the straight instead of
+     merely slowed at its midpoint — which is all a single smoothstep could
+     manage, and why the craft still drifted 22 degrees through it. */
+  const SW_N = 400, swTab = new Float64Array(SW_N + 1);
+  {
+    const ss = x => x * x * (3 - 2 * x);
+    const slope = f => {
+      if (f <= D0 || f >= D1) return 1;
+      if (f < D0 + SHOULDER) return 1 - ss((f - D0) / SHOULDER);
+      if (f > D1 - SHOULDER) return 1 - ss((D1 - f) / SHOULDER);
+      return 0;
+    };
+    let acc = 0;
+    for (let n = 1; n <= SW_N; n++) {
+      const a = (n - 1) / SW_N, b = n / SW_N;
+      acc += (slope(a) + 4 * slope((a + b) / 2) + slope(b)) / 6 / SW_N;   // Simpson
+      swTab[n] = acc;
+    }
+    for (let n = 0; n <= SW_N; n++) swTab[n] /= acc;                       // end at exactly 1
+  }
+  const swingPhase = f => {
+    const x = Math.max(0, Math.min(1, f)) * SW_N, n = Math.floor(x);
+    return n >= SW_N ? 1 : swTab[n] + (swTab[n + 1] - swTab[n]) * (x - n);
+  };
+
   const track = f => {
     /* one continuous arc: away from the fleet, round to the right, back.
        sin gives the out-and-back in depth, (1-cos) the sideways swing, and
        both are smooth end to end. */
     const th = f * Math.PI * 2;
+    const ths = swingPhase(f) * Math.PI * 2;      // the swing, held flat across the dash
     const out = (1 - Math.cos(th)) / 2;         // 0 at home, 1 at the far end
-    const side = -Math.sin(th);                 // left going out, right coming home
+    const side = -Math.sin(ths);                // left going out, right coming home
     /* AND A BERTH ROUND THE STONE. The craft passes the pyramid's depth
        twice — once on the way out while still low, once coming back — and
        a formula track has no reason to avoid it. These are two Gaussian
@@ -3142,6 +3204,19 @@ function choose(s) {
   if (chosen === s) { release(); return; }
   chosen = s;
   fillCard(s.userData.project);
+
+  /* MOON RACER ANSWERS A CLICK BY FLYING. The patrol was on a timer — every
+     forty-six seconds, whether anyone was watching or not — so the one ship
+     that actually does something did it mostly to an empty room. Clicking it
+     brings the next run forward to now: nextPatrol is compared against the
+     elapsed clock, so zero means the next frame starts the spool.
+
+     The guards are the same ones the timer uses. A run already in the air is
+     left alone rather than restarted, and the click still holds the card and
+     its link, so nothing is taken away from it. */
+  if (s.userData.project.id === 'x' && !patrol && !arrived && !flight) {
+    nextPatrol = 0;
+  }
 }
 function release() {
   chosen = null;
@@ -3194,10 +3269,28 @@ function resize() {
   const { w, h } = viewport();
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(w, h, false);
+  /* TRUE, not false. With updateStyle off the drawing buffer was resized
+     but the canvas kept the inline width and height it was given at load,
+     so on a phone the scene stayed a portrait-shaped panel with the body's
+     blue showing either side of it. */
+  renderer.setSize(w, h, true);
   fitCamera();
+  camera.position.copy(CAM_HOME);
 }
 addEventListener('resize', resize);
+
+/* iOS reports the old size for a moment after the phone turns, and again
+   when the URL bar slides away, so the rotation is re-measured a few times
+   rather than once. Cheap, and it is the difference between filling the
+   screen and filling most of it. */
+addEventListener('orientationchange', () => {
+  resize();
+  setTimeout(resize, 120);
+  setTimeout(resize, 400);
+});
+if (typeof visualViewport !== 'undefined' && visualViewport) {
+  visualViewport.addEventListener('resize', resize);
+}
 resize();
 
 /* ===================================================== flight =============
@@ -4356,6 +4449,20 @@ function updateDrive(s, ph, t, thrust, warm) {
 
         const dir2 = ahead.clone().sub(at);
         if (dir2.lengthSq() > 1e-6) {
+          /* IT COMES IN LEVEL. Aiming the hull straight down the spline put
+             the bow wherever the path was going, and the path is sinking —
+             so the steeper the descent the further it pitched over, and it
+             arrived in the slot nose-first.
+
+             A craft under field lift does not dive onto its station; it
+             sinks flat, the way the launch rises flat. So the vertical part
+             of the aim is capped against the horizontal — twelve degrees
+             early in the approach, easing to nothing by the time it settles.
+             The PATH is untouched: it still descends exactly as before, the
+             craft simply no longer points along it. */
+          const horiz = Math.hypot(dir2.x, dir2.z);
+          const maxPitch = Math.tan(12 * Math.PI / 180) * Math.pow(1 - lk, 1.4);
+          dir2.y = Math.max(-horiz * maxPitch, Math.min(horiz * maxPitch, dir2.y));
           dir2.normalize();
           aimer.position.copy(at);
           aimer.lookAt(at.clone().add(dir2));
@@ -4406,7 +4513,12 @@ function updateDrive(s, ph, t, thrust, warm) {
            the craft levelled out, lit the boosters and skipped the entire
            level run, landing in the descent. That is the hairpin. A tenth
            of that is a shove, not a teleport. */
-        if (bt < 1) patrol.extra = (patrol.extra || 0) + Math.sin(bt * Math.PI) * 0.00009;
+        /* 0.00009 was so cautious the burst was a light show with no speed
+           behind it. 0.0003 is roughly 6% of the path over the five
+           seconds — felt as acceleration, nowhere near the 25% skip that
+           the original 0.00085 produced. It lands inside the dash, so the
+           craft accelerates down the straight rather than round a bend. */
+        if (bt < 1) patrol.extra = (patrol.extra || 0) + Math.sin(bt * Math.PI) * 0.0003;
       }
       const E = 0.1;
       const u0 = Math.min(0.9999,
