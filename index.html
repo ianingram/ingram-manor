@@ -261,7 +261,10 @@ const PROJECTS = [
     blurb:'Racing between real places on Earth \u2014 and later the planets \u2014 through orbital lanes and low-level stages over real terrain. Fuel comes from water, heat comes from the air.' },
   { id:'amentilive', drive: 0.94, neon: 0xff7a18, title:'Amenti.live', kind:'live', emblem:'\u2609',
     url:'https://amenti.live/',
-    blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' }
+    blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' },
+  { id:'studios', drive: 0.9, neon: 0xb98cff, title:'Amenti Studios', kind:'studio', emblem:'\u25D1',
+    url:'https://ianingram.github.io/Amenti-Studios/',
+    blurb:'Staged readings of public-domain works, cast from the Library of Legends \u2014 every voice a historical figure out of a ledger of more than a thousand, each with their own dialect and manner. The texts are public domain; the productions are not.' }
 ];
 
 const card = document.getElementById('card');
@@ -3669,11 +3672,12 @@ function patrolPath(home, st) {
    Treasure Chess sit back on either quarter, and two more stand further out
    again on the wings, smaller with distance. */
 const FORMATION = [
-  { x:   0, z:   6 },   // Amenti, the lead ship
+  { x:   0, z:   6 },   // Amenti-AI, the lead ship
   { x: -26, z: -16 },   // GannLab
   { x:  26, z: -16 },   // Treasure Chess
-  { x: -56, z: -42 },   // X, far out on the left wing
-  { x:  56, z: -42 }    // Amenti.live, far out on the right wing
+  { x: -56, z: -42 },   // Moon Racer, out on the left wing
+  { x:  56, z: -42 },   // Amenti.live, out on the right wing
+  { x:   0, z: -62 }    // Amenti Studios, astern in the slot behind the wings
 ];
 const ships = [];
 PROJECTS.forEach((p, i) => {
@@ -4628,6 +4632,7 @@ function clothHalf(g) {
 const clock = new THREE.Clock();
 let hudFrame = 0, pointerOn = false, steady = 0;
 let patrolFrame = 0;
+let nextJockey = 24 + Math.random() * 20;   // the first trade, half a minute in
 let nextPatrol = Infinity;   /* IT WAITS TO BE ASKED. The patrol used to fire
                                 eight seconds in and every forty-six after,
                                 so the launch was usually happening to nobody.
@@ -4965,6 +4970,40 @@ function updateDrive(s, ph, t, thrust, warm) {
     ik.glow.scale.setScalar(1 + heat * 0.5);
   }
 }
+
+  /* ------------------------------------------------------- jockeying
+     A formation that never changes is a diagram. Every half-minute or so
+     two craft trade places — not a snap, a slow exchange: they ease across
+     at a third of the usual station-keeping rate, so it takes some seconds
+     and you catch it out of the corner of your eye.
+
+     AMENTI-AI NEVER MOVES. It is the lead ship and the lead slot is the
+     point of it, so index 0 is excluded and the rest shuffle behind it.
+
+     A craft out on patrol is left alone, as is one you are reading, and one
+     already mid-exchange — nothing is dragged out from under you. */
+  if (t > nextJockey) {
+    const free = [];
+    for (let i = 1; i < ships.length; i++) {
+      const sh = ships[i];
+      if (patrol && patrol.ship === sh) continue;
+      if (sh === chosen || sh === hovered) continue;
+      if ((sh.userData.jockey || 0) > t) continue;
+      free.push(sh);
+    }
+    if (free.length >= 2) {
+      const a = free[Math.floor(Math.random() * free.length)];
+      let b = a;
+      while (b === a) b = free[Math.floor(Math.random() * free.length)];
+      const tmp = a.userData.home.clone();
+      a.userData.home.copy(b.userData.home);
+      b.userData.home.copy(tmp);
+      const dur = 7 + Math.random() * 5;
+      a.userData.jockey = t + dur;
+      b.userData.jockey = t + dur;
+    }
+    nextJockey = t + 26 + Math.random() * 34;
+  }
 
   for (const s of ships) {                             // every ship rides it
     const ph = s.userData.phase, home = s.userData.home;
@@ -5414,7 +5453,11 @@ function updateDrive(s, ph, t, thrust, warm) {
     const tx = home.x + (s === chosen ? -home.x * 0.25 : 0) + wx;
     /* a craft just off patrol is pulled home harder for a couple of seconds,
        then settles to the normal gentle hold */
-    const settling = (s.userData.settle || 0) > t ? 0.09 : 0.045;
+    /* a craft just off patrol is pulled home hard; one trading places is
+       pulled gently, so the exchange is a manoeuvre rather than a snap */
+    const settling = (s.userData.settle || 0) > t ? 0.09
+                   : (s.userData.jockey || 0) > t ? 0.013
+                   : 0.045;
     s.position.z += (tz - s.position.z) * settling;
     s.position.x += (tx - s.position.x) * settling;
     s.position.x += Math.sin(t * 0.31 + ph) * 0.06 + shx;  // slow sideways set, plus any shock
