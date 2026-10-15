@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ian Ingram Resume</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Ian Ingram — Technical Project Manager, Business Analyst and AI Product Builder.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single sheet; a narrow date rail runs beside each role like a ledger margin, stacking above the role on phones. */
+:root{
+  --paper:#f6f8f8;
+  --sheet:#ffffff;
+  --ink:#16201f;
+  --muted:#5a6866;
+  --rule:#d9e1e0;
+  --accent:#1d6660;
+  --accent-soft:#e3efed;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1413; --sheet:#151d1c; --ink:#e4ecea; --muted:#9aaba8;
+    --rule:#2a3634; --accent:#6cc4b8; --accent-soft:#1c2e2c; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1413; --sheet:#151d1c; --ink:#e4ecea; --muted:#9aaba8;
+  --rule:#2a3634; --accent:#6cc4b8; --accent-soft:#1c2e2c; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:15px; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:32px 48px;
+}
+.sheet{
+  max-width:880px; margin:0 auto; background:var(--sheet);
+  border:1px solid var(--rule); border-radius:4px;
+  padding:clamp(24px, 5vw, 56px);
+  display:flex; flex-direction:column; gap:36px;
+}
+a{color:var(--accent); text-underline-offset:3px; text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px}
+
+/* Header */
+header{display:flex; flex-direction:column; gap:14px; border-bottom:2px solid var(--ink); padding-bottom:24px}
+h1{font-family:var(--display); font-weight:700; font-size:clamp(34px, 6vw, 52px); line-height:1; letter-spacing:-0.02em; margin:0; text-wrap:balance}
+.role{font-family:var(--display); font-weight:500; font-size:clamp(16px, 2.4vw, 19px); color:var(--accent); margin:0}
+.contact{display:flex; flex-wrap:wrap; gap:6px 18px; font-family:var(--mono); font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none}
+.contact li{display:flex; align-items:center; gap:6px}
+.copy{
+  font:inherit; font-size:11px; color:var(--muted); background:none;
+  border:1px solid var(--rule); border-radius:3px; padding:0 6px; cursor:pointer; line-height:1.6;
+}
+.copy:hover{color:var(--accent); border-color:var(--accent)}
+
+/* Sections */
+section{display:flex; flex-direction:column; gap:16px}
+h2{
+  font-family:var(--mono); font-weight:500; font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--muted); margin:0; padding-bottom:8px; border-bottom:1px solid var(--rule);
+}
+.summary{margin:0; max-width:68ch; font-size:16px}
+
+/* Roles */
+.roles{display:flex; flex-direction:column; gap:26px}
+.job{display:grid; grid-template-columns:130px minmax(0,1fr); gap:4px 24px}
+.when{font-family:var(--mono); font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; padding-top:3px}
+.job h3{font-family:var(--display); font-weight:700; font-size:18px; line-height:1.25; margin:0}
+.job .title{color:var(--muted); font-weight:400; font-family:var(--body); font-size:15px}
+.job ul{margin:8px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:6px; max-width:70ch}
+.job li::marker{color:var(--accent)}
+.featured{
+  background:var(--accent-soft); border-radius:4px; padding:20px;
+  margin-inline:-20px;
+}
+.links{display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:10px; font-family:var(--mono); font-size:12.5px}
+strong{font-weight:700}
+
+/* Skills */
+.skills{display:grid; grid-template-columns:130px minmax(0,1fr); gap:10px 24px; margin:0}
+.skills dt{font-family:var(--mono); font-size:12.5px; color:var(--muted); padding-top:2px}
+.skills dd{margin:0}
+
+/* Education */
+.edu{display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none}
+
+footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:center; margin-top:16px}
+
+@media (max-width:620px){
+  body{padding-block:16px 32px}
+  .job, .skills{grid-template-columns:minmax(0,1fr)}
+  .featured{margin-inline:-12px; padding:16px 12px}
+}
+@media print{
+  @page{size:letter; margin:0.5in 0.55in}
+  :root{--ink:#000; --muted:#444; --accent:#1d6660; --rule:#bbb; color-scheme:light}
+  body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.38}
+  .sheet{border:0; padding:0; max-width:none; gap:13px; background:#fff}
+  header{gap:5px; padding-bottom:9px}
+  h1{font-size:25pt}
+  .role{font-size:11.5pt}
+  .contact{font-size:8.5pt}
+  section{gap:7px}
+  h2{font-size:8pt; padding-bottom:3px}
+  .summary{font-size:9.6pt; max-width:none}
+  .roles{gap:9px}
+  .job{grid-template-columns:96px minmax(0,1fr); gap:0 14px; break-inside:avoid}
+  .when{font-size:8.3pt; padding-top:1px}
+  .job h3{font-size:10.5pt}
+  .job .title{font-size:9.6pt}
+  .job ul{margin-top:2px; gap:1px; max-width:none}
+  .skills{grid-template-columns:96px minmax(0,1fr); gap:2px 14px}
+  .skills dt{font-size:8.3pt}
+  .edu{gap:1px}
+  .links{font-size:8.3pt; margin-top:3px}
+  .copy, footer{display:none}
+  .featured{background:none; margin:0; padding:0}
+  a{color:#1d6660; text-decoration:none}
+}
+</style>
+</head>
+<body>
+
+<main class="sheet">
+  <header>
+    <h1>Ian Ingram</h1>
+    <p class="role">Technical Project Manager · Business Analyst · AI Product Builder</p>
+    <ul class="contact">
+      <li>Yonkers, NY</li>
+      <li><span id="phone">(646) 957-2337</span><button class="copy" id="copy-phone" type="button" data-target="phone" aria-label="Copy phone number">copy</button></li>
+      <li><span id="email">ingram.ian@gmail.com</span><button class="copy" id="copy-email" type="button" data-target="email" aria-label="Copy email address">copy</button></li>
+      <li><a href="https://amenti.live/" target="_blank" rel="noopener">amenti.live</a></li>
+      <li><a href="https://github.com/ianingram" target="_blank" rel="noopener">github.com/ianingram</a></li>
+    </ul>
+  </header>
+
+  <section aria-labelledby="h-summary">
+    <h2 id="h-summary">Summary</h2>
+    <p class="summary">Technical project manager and business analyst with 15+ years running implementations, UAT and data migrations at Citi, Nielsen and Philips Healthcare. For the past three years, I have independently designed and built an AI platform end to end on Claude and Gemini APIs, from architecture and cost control to shipped product.</p>
+  </section>
+
+  <section aria-labelledby="h-exp">
+    <h2 id="h-exp">Experience</h2>
+    <div class="roles">
+
+      <article class="job featured">
+        <div class="when">2023 – Present</div>
+        <div>
+          <h3>Independent AI Product Developer <span class="title">· Amenti Platform (self-directed)</span></h3>
+          <ul>
+            <li>Built Amenti.live, an AI platform for conversing with 1,000+ historical figures grounded in primary sources, on Claude and Gemini APIs behind a Cloudflare Workers layer.</li>
+            <li>Own the product end to end: scoping, architecture, cost control, QA and documentation in 100+ public technical briefs.</li>
+            <li>Shipped Ask Amenti, a self-generating quiz library, Amenti Studios audio productions of classic novels, a Living Map of the ancient world and Three.js browser games.</li>
+            <li>Run GannLab, a pre-registered market research lab; a 117-event screen from 8,320 SEC filings showed a −38.7% median six-month return across five walk-forward windows.</li>
+          </ul>
+          <div class="links">
+            <a href="https://amenti.live/" target="_blank" rel="noopener">Amenti.live</a>
+            <a href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener">Technical briefs</a>
+            <a href="https://ianingram.github.io/GannLab/desk.html" target="_blank" rel="noopener">GannLab</a>
+            <a href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener">Amenti Studios</a>
+            <a href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener">Moon Racer</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">1/2022 – Present</div>
+        <div>
+          <h3>Tennis Coach, USPTA Certified <span class="title">· NYJTL Eagle Academy after-school program; Trevor Day School, 2013</span></h3>
+          <ul>
+            <li>Run skill, fitness and match-play development for student players; schedule built around independent product work.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">2017 – 11/2022</div>
+        <div>
+          <h3>Philips Healthcare <span class="title">· Technical Consultant; BMET II, Patient Monitoring Specialist</span></h3>
+          <ul>
+            <li>Led clinical network installations and system upgrades from staging through go-live, advising clinical leadership and engineers on timelines.</li>
+            <li>Inspected, calibrated and repaired patient monitoring systems in active clinical environments.</li>
+            <li>Led patient-safety practices: incident reporting, clinical incident documentation and daily safety briefings.</li>
+            <li>Coordinated asset delivery and pre-install staging; tracked go-live events for new equipment and reported deliverables to management.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">2/2015 – 1/2016</div>
+        <div>
+          <h3>Westchester Medical Center <span class="title">· Technical Consultant</span></h3>
+          <ul>
+            <li>Managed a product recall end to end: tracking, issue resolution, progress reports and recommended actions.</li>
+            <li>Analyzed drug-delivery system data against business and regulatory measures.</li>
+            <li>Wrote test plans and QA measures for clinical devices through a major vendor transition.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">2/2013 – 7/2014</div>
+        <div>
+          <h3>Nielsen Entertainment <span class="title">· Project Manager, User Acceptance Testing</span></h3>
+          <ul>
+            <li>Designed application data schematics for the Music Connect / SoundScan integration and documented the cost and efficiency of data calls.</li>
+            <li>Developed the UAT strategy for the Music Connect accounting platform.</li>
+            <li>Wrote use cases for MicroStrategy integration with legacy Nielsen platforms.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">10/2010 – 1/2013</div>
+        <div>
+          <h3>Citi Private Bank <span class="title">· Business Analyst, Pershing NetX360</span></h3>
+          <ul>
+            <li>Defined client onboarding and data-migration requirements and scheduled account migrations.</li>
+            <li>System admin for the NetX360 trading platform: UAT, back-testing, user support and client training.</li>
+            <li>Worked with engineering and management on platform stability, release timing, upgrades and product roadmaps.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">4/2006 – 1/2010</div>
+        <div>
+          <h3>Citigroup Emerging Markets <span class="title">· Business Analyst, Analytics &amp; Operational Risk</span></h3>
+          <ul>
+            <li>Produced daily pricing reports for the institutional FX desk and settled institutional currency trades.</li>
+            <li>Applied statistical methods to isolate recurring trade failures; ran operational-risk meetings and loss-reduction procedures.</li>
+            <li>Wrote Python scripts for trade capture and risk monitoring.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">8/2000 – 1/2005</div>
+        <div>
+          <h3>PC Mall <span class="title">· Enterprise Sales Executive</span></h3>
+          <ul>
+            <li>Enterprise technology sales to capital markets firms, including TheStreet.com and Charles Schwab.</li>
+          </ul>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section aria-labelledby="h-proj">
+    <h2 id="h-proj">Selected Projects</h2>
+    <div class="roles">
+
+      <article class="job">
+        <div class="when">AI product</div>
+        <div>
+          <h3>Ask Amenti <span class="title">· source-grounded Q&amp;A</span></h3>
+          <ul>
+            <li>Search-first by design: names and fragments resolve against local indexes with no model call; only a real question spends money.</li>
+            <li>Every quotation is checked against the text fetched that turn and marked verified, from a librarian's note, or unmatched; a tally prints even on clean answers so readers can see the check ran.</li>
+            <li>Answers only from shared registers (roster, library, events), so a wrong answer exposes a wrong record; this caught and fixed a figure misdated by more than a century.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">Architecture</div>
+        <div>
+          <h3>Conversation and voice engine</h3>
+          <ul>
+            <li>Separated thinking from speaking: Claude composes the in-character reply, Gemini renders the voice, and a Cloudflare Worker routes between them, so either vendor can change without retuning the other.</li>
+            <li>Bounded each conversation to a 14-message window, so a three-hour conversation costs the same per turn as the first.</li>
+            <li>Archived rendered audio instead of caching it briefly, so audio cost scales with distinct content rather than audience size.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">Cost analysis</div>
+        <div>
+          <h3>Measured AI unit economics</h3>
+          <ul>
+            <li>Built and measured the real prompt instead of estimating: $0.0138 per turn, with the system prompt making up 57% of input.</li>
+            <li>Compared levers side by side (lean prompt, shorter window, smaller model, caching) and showed prompt caching saves 22–33% with no loss of quality, breaking even on the second turn.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">Data &amp; content</div>
+        <div>
+          <h3>Quiz library and timeline</h3>
+          <ul>
+            <li>Moved quiz content and answer keys out of the payments service into a self-generating library: 32 quizzes and 33 complete character cards in 48 hours.</li>
+            <li>Dated all 1,011 figures and joined all 52 library rooms to the roster (100% each), so any answer can place a reader in time.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="job">
+        <div class="when">Research</div>
+        <div>
+          <h3>GannLab <span class="title">· pre-registered market research</span></h3>
+          <ul>
+            <li>Each hypothesis is a numbered probe with pass rules written before results are read; failures stay on the record.</li>
+            <li>Rejected popular geometric trading signals on the evidence (r = 0.021) and kept volatility clustering as the one clear survivor; data from SEC EDGAR, Yahoo Finance, CBOE and JPL ephemerides.</li>
+          </ul>
+        </div>
+      </article>
+
+      
+
+    </div>
+  </section>
+
+  <section aria-labelledby="h-skills">
+    <h2 id="h-skills">Skills</h2>
+    <dl class="skills">
+      <dt>Project &amp; analysis</dt>
+      <dd>Implementation and go-live management, UAT, requirements and functional documentation, data migration, QA and test planning</dd>
+      <dt>AI &amp; technical</dt>
+      <dd>LLM and text-to-speech APIs, JavaScript, HTML/CSS, Python, Cloudflare Workers, GitHub</dd>
+      <dt>Domain</dt>
+      <dd>Financial services (FX, operational risk, trading platforms), healthcare technology, media data</dd>
+    </dl>
+  </section>
+
+  <section aria-labelledby="h-edu">
+    <h2 id="h-edu">Education &amp; Certifications</h2>
+    <ul class="edu">
+      <li><strong>Andrews University</strong> — B.S., History / Political Science</li>
+      <li><strong>USPTA</strong> — Certified Tennis Professional</li>
+    </ul>
+  </section>
+</main>
+<footer>Ian Ingram · Yonkers, NY</footer>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var el = document.getElementById(btn.dataset.target);
+    var text = el.textContent;
+    function done(){ btn.textContent = 'copied'; setTimeout(function(){ btn.textContent = 'copy'; }, 1500); }
+    function select(){
+      var r = document.createRange(); r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = 'selected'; setTimeout(function(){ btn.textContent = 'copy'; }, 1500);
+    }
+    try {
+      navigator.clipboard.writeText(text).then(done, select);
+    } catch (e) { select(); }
+  });
+});
+</script>
+</body>
+</html>
