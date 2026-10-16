@@ -30,8 +30,8 @@
 -->
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Moon Racer</title>
-<meta name="description" content="Amenti, GannLab, Treasure Chess, Amenti.live, and one unannounced.">
+<title>Ingram Manor</title>
+<meta name="description" content="Ingram Manor: Amenti.live, the Library of Legends, and a fleet of projects where history talks back.">
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
 </script>
@@ -184,7 +184,98 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 
 /* a project without a destination yet: shown, but not offered as a link */
 [data-nolink] { pointer-events: none; opacity: .72; }
+
+/* ===================================================== THE LANDING
+   A readable front page laid over the fleet. Scroll (or "Explore the
+   fleet") and the text lifts away to hand the scene back. The scene code
+   below is untouched: this layer only sits above it and steps aside. */
+#landing{position:fixed;inset:0;z-index:20;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:rgba(7,10,15,var(--veil,.9));transition:opacity .5s ease,visibility .5s;
+  overscroll-behavior:contain}
+#landing.gone{opacity:0;visibility:hidden;pointer-events:none}
+#landing .sheet{max-width:46rem;margin:0 auto;
+  padding:calc(9vh + env(safe-area-inset-top,0px)) max(22px,env(safe-area-inset-right,0px)) 40px max(22px,env(safe-area-inset-left,0px))}
+#landing .eyebrow{margin:0;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+#landing h1{margin:.5em 0 0;font:400 clamp(30px,5.4vw,46px)/1.12 Georgia,"Iowan Old Style",serif;color:#f6efdf;
+  letter-spacing:.01em;text-wrap:balance}
+#landing .role{margin:.7em 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass)}
+#landing .lede{margin:1.4em 0 0;font:17px/1.66 Georgia,"Iowan Old Style",serif;color:#e9e1d1;max-width:62ch}
+#landing .lede + .lede{margin-top:.9em}
+#landing .acts{display:flex;flex-wrap:wrap;gap:10px;margin:1.9em 0 0}
+#landing .btn{display:inline-block;padding:10px 16px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  text-decoration:none;border:1px solid rgba(212,175,80,.6);color:var(--brass);background:transparent}
+#landing .btn.primary{background:var(--gold);color:#1a1208;border-color:var(--gold)}
+#landing .btn:hover{background:var(--brass);color:#1a1208;border-color:var(--brass)}
+#landing .btn:focus-visible,#landing a:focus-visible,#landing button:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+#landing h2{margin:2.6em 0 0;padding-bottom:.6em;border-bottom:1px solid rgba(212,175,80,.3);
+  font-size:11px;font-weight:400;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+#landing .work{list-style:none;margin:0;padding:0}
+#landing .work li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 18px;align-items:baseline;
+  padding:14px 0;border-bottom:1px solid rgba(232,223,200,.1)}
+#landing .work .t{font:17px/1.35 Georgia,serif;color:#f6efdf}
+#landing .work .t .k{font:10px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-left:8px;vertical-align:2px}
+#landing .work .t .k.exp{color:var(--brass);border:1px dashed rgba(255,208,112,.6);padding:2px 5px}
+#landing .work .d{grid-column:1/-1;font:15px/1.55 Georgia,serif;color:#cfc6b4;max-width:60ch}
+#landing .work .ln{display:flex;gap:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+#landing .work .ln a{color:var(--brass);text-decoration:none;border-bottom:1px solid rgba(255,208,112,.35)}
+#landing .work .ln a:hover{color:#fff;border-color:#fff}
+#landing .contact{margin:1.1em 0 0;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12px;letter-spacing:.08em;color:#cfc6b4}
+#landing .contact a{color:var(--brass);text-decoration:none}
+#landing .note{margin:1.1em 0 0;font:15px/1.6 Georgia,serif;color:#cfc6b4;max-width:60ch}
+#landing .note a{color:var(--brass)}
+#landing .enter{display:flex;flex-direction:column;align-items:center;gap:10px;margin:3.4em 0 0;padding:0;
+  background:none;border:0;cursor:pointer;width:100%;font:inherit;color:var(--brass);
+  font-size:11.5px;letter-spacing:.3em;text-transform:uppercase}
+#landing .enter .chev{font-size:20px;line-height:1;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+#landing .legal{margin:2.6em 0 0;text-align:center;font-size:10.5px;letter-spacing:.14em;color:rgba(255,255,255,.4)}
+#landing .runway{height:100vh}
+/* while the text is up, the fleet's own controls wait underneath */
+body.landing-on #share,body.landing-on #stamp,body.landing-on #hudTab,body.landing-on #hud,
+body.landing-on #views,body.landing-on #sound,body.landing-on #hint,body.landing-on #edge{visibility:hidden}
+#backUp{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:8;
+  display:none;padding:7px 14px;font:inherit;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;cursor:pointer;
+  background:rgba(8,14,20,.72);color:var(--brass);border:1px solid rgba(232,223,200,.3)}
+#backUp:hover{border-color:var(--brass)}
+#backUp.on{display:block}
+@media (max-width:560px){
+  #landing .work li{grid-template-columns:minmax(0,1fr)}
+  #landing .lede{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){#landing{transition:none}#landing .enter .chev{animation:none}}
 </style></head><body>
+<div id="landing" role="region" aria-label="About Ingram Manor">
+<div class="sheet">
+  <p class="eyebrow">Ingram Manor</p>
+  <h1>Where history talks back.</h1>
+  <p class="lede">Ingram Manor builds places to meet the past in person. At the center is Amenti.live, the Library of Legends: more than a thousand historical figures you can question, each grounded in primary sources and public-domain texts, and each with a voice of their own.</p>
+  <p class="lede">Around it sails a small fleet of projects: staged readings, games, a living map and a research desk. Read on, or go straight to the ships.</p>
+  <div class="acts">
+    <a class="btn primary" href="https://amenti.live/" target="_blank" rel="noopener">Enter Amenti.live</a>
+    <a class="btn" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Ask Amenti</a>
+  </div>
+  <h2>What you can do here</h2>
+  <ul class="work">
+      <li><span class="t">Talk to a legend</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener">Enter</a></span><span class="d">Choose a figure and ask them anything. They answer in character, in their own voice, from the record they left.</span></li>
+      <li><span class="t">Ask Amenti</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Ask</a></span><span class="d">Put a question to the whole library. Every quotation in the answer is checked against the source it came from.</span></li>
+      <li><span class="t">The Library of Legends</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Browse</a></span><span class="d">More than a thousand figures, from the ancient world to the present, with the books and letters behind them.</span></li>
+      <li><span class="t">Amenti Studios</span><span class="ln"><a href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener">Listen</a></span><span class="d">Staged readings of classic novels, every part played by a historical figure: Dracula, A Christmas Carol, Treasure Island.</span></li>
+      <li><span class="t">Treasure Chess</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/game01.html" target="_blank" rel="noopener">Play</a></span><span class="d">Sea-battle chess where every piece is somebody.</span></li>
+      <li><span class="t">Moon Racer</span><span class="ln"><a href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener">Race</a></span><span class="d">Race between real places on Earth through orbital lanes and over real terrain.</span></li>
+      <li><span class="t">GannLab</span><span class="ln"><a href="https://ianingram.github.io/GannLab/desk.html" target="_blank" rel="noopener">Read</a></span><span class="d">An open notebook of market experiments, with the failures left in.</span></li>
+      <li><span class="t">The Living Map<span class="k exp">experimental</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Explore</a></span><span class="d">The ground beneath the Library, still being drawn. Open it from the controls at the top right of Ask Amenti.</span></li>
+  </ul>
+  <h2>Who builds it</h2>
+  <p class="note">Ian Ingram, working alone, entirely in a browser. Every system is documented in the <a href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener">technical briefs</a>. Hiring? See the <a href="profile.html">professional profile</a>.</p>
+  <p class="contact"><a href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a></p>
+  <button class="enter" type="button" id="enterFleet"><span>Meet the fleet</span><span class="chev" aria-hidden="true">&#8595;</span><span style="letter-spacing:.14em;color:rgba(255,255,255,.45);text-transform:none;font-size:11px">each ship is one project</span></button>
+  <p class="legal">&copy; 2026 Ingram Manor LLC &middot; All Rights Reserved</p>
+</div>
+<div class="runway" aria-hidden="true"></div>
+</div>
+<button id="backUp" type="button">&#8593; About Ingram Manor</button>
+
 
 <div id="brand" hidden><h1>MOON RACER</h1><p>five ships</p></div>
 <div id="views" role="group" aria-label="View">
@@ -5831,5 +5922,56 @@ function updateDrive(s, ph, t, thrust, warm) {
 }
 frame();
 setTimeout(() => hint.classList.add('gone'), 9000);
+</script>
+
+<script>
+/* ===================================================== THE LANDING
+   Scroll down (or press the button) and the text lifts off the fleet.
+   Pointer events stop here so a click on the text never starts the sea's
+   sound or drags the camera. Console marker: [landing]. */
+(function () {
+  var L = document.getElementById('landing');
+  var up = document.getElementById('backUp');
+  var go = document.getElementById('enterFleet');
+  if (!L) return;
+  var sheet = L.querySelector('.sheet');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  ['pointerdown','mousedown','touchstart','wheel'].forEach(function (t) {
+    L.addEventListener(t, function (e) { e.stopPropagation(); }, { passive: true });
+  });
+  function progress() {
+    var h = sheet.offsetHeight, vh = L.clientHeight;
+    return Math.max(0, Math.min(1, (L.scrollTop + vh - h) / vh));
+  }
+  function reveal() {
+    L.classList.add('gone'); up.classList.add('on'); document.body.classList.remove('landing-on');
+    console.log('[landing] fleet revealed');
+  }
+  function cover() {
+    L.classList.remove('gone'); up.classList.remove('on'); document.body.classList.add('landing-on');
+    L.style.setProperty('--veil', '.9'); L.scrollTop = 0; L.focus && L.focus();
+    console.log('[landing] text restored');
+  }
+  var ticking = false;
+  L.addEventListener('scroll', function () {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      var p = progress();
+      L.style.setProperty('--veil', (0.9 * (1 - p)).toFixed(3));
+      if (p > 0.97) reveal();
+    });
+  }, { passive: true });
+  go.addEventListener('click', function () {
+    if (reduce) { reveal(); return; }
+    L.scrollTo({ top: L.scrollHeight, behavior: 'smooth' });
+    setTimeout(function () { if (!L.classList.contains('gone')) reveal(); }, 1400);
+  });
+  up.addEventListener('click', cover);
+  L.setAttribute('tabindex', '-1');
+  document.body.classList.add('landing-on');
+  if (location.hash === '#fleet') reveal();
+  console.log('[landing] ready');
+})();
 </script>
 </body></html>
