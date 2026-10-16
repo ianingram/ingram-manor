@@ -67,7 +67,9 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #who .name{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.78)}
 #mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
 #mail:hover{color:var(--brass)}
-@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} #who .title{font-size:12.5px}
+#cv{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);text-decoration:none;margin-top:2px}
+#cv:hover{color:#fff}
+@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} #cv{font-size:9.5px} #who .title{font-size:12.5px}
 /* the plaque names whichever ship the eye is on, in that ship's own colour.
    The colour is a variable so the fade carries it: brass is the resting
    state, the fleet as a whole. */
@@ -222,6 +224,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
     <span class="title" id="whoTitle"></span>
     <span class="name">Ian Ingram</span>
     <a id="mail" href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a>
+    <a id="cv" href="Ian_Ingram_Resume.html">R&eacute;sum&eacute; &rarr;</a>
   </div>
 </div>
 <button id="sound" type="button" aria-pressed="true" title="Sound">&#9673;</button>
