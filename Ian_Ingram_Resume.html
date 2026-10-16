@@ -88,6 +88,7 @@ h2{
 .chip:hover{border-color:var(--accent); color:var(--accent)}
 .chip .k{font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:0 5px; border-radius:2px; background:var(--accent-soft); color:var(--accent)}
 .chip-brief .k{background:transparent; border:1px solid var(--rule); color:var(--muted)}
+.chip-exp .k{background:transparent; border:1px dashed var(--accent); color:var(--accent)}
 .actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:4px}
 .btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px; padding:6px 12px; border-radius:3px; text-decoration:none; border:1px solid var(--accent); color:var(--accent)}
 .btn.primary{background:var(--accent); color:var(--sheet)}
@@ -335,10 +336,10 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
         <div>
           <h3>Living Map, Moon Racer and the Ingram Manor sky</h3>
           <ul>
-            <li>Living Map: the world map under Ask Amenti, drawn on computed relief and sea-floor depth from Pleiades GIS data. The Attica campaign is cut from this ground, and the decision to reject modern roads as a stand-in for ancient routes is on record.</li>
+            <li>Living Map (experimental, in active development): the world map behind Ask Amenti, opened from the controls at the top right, drawn on computed relief and sea-floor depth with Pleiades GIS data. The Attica campaign is cut from this ground, and the decision to reject modern roads as a stand-in for ancient routes is on record.</li>
             <li>Three.js scenes with no image assets: a sky computed from orbital elements and 900 stars for the viewer's place and time, loading in about 310 ms.</li>
           </ul>
-          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Living Map (via Ask Amenti)</a><a class="chip chip-live" href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener"><span class="k">live</span>Moon Racer</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/game01.html" target="_blank" rel="noopener"><span class="k">live</span>Treasure Chess</a><a class="chip chip-live" href="https://ianingram.github.io/ingram-manor/" target="_blank" rel="noopener"><span class="k">live</span>Ingram Manor</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-A-PROXY-BECOMES-A-FOUNDATION.html" target="_blank" rel="noopener"><span class="k">brief</span>Ancient routes ruling</a></div>
+          <div class="links"><a class="chip chip-exp" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">experimental</span>Living Map: map controls, top right of Ask Amenti</a><a class="chip chip-live" href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener"><span class="k">live</span>Moon Racer</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/game01.html" target="_blank" rel="noopener"><span class="k">live</span>Treasure Chess</a><a class="chip chip-live" href="https://ianingram.github.io/ingram-manor/" target="_blank" rel="noopener"><span class="k">live</span>Ingram Manor</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-A-PROXY-BECOMES-A-FOUNDATION.html" target="_blank" rel="noopener"><span class="k">brief</span>Ancient routes ruling</a></div>
         </div>
       </article>
 
