@@ -83,7 +83,16 @@ h2{
   background:var(--accent-soft); border-radius:4px; padding:20px;
   margin-inline:-20px;
 }
-.links{display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:10px; font-family:var(--mono); font-size:12.5px}
+.links{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; font-family:var(--mono); font-size:12px}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 4px; border:1px solid var(--rule); border-radius:3px; text-decoration:none; color:var(--ink); background:var(--sheet); line-height:1.5}
+.chip:hover{border-color:var(--accent); color:var(--accent)}
+.chip .k{font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:0 5px; border-radius:2px; background:var(--accent-soft); color:var(--accent)}
+.chip-brief .k{background:transparent; border:1px solid var(--rule); color:var(--muted)}
+.actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:4px}
+.btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px; padding:6px 12px; border-radius:3px; text-decoration:none; border:1px solid var(--accent); color:var(--accent)}
+.btn.primary{background:var(--accent); color:var(--sheet)}
+.btn:hover{filter:brightness(1.08)}
+.web-only{}
 strong{font-weight:700}
 
 /* Skills */
@@ -123,7 +132,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   .skills dt{font-size:8.3pt}
   .edu{gap:1px}
   .links{font-size:8.3pt; margin-top:3px}
-  .copy, footer{display:none}
+  .copy, footer, .links, .actions, .web-only{display:none}
   .featured{background:none; margin:0; padding:0}
   a{color:#1d6660; text-decoration:none}
 }
@@ -142,6 +151,11 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
       <li><a href="https://amenti.live/" target="_blank" rel="noopener">amenti.live</a></li>
       <li><a href="https://github.com/ianingram" target="_blank" rel="noopener">github.com/ianingram</a></li>
     </ul>
+    <div class="actions">
+      <a class="btn primary" href="https://ianingram.github.io/ingram-manor/Ian_Ingram_Resume.pdf" target="_blank" rel="noopener">Download PDF resume</a>
+      <a class="btn" href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener">Technical briefs library</a>
+      <a class="btn" href="https://ianingram.github.io/ingram-manor/" target="_blank" rel="noopener">Ingram Manor projects</a>
+    </div>
   </header>
 
   <section aria-labelledby="h-summary">
@@ -163,13 +177,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Shipped Ask Amenti, a self-generating quiz library, Amenti Studios audio productions of classic novels, a Living Map of the ancient world and Three.js browser games.</li>
             <li>Run GannLab, a pre-registered market research lab; a 117-event screen from 8,320 SEC filings showed a −38.7% median six-month return across five walk-forward windows.</li>
           </ul>
-          <div class="links">
-            <a href="https://amenti.live/" target="_blank" rel="noopener">Amenti.live</a>
-            <a href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener">Technical briefs</a>
-            <a href="https://ianingram.github.io/GannLab/desk.html" target="_blank" rel="noopener">GannLab</a>
-            <a href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener">Amenti Studios</a>
-            <a href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener">Moon Racer</a>
-          </div>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener"><span class="k">live</span>Amenti.live</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Chat, voice &amp; quizzes</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Ask Amenti</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener"><span class="k">live</span>Amenti Studios</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener"><span class="k">brief</span>100+ technical briefs</a></div>
         </div>
       </article>
 
@@ -270,6 +278,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Every quotation is checked against the text fetched that turn and marked verified, from a librarian's note, or unmatched; a tally prints even on clean answers so readers can see the check ran.</li>
             <li>Answers only from shared registers (roster, library, events), so a wrong answer exposes a wrong record; this caught and fixed a figure misdated by more than a century.</li>
           </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Try it</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-ASK-AMENTI.html" target="_blank" rel="noopener"><span class="k">brief</span>Ask Amenti brief</a></div>
         </div>
       </article>
 
@@ -282,6 +291,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Bounded each conversation to a 14-message window, so a three-hour conversation costs the same per turn as the first.</li>
             <li>Archived rendered audio instead of caching it briefly, so audio cost scales with distinct content rather than audience size.</li>
           </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Talk to a figure</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Conversation_Matrix.html" target="_blank" rel="noopener"><span class="k">brief</span>Conversation Matrix</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Studios.html" target="_blank" rel="noopener"><span class="k">brief</span>Audio archive plan</a></div>
         </div>
       </article>
 
@@ -293,6 +303,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Built and measured the real prompt instead of estimating: $0.0138 per turn, with the system prompt making up 57% of input.</li>
             <li>Compared levers side by side (lean prompt, shorter window, smaller model, caching) and showed prompt caching saves 22–33% with no loss of quality, breaking even on the second turn.</li>
           </ul>
+          <div class="links"><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-WHAT-AN-HOUR-COSTS.html" target="_blank" rel="noopener"><span class="k">brief</span>What an hour costs</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-THE-PROMPT-NOBODY-CACHES.html" target="_blank" rel="noopener"><span class="k">brief</span>Prompt caching</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/WHAT-AN-ANSWER-COSTS.html" target="_blank" rel="noopener"><span class="k">brief</span>What an answer costs</a></div>
         </div>
       </article>
 
@@ -304,6 +315,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Moved quiz content and answer keys out of the payments service into a self-generating library: 32 quizzes and 33 complete character cards in 48 hours.</li>
             <li>Dated all 1,011 figures and joined all 52 library rooms to the roster (100% each), so any answer can place a reader in time.</li>
           </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Take a quiz</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_The_Quiz_Surface.html" target="_blank" rel="noopener"><span class="k">brief</span>Quiz Surface</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BUILD-THE-TIMELINE.html" target="_blank" rel="noopener"><span class="k">brief</span>Timeline build</a></div>
         </div>
       </article>
 
@@ -315,8 +327,21 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
             <li>Each hypothesis is a numbered probe with pass rules written before results are read; failures stay on the record.</li>
             <li>Rejected popular geometric trading signals on the evidence (r = 0.021) and kept volatility clustering as the one clear survivor; data from SEC EDGAR, Yahoo Finance, CBOE and JPL ephemerides.</li>
           </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/GannLab/desk.html" target="_blank" rel="noopener"><span class="k">live</span>Research desk</a></div>
         </div>
       </article>
+      <article class="job web-only">
+        <div class="when">3D &amp; GIS</div>
+        <div>
+          <h3>Living Map, Moon Racer and the Ingram Manor sky</h3>
+          <ul>
+            <li>Living Map: the world map under Ask Amenti, drawn on computed relief and sea-floor depth from Pleiades GIS data. The Attica campaign is cut from this ground, and the decision to reject modern roads as a stand-in for ancient routes is on record.</li>
+            <li>Three.js scenes with no image assets: a sky computed from orbital elements and 900 stars for the viewer's place and time, loading in about 310 ms.</li>
+          </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Living Map (via Ask Amenti)</a><a class="chip chip-live" href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener"><span class="k">live</span>Moon Racer</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/game01.html" target="_blank" rel="noopener"><span class="k">live</span>Treasure Chess</a><a class="chip chip-live" href="https://ianingram.github.io/ingram-manor/" target="_blank" rel="noopener"><span class="k">live</span>Ingram Manor</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-A-PROXY-BECOMES-A-FOUNDATION.html" target="_blank" rel="noopener"><span class="k">brief</span>Ancient routes ruling</a></div>
+        </div>
+      </article>
+
 
       
 
@@ -343,7 +368,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
     </ul>
   </section>
 </main>
-<footer>Ian Ingram · Yonkers, NY</footer>
+<footer>Ian Ingram · Yonkers, NY · <a href="https://ianingram.github.io/ingram-manor/Ian_Ingram_Resume.pdf" target="_blank" rel="noopener">PDF version</a></footer>
 
 <script>
 document.querySelectorAll('.copy').forEach(function(btn){
