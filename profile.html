@@ -230,6 +230,22 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #landing .enter .chev{font-size:20px;line-height:1;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 #landing .legal{margin:2.6em 0 0;text-align:center;font-size:10.5px;letter-spacing:.14em;color:rgba(255,255,255,.4)}
+#landing .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:1.3em 0 0;
+  background:rgba(212,175,80,.22);border:1px solid rgba(212,175,80,.22)}
+#landing .facts div{background:rgba(10,12,16,.92);padding:14px 14px 12px}
+#landing .facts b{display:block;font:400 28px/1.1 Georgia,serif;color:var(--brass);font-variant-numeric:tabular-nums}
+#landing .facts span{display:block;margin-top:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#bfb6a3;line-height:1.5}
+#landing blockquote{margin:1.4em 0 0;padding:0 0 0 16px;border-left:2px solid var(--gold);
+  font:italic 18px/1.5 Georgia,serif;color:#f6efdf}
+#landing .cites{list-style:none;margin:1.2em 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+#landing .cites li{font-size:12px;line-height:1.55;color:#cfc6b4;padding:9px 12px;border:1px solid rgba(232,223,200,.12);
+  background:rgba(255,255,255,.02);overflow-wrap:anywhere}
+#landing .cites li b{color:#f6efdf;font-weight:400}
+#landing .srcln{margin:1em 0 0;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+#landing .srcln a{color:var(--brass);text-decoration:none;border-bottom:1px solid rgba(255,208,112,.35)}
+#landing .srcln a:hover{color:#fff;border-color:#fff}
+#landing .asof{margin:.8em 0 0;font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.42)}
+@media (max-width:560px){#landing .facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #landing .runway{height:100vh}
 /* while the text is up, the fleet's own controls wait underneath */
 body.landing-on #share,body.landing-on #stamp,body.landing-on #hudTab,body.landing-on #hud,
@@ -258,9 +274,29 @@ body.landing-on #views,body.landing-on #sound,body.landing-on #hint,body.landing
     <a class="btn" href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener">Technical briefs</a>
   </div>
   <p class="contact"><span>(646) 957-2337</span><a href="mailto:ingram.ian@gmail.com">ingram.ian@gmail.com</a><span>Yonkers, NY</span></p>
+  <h2>The sources</h2>
+  <p class="note">Every answer the platform gives rests on a named edition a reader can find again, not on what a model remembers. The library holds what the figures actually wrote, each work graded by an automated citation audit that refuses any commit adding a text without a source. Ask Amenti then checks each quotation against the text it retrieved before it is shown.</p>
+  <div class="facts">
+    <div><b>56</b><span>reading rooms</span></div>
+    <div><b>712</b><span>primary-source works</span></div>
+    <div><b>92%</b><span>cited to a findable edition</span></div>
+    <div><b>0</b><span>works without a source</span></div>
+  </div>
+  <ul class="cites" aria-label="Sample citations from the library">
+    <li><b>Abraham Lincoln</b> &middot; Speeches and Letters, 1832&ndash;1865, ed. Merwin Roe &middot; Project Gutenberg #14721</li>
+    <li><b>Julius Caesar</b> &middot; The Gallic War, trans. McDevitte, 1869 &middot; Project Gutenberg #10657</li>
+    <li><b>Flavius Josephus</b> &middot; The Life of Flavius Josephus, trans. William Whiston, 1736 &middot; Project Gutenberg #2846</li>
+    <li><b>Marcus Aurelius</b> &middot; Meditations, trans. Meric Casaubon, 1634 &middot; Project Gutenberg #2680</li>
+  </ul>
+  <p class="srcln">
+    <a href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-WHAT-A-SOURCE-MUST-BE.html" target="_blank" rel="noopener">The citation policy</a>
+    <a href="https://ianingram.github.io/Amenti.live/CITATIONS.json" target="_blank" rel="noopener">The live citation audit</a>
+    <a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Open the library</a>
+  </p>
+  <p class="asof">Figures read from the library&rsquo;s own registers, October 2026.</p>
   <h2>The work</h2>
   <ul class="work">
-      <li><span class="t">Amenti.live<span class="k">platform</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Live</a><a href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Conversation_Matrix.html" target="_blank" rel="noopener">Brief</a></span><span class="d">An AI platform for questioning more than 1,000 historical figures, grounded in primary sources. Claude writes each reply, Gemini voices it, and a Cloudflare Workers layer runs between them.</span></li>
+      <li><span class="t">Amenti.live<span class="k">platform</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Live</a><a href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Conversation_Matrix.html" target="_blank" rel="noopener">Brief</a></span><span class="d">An AI platform for questioning more than 2,000 historical figures, grounded in primary sources. Claude writes each reply, Gemini voices it, and a Cloudflare Workers layer runs between them.</span></li>
       <li><span class="t">Ask Amenti<span class="k">AI product</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Live</a><a href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-ASK-AMENTI.html" target="_blank" rel="noopener">Brief</a></span><span class="d">Source-grounded Q&amp;A that checks every quotation against the text it actually retrieved and marks it verified or unmatched.</span></li>
       <li><span class="t">Chat, voice and quizzes<span class="k">engine</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener">Live</a><a href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_The_Quiz_Surface.html" target="_blank" rel="noopener">Brief</a></span><span class="d">Talk with a figure in their own voice; 32 auto-generated quizzes at a measured $0.11 each.</span></li>
       <li><span class="t">AI cost engineering<span class="k">analysis</span></span><span class="ln"><a href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-WHAT-AN-HOUR-COSTS.html" target="_blank" rel="noopener">Brief</a><a href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-THE-PROMPT-NOBODY-CACHES.html" target="_blank" rel="noopener">Brief</a></span><span class="d">Measured cost at $0.66–$2.48 per user-hour and showed prompt caching saves 22–33% with no change to what the system says.</span></li>
@@ -358,7 +394,7 @@ const PROJECTS = [
     blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' },
   { id:'studios', drive: 0.9, neon: 0xb98cff, title:'Amenti Studios', kind:'studio', emblem:'\u25D1',
     url:'https://ianingram.github.io/Amenti-Studios/',
-    blurb:'Staged readings of public-domain works, cast from the Library of Legends \u2014 every voice a historical figure out of a ledger of more than a thousand, each with their own dialect and manner. The texts are public domain; the productions are not.' }
+    blurb:'Staged readings of public-domain works, cast from the Library of Legends \u2014 every voice a historical figure out of a ledger of more than two thousand, each with their own dialect and manner. The texts are public domain; the productions are not.' }
 ];
 
 const card = document.getElementById('card');
