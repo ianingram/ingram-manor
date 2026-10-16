@@ -115,7 +115,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   @page{size:letter; margin:0.5in 0.55in}
   :root{--ink:#000; --muted:#444; --accent:#1d6660; --rule:#bbb; color-scheme:light}
   body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.38}
-  .sheet{border:0; padding:0; max-width:none; gap:13px; background:#fff}
+  .sheet{border:0; padding:0; max-width:none; gap:11px; background:#fff}
   header{gap:5px; padding-bottom:9px}
   h1{font-size:25pt}
   .role{font-size:11.5pt}
@@ -123,7 +123,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   section{gap:7px}
   h2{font-size:8pt; padding-bottom:3px}
   .summary{font-size:9.6pt; max-width:none}
-  .roles{gap:9px}
+  .roles{gap:7px}
   .job{grid-template-columns:96px minmax(0,1fr); gap:0 14px; break-inside:avoid}
   .when{font-size:8.3pt; padding-top:1px}
   .job h3{font-size:10.5pt}
@@ -173,7 +173,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
         <div>
           <h3>Independent AI Product Developer <span class="title">· Amenti Platform (self-directed)</span></h3>
           <ul>
-            <li>Built Amenti.live, an AI platform for conversing with 1,000+ historical figures grounded in primary sources, on Claude and Gemini APIs behind a Cloudflare Workers layer.</li>
+            <li>Built Amenti.live, an AI platform for conversing with 2,000+ historical figures grounded in primary sources, on Claude and Gemini APIs behind a Cloudflare Workers layer.</li>
             <li>Own the product end to end: scoping, architecture, cost control, QA and documentation in 100+ public technical briefs.</li>
             <li>Shipped Ask Amenti, a self-generating quiz library, Amenti Studios audio productions of classic novels, a Living Map of the ancient world and Three.js browser games.</li>
             <li>Run GannLab, a pre-registered market research lab; a 117-event screen from 8,320 SEC filings showed a −38.7% median six-month return across five walk-forward windows.</li>
@@ -271,6 +271,18 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
     <div class="roles">
 
       <article class="job">
+        <div class="when">Data integrity</div>
+        <div>
+          <h3>Primary-source library and citation audit</h3>
+          <ul>
+            <li>Built the evidence base the platform answers from: 56 reading rooms holding 712 primary-source works (speeches, letters, histories) in named, public-domain editions.</li>
+            <li>Wrote an automated audit that grades every work CITED, LINKED, DATED, THIN or EMPTY and blocks any commit adding an unsourced text; 92% are cited to a findable edition such as a Project Gutenberg number, and none are uncited.</li>
+          </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener"><span class="k">live</span>Open the library</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/CITATIONS.json" target="_blank" rel="noopener"><span class="k">live</span>Citation audit</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-WHAT-A-SOURCE-MUST-BE.html" target="_blank" rel="noopener"><span class="k">brief</span>What a source must be</a></div>
+        </div>
+      </article>
+
+      <article class="job">
         <div class="when">AI product</div>
         <div>
           <h3>Ask Amenti <span class="title">· source-grounded Q&amp;A</span></h3>
@@ -308,13 +320,13 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
         </div>
       </article>
 
-      <article class="job">
+      <article class="job web-only">
         <div class="when">Data &amp; content</div>
         <div>
           <h3>Quiz library and timeline</h3>
           <ul>
             <li>Moved quiz content and answer keys out of the payments service into a self-generating library: 32 quizzes and 33 complete character cards in 48 hours.</li>
-            <li>Dated all 1,011 figures and joined all 52 library rooms to the roster (100% each), so any answer can place a reader in time.</li>
+            <li>Dated every one of the 2,000+ figures (100%) and joined each library reading room to the roster, so any answer can place a reader in time.</li>
           </ul>
           <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Take a quiz</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_The_Quiz_Surface.html" target="_blank" rel="noopener"><span class="k">brief</span>Quiz Surface</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BUILD-THE-TIMELINE.html" target="_blank" rel="noopener"><span class="k">brief</span>Timeline build</a></div>
         </div>

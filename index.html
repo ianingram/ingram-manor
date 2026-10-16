@@ -230,6 +230,22 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #landing .enter .chev{font-size:20px;line-height:1;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 #landing .legal{margin:2.6em 0 0;text-align:center;font-size:10.5px;letter-spacing:.14em;color:rgba(255,255,255,.4)}
+#landing .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:1.3em 0 0;
+  background:rgba(212,175,80,.22);border:1px solid rgba(212,175,80,.22)}
+#landing .facts div{background:rgba(10,12,16,.92);padding:14px 14px 12px}
+#landing .facts b{display:block;font:400 28px/1.1 Georgia,serif;color:var(--brass);font-variant-numeric:tabular-nums}
+#landing .facts span{display:block;margin-top:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#bfb6a3;line-height:1.5}
+#landing blockquote{margin:1.4em 0 0;padding:0 0 0 16px;border-left:2px solid var(--gold);
+  font:italic 18px/1.5 Georgia,serif;color:#f6efdf}
+#landing .cites{list-style:none;margin:1.2em 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+#landing .cites li{font-size:12px;line-height:1.55;color:#cfc6b4;padding:9px 12px;border:1px solid rgba(232,223,200,.12);
+  background:rgba(255,255,255,.02);overflow-wrap:anywhere}
+#landing .cites li b{color:#f6efdf;font-weight:400}
+#landing .srcln{margin:1em 0 0;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+#landing .srcln a{color:var(--brass);text-decoration:none;border-bottom:1px solid rgba(255,208,112,.35)}
+#landing .srcln a:hover{color:#fff;border-color:#fff}
+#landing .asof{margin:.8em 0 0;font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.42)}
+@media (max-width:560px){#landing .facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #landing .runway{height:100vh}
 /* while the text is up, the fleet's own controls wait underneath */
 body.landing-on #share,body.landing-on #stamp,body.landing-on #hudTab,body.landing-on #hud,
@@ -249,17 +265,38 @@ body.landing-on #views,body.landing-on #sound,body.landing-on #hint,body.landing
 <div class="sheet">
   <p class="eyebrow">Ingram Manor</p>
   <h1>Where history talks back.</h1>
-  <p class="lede">Ingram Manor builds places to meet the past in person. At the center is Amenti.live, the Library of Legends: more than a thousand historical figures you can question, each grounded in primary sources and public-domain texts, and each with a voice of their own.</p>
+  <p class="lede">Ingram Manor builds places to meet the past in person. At the center is Amenti.live, the Library of Legends: more than two thousand historical figures you can question, each grounded in primary sources and public-domain texts, and each with a voice of their own.</p>
   <p class="lede">Around it sails a small fleet of projects: staged readings, games, a living map and a research desk. Read on, or go straight to the ships.</p>
   <div class="acts">
     <a class="btn primary" href="https://amenti.live/" target="_blank" rel="noopener">Enter Amenti.live</a>
     <a class="btn" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Ask Amenti</a>
   </div>
+  <h2>Every word has a source</h2>
+  <p class="note">The legends speak from what they actually wrote. The library holds their speeches, letters, histories and books in named editions you can look up yourself, and every quotation is checked against the page it came from.</p>
+  <blockquote>A quotation without a source is a thing somebody remembers.</blockquote>
+  <div class="facts">
+    <div><b>56</b><span>reading rooms</span></div>
+    <div><b>712</b><span>primary-source works</span></div>
+    <div><b>92%</b><span>cited to a findable edition</span></div>
+    <div><b>0</b><span>works without a source</span></div>
+  </div>
+  <ul class="cites" aria-label="Sample citations from the library">
+    <li><b>Abraham Lincoln</b> &middot; Speeches and Letters, 1832&ndash;1865, ed. Merwin Roe &middot; Project Gutenberg #14721</li>
+    <li><b>Julius Caesar</b> &middot; The Gallic War, trans. McDevitte, 1869 &middot; Project Gutenberg #10657</li>
+    <li><b>Flavius Josephus</b> &middot; The Life of Flavius Josephus, trans. William Whiston, 1736 &middot; Project Gutenberg #2846</li>
+    <li><b>Marcus Aurelius</b> &middot; Meditations, trans. Meric Casaubon, 1634 &middot; Project Gutenberg #2680</li>
+  </ul>
+  <p class="srcln">
+    <a href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-WHAT-A-SOURCE-MUST-BE.html" target="_blank" rel="noopener">The citation policy</a>
+    <a href="https://ianingram.github.io/Amenti.live/CITATIONS.json" target="_blank" rel="noopener">The live citation audit</a>
+    <a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Open the library</a>
+  </p>
+  <p class="asof">Figures read from the library&rsquo;s own registers, October 2026.</p>
   <h2>What you can do here</h2>
   <ul class="work">
       <li><span class="t">Talk to a legend</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener">Enter</a></span><span class="d">Choose a figure and ask them anything. They answer in character, in their own voice, from the record they left.</span></li>
       <li><span class="t">Ask Amenti</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener">Ask</a></span><span class="d">Put a question to the whole library. Every quotation in the answer is checked against the source it came from.</span></li>
-      <li><span class="t">The Library of Legends</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Browse</a></span><span class="d">More than a thousand figures, from the ancient world to the present, with the books and letters behind them.</span></li>
+      <li><span class="t">The Library of Legends</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener">Browse</a></span><span class="d">More than two thousand figures, from the ancient world to the present, with the books and letters behind them.</span></li>
       <li><span class="t">Amenti Studios</span><span class="ln"><a href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener">Listen</a></span><span class="d">Staged readings of classic novels, every part played by a historical figure: Dracula, A Christmas Carol, Treasure Island.</span></li>
       <li><span class="t">Treasure Chess</span><span class="ln"><a href="https://ianingram.github.io/Amenti.live/game01.html" target="_blank" rel="noopener">Play</a></span><span class="d">Sea-battle chess where every piece is somebody.</span></li>
       <li><span class="t">Moon Racer</span><span class="ln"><a href="https://ianingram.github.io/moon-racer/" target="_blank" rel="noopener">Race</a></span><span class="d">Race between real places on Earth through orbital lanes and over real terrain.</span></li>
@@ -358,7 +395,7 @@ const PROJECTS = [
     blurb:'Amenti, running. The public face of the Library of Legends, where the database becomes something you can walk through.' },
   { id:'studios', drive: 0.9, neon: 0xb98cff, title:'Amenti Studios', kind:'studio', emblem:'\u25D1',
     url:'https://ianingram.github.io/Amenti-Studios/',
-    blurb:'Staged readings of public-domain works, cast from the Library of Legends \u2014 every voice a historical figure out of a ledger of more than a thousand, each with their own dialect and manner. The texts are public domain; the productions are not.' }
+    blurb:'Staged readings of public-domain works, cast from the Library of Legends \u2014 every voice a historical figure out of a ledger of more than two thousand, each with their own dialect and manner. The texts are public domain; the productions are not.' }
 ];
 
 const card = document.getElementById('card');
