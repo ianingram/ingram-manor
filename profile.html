@@ -198,6 +198,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #landing .eyebrow{margin:0;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
 #landing h1{margin:.5em 0 0;font:400 clamp(30px,5.4vw,46px)/1.12 Georgia,"Iowan Old Style",serif;color:#f6efdf;
   letter-spacing:.01em;text-wrap:balance}
+#landing h1.hand{font:400 clamp(64px,10vw,92px)/.95 "Allura","Snell Roundhand","Segoe Script",cursive;margin-top:.2em;letter-spacing:0}
 #landing .role{margin:.7em 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass)}
 #landing .lede{margin:1.4em 0 0;font:17px/1.66 Georgia,"Iowan Old Style",serif;color:#e9e1d1;max-width:62ch}
 #landing .lede + .lede{margin-top:.9em}
@@ -260,12 +261,13 @@ body.landing-on #views,body.landing-on #sound,body.landing-on #hint,body.landing
   #landing .lede{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){#landing{transition:none}#landing .enter .chev{animation:none}}
-</style></head><body>
+</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allura&display=swap"></head><body>
 <div id="landing" role="region" aria-label="About Ian Ingram">
 <div class="sheet">
   <p class="eyebrow">Ingram Manor</p>
-  <h1>Ian Ingram</h1>
-  <p class="role">Technical Project Manager &middot; Business Analyst<br>AI &amp; Speech Engineering</p>
+  <h1 class="hand" aria-label="Ian Ingram">ian ingram</h1>
+  <p class="role">Technical Project Manager &middot; Business Analyst</p>
+  <p class="role" style="margin-top:.2em">AI &amp; Speech Engineering</p>
   <p class="lede">Fifteen years of getting systems live: trading platforms at Citi, a music data integration at Nielsen, and clinical networks at Philips Healthcare. Since 2023 I have designed and built an AI platform end to end, from architecture and cost control to shipped product, with a focus on speech engineering: a distinct, archived voice for every figure.</p>
   <p class="lede">I am looking for contract or full-time work in technical project management, business analysis or AI implementation, in New York or remote.</p>
   <div class="acts">

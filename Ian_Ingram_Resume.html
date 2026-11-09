@@ -8,7 +8,7 @@
 <meta name="description" content="Ian Ingram — Technical Project Manager, Business Analyst and AI Product Builder.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Allura&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: a single sheet; a narrow date rail runs beside each role like a ledger margin, stacking above the role on phones. */
 :root{
@@ -53,8 +53,9 @@ a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-o
 
 /* Header */
 header{display:flex; flex-direction:column; gap:14px; border-bottom:2px solid var(--ink); padding-bottom:24px}
-h1{font-family:var(--display); font-weight:700; font-size:clamp(34px, 6vw, 52px); line-height:1; letter-spacing:-0.02em; margin:0; text-wrap:balance}
+h1{font-family:"Allura", "Snell Roundhand", "Segoe Script", cursive; font-weight:400; font-size:clamp(58px, 10vw, 84px); line-height:.9; letter-spacing:0; margin:0; text-wrap:balance}
 .role{font-family:var(--display); font-weight:500; font-size:clamp(16px, 2.4vw, 19px); color:var(--accent); margin:0}
+.role + .role{margin-top:-11px}
 .contact{display:flex; flex-wrap:wrap; gap:6px 18px; font-family:var(--mono); font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none}
 .contact li{display:flex; align-items:center; gap:6px}
 .copy{
@@ -117,8 +118,9 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.35}
   .sheet{border:0; padding:0; max-width:none; gap:11px; background:#fff}
   header{gap:5px; padding-bottom:9px}
-  h1{font-size:25pt}
+  h1{font-size:42pt}
   .role{font-size:11.5pt}
+  .role + .role{margin-top:-4px}
   .contact{font-size:8.5pt}
   section{gap:7px}
   h2{font-size:8pt; padding-bottom:3px}
@@ -133,18 +135,105 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   .skills dt{font-size:8.3pt}
   .edu{gap:1px}
   .links{font-size:8.3pt; margin-top:3px}
-  .copy, footer, .links, .actions, .web-only{display:none}
+  .copy, footer, .links, .actions, .web-only, .looks{display:none}
   .featured{background:none; margin:0; padding:0}
   a{color:#1d6660; text-decoration:none}
+}
+
+/* ===== LOOKS — five dressings for one résumé (screen only; print stays Classic) ===== */
+.looks{position:absolute; z-index:20; top:calc(12px + env(safe-area-inset-top, 0px)); right:max(12px, env(safe-area-inset-right, 0px));
+  display:flex; gap:6px; padding:6px; background:var(--sheet); border:1px solid var(--rule); border-radius:6px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.looks button{display:flex; flex-direction:column; align-items:center; gap:4px; padding:5px 6px 4px; min-width:58px;
+  font:500 10px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+  background:none; border:1px solid transparent; border-radius:4px; cursor:pointer}
+.looks button:hover{color:var(--ink); border-color:var(--rule)}
+.looks button[aria-pressed="true"]{color:var(--ink); border-color:var(--accent)}
+.looks .sw{display:block; width:30px; height:20px; border-radius:3px; border:1px solid rgba(0,0,0,.18);
+  background:linear-gradient(135deg, var(--a) 0 55%, var(--b) 55% 100%)}
+@media (max-width:760px){
+  .looks{position:static; margin:0 auto 14px; width:max-content; max-width:100%; box-shadow:none}
+  .looks button{min-width:0; padding:4px}
+  .looks button span.t{display:none}
+}
+@media screen{
+
+  :root[data-look="granite"]:not(#_){
+    --paper:#050608; --sheet:#0f1013; --ink:#ece4d0; --muted:#a39a85; --rule:#2c2a24;
+    --accent:#d4af50; --accent-soft:#17150f; color-scheme:dark;
+    --display:"EB Garamond", Garamond, "Times New Roman", serif;
+  }
+  :root[data-look="granite"] .sheet{border-color:#3a3427; border-top:3px solid #d4af50;
+    background-image:radial-gradient(120% 60% at 50% 0%, rgba(212,175,80,.07), transparent 60%)}
+  :root[data-look="granite"] h1{color:#e9cf86}
+  :root[data-look="granite"] header{border-bottom-color:#d4af50}
+  :root[data-look="granite"] .job h3{font-weight:600; font-size:20px; letter-spacing:.01em}
+
+  :root[data-look="blueprint"]:not(#_){
+    --paper:#0a2341; --sheet:#0f3460; --ink:#eaf3ff; --muted:#a9c4e4; --rule:#3a6596;
+    --accent:#9fdcff; --accent-soft:#12406f; color-scheme:dark;
+    --display:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --body:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  :root[data-look="blueprint"] body{font-size:13.5px; line-height:1.6}
+  :root[data-look="blueprint"] .sheet{border:1px solid #6f9bd0; border-radius:0;
+    background-image:linear-gradient(rgba(159,220,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(159,220,255,.07) 1px, transparent 1px);
+    background-size:24px 24px}
+  :root[data-look="blueprint"] header{border-bottom:1px dashed #9fdcff}
+  :root[data-look="blueprint"] .job h3{font-size:15px; text-transform:uppercase; letter-spacing:.06em}
+  :root[data-look="blueprint"] .featured{outline:1px dashed #6f9bd0}
+
+  :root[data-look="minimal"]:not(#_){
+    --paper:#ffffff; --sheet:#ffffff; --ink:#0a0a0a; --muted:#6b6b6b; --rule:#e6e6e6;
+    --accent:#0a0a0a; --accent-soft:#f5f5f5; color-scheme:light;
+  }
+  :root[data-look="minimal"] .sheet{border:0; max-width:760px; gap:44px}
+  :root[data-look="minimal"] header{border-bottom:1px solid #0a0a0a}
+  :root[data-look="minimal"] .role{font-weight:700}
+  :root[data-look="minimal"] .featured{background:none; border-left:2px solid #0a0a0a; border-radius:0}
+  :root[data-look="minimal"] .chip .k{background:#0a0a0a; color:#fff}
+  :root[data-look="terminal"]:not(#_){
+    --paper:#020402; --sheet:#050a06; --ink:#c6ffd0; --muted:#5fae6d; --rule:#1b3a21;
+    --accent:#39ff6a; --accent-soft:#0b1a0e; color-scheme:dark;
+    --display:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --body:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  :root[data-look="terminal"] body{font-size:13.5px; line-height:1.6}
+  :root[data-look="terminal"] .sheet{border:1px solid #1f4a27; border-radius:6px; position:relative;
+    box-shadow:0 0 0 1px #0a160c, 0 0 40px rgba(57,255,106,.08) inset;
+    background-image:repeating-linear-gradient(0deg, rgba(57,255,106,.035) 0 1px, transparent 1px 3px)}
+  :root[data-look="terminal"] h1{font:500 clamp(28px,5vw,40px)/1.15 "IBM Plex Mono", ui-monospace, Menlo, monospace; color:#39ff6a; text-shadow:0 0 8px rgba(57,255,106,.45)}
+  :root[data-look="terminal"] h1::before{content:"ian@manor:~$ "; color:#5fae6d; font-size:.55em; vertical-align:.2em; text-shadow:none}
+  :root[data-look="terminal"] h1::after{content:""; display:inline-block; width:.5em; height:.95em; margin-left:.12em; vertical-align:-.1em;
+    background:#39ff6a; animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){:root[data-look="terminal"] h1::after{animation:none}}
+  :root[data-look="terminal"] .role{font-weight:400; text-transform:lowercase}
+  :root[data-look="terminal"] .role::before{content:"> "; color:#5fae6d}
+  :root[data-look="terminal"] header{border-bottom:1px dashed #2f6b3a}
+  :root[data-look="terminal"] h2::before{content:"## "; color:#2f6b3a}
+  :root[data-look="terminal"] .job h3{font-size:14.5px; font-weight:500; color:#39ff6a}
+  :root[data-look="terminal"] .job li::marker{content:"- "; color:#5fae6d}
+  :root[data-look="terminal"] .featured{background:#071209; outline:1px solid #1b3a21}
+  :root[data-look="terminal"] .btn.primary{color:#021004}
+  :root[data-look="terminal"] .chip .k{background:#39ff6a; color:#021004}
 }
 </style>
 </head>
 <body>
 
+<script>(function(){var n='granite',ok=['granite','blueprint','terminal','minimal'];try{n=localStorage.getItem('ian-resume-look')||n}catch(e){}var h=(location.hash||'').slice(1);if(ok.indexOf(h)>=0)n=h;if(ok.indexOf(n)<0)n='granite';document.documentElement.setAttribute('data-look',n)})();</script>
+<nav class="looks" aria-label="R&eacute;sum&eacute; style">
+  <button type="button" data-look="granite" title="Granite &amp; gold"><span class="sw" style="--a:#0f1013;--b:#d4af50"></span><span class="t">Granite</span></button>
+  <button type="button" data-look="blueprint" title="Blueprint"><span class="sw" style="--a:#0f3460;--b:#9fdcff"></span><span class="t">Blueprint</span></button>
+  <button type="button" data-look="terminal" title="Terminal"><span class="sw" style="--a:#050a06;--b:#39ff6a"></span><span class="t">Terminal</span></button>
+  <button type="button" data-look="minimal" title="Minimal"><span class="sw" style="--a:#ffffff;--b:#0a0a0a"></span><span class="t">Minimal</span></button>
+</nav>
 <main class="sheet">
   <header>
-    <h1>Ian Ingram</h1>
-    <p class="role">Technical Project Manager · Business Analyst<br>AI &amp; Speech Engineering</p>
+    <h1 aria-label="Ian Ingram">ian ingram</h1>
+    <p class="role">Technical Project Manager · Business Analyst</p>
+    <p class="role">AI &amp; Speech Engineering</p>
     <ul class="contact">
       <li>Yonkers, NY</li>
       <li><span id="phone">(646) 957-2337</span><button class="copy" id="copy-phone" type="button" data-target="phone" aria-label="Copy phone number">copy</button></li>
@@ -387,6 +476,23 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
 </main>
 <footer>Ian Ingram · Yonkers, NY · <a href="https://ianingram.github.io/ingram-manor/Ian_Ingram_Resume.pdf" target="_blank" rel="noopener">PDF version</a></footer>
 
+<script>
+/* Looks: five dressings for the same résumé. The choice is remembered in this browser only. */
+(function(){
+  var root=document.documentElement, KEY='ian-resume-look', names=['granite','blueprint','terminal','minimal'];
+  var btns=[].slice.call(document.querySelectorAll('.looks button'));
+  function apply(n){
+    if(names.indexOf(n)<0) n='granite';
+    root.setAttribute('data-look',n);
+    btns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.look===n ? 'true':'false'); });
+    try{ localStorage.setItem(KEY,n); }catch(e){}
+  }
+  var start='granite'; try{ start=localStorage.getItem(KEY)||'granite'; }catch(e){}
+  var h=(location.hash||'').slice(1); if(names.indexOf(h)>=0) start=h;
+  btns.forEach(function(b){ b.addEventListener('click', function(){ apply(b.dataset.look); }); });
+  apply(start);
+})();
+</script>
 <script>
 document.querySelectorAll('.copy').forEach(function(btn){
   btn.addEventListener('click', function(){
