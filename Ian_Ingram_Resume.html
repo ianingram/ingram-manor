@@ -114,7 +114,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
 @media print{
   @page{size:letter; margin:0.5in 0.55in}
   :root{--ink:#000; --muted:#444; --accent:#1d6660; --rule:#bbb; color-scheme:light}
-  body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.38}
+  body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.35}
   .sheet{border:0; padding:0; max-width:none; gap:11px; background:#fff}
   header{gap:5px; padding-bottom:9px}
   h1{font-size:25pt}
@@ -123,7 +123,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   section{gap:7px}
   h2{font-size:8pt; padding-bottom:3px}
   .summary{font-size:9.6pt; max-width:none}
-  .roles{gap:7px}
+  .roles{gap:6px}
   .job{grid-template-columns:96px minmax(0,1fr); gap:0 14px; break-inside:avoid}
   .when{font-size:8.3pt; padding-top:1px}
   .job h3{font-size:10.5pt}
@@ -144,7 +144,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
 <main class="sheet">
   <header>
     <h1>Ian Ingram</h1>
-    <p class="role">Technical Project Manager · Business Analyst · AI Product Builder</p>
+    <p class="role">Technical Project Manager · Business Analyst<br>AI &amp; Speech Engineering</p>
     <ul class="contact">
       <li>Yonkers, NY</li>
       <li><span id="phone">(646) 957-2337</span><button class="copy" id="copy-phone" type="button" data-target="phone" aria-label="Copy phone number">copy</button></li>
@@ -161,7 +161,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
 
   <section aria-labelledby="h-summary">
     <h2 id="h-summary">Summary</h2>
-    <p class="summary">Technical project manager and business analyst with 15+ years running implementations, UAT and data migrations at Citi, Nielsen and Philips Healthcare. For the past three years, I have independently designed and built an AI platform end to end on Claude and Gemini APIs, from architecture and cost control to shipped product.</p>
+    <p class="summary">Technical project manager and business analyst with 15+ years running implementations, UAT and data migrations at Citi, Nielsen and Philips Healthcare. For the past three years, I have independently designed and built an AI platform end to end on Claude and Gemini APIs, from architecture and cost control to shipped product, with a focus on speech engineering: a distinct voice for every figure.</p>
   </section>
 
   <section aria-labelledby="h-exp">
@@ -271,6 +271,20 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
     <div class="roles">
 
       <article class="job">
+        <div class="when">Speech engineering</div>
+        <div>
+          <h3>The Amenti speech engine</h3>
+          <ul>
+            <li>Designed the engine that gives each figure a voice: Claude writes the reply, Gemini TTS speaks it through a Cloudflare Worker, and text streams in measures of up to 320 characters, gap-free in Web Audio, so long documents start in seconds instead of timing out.</li>
+            <li>Built a content-addressed audio archive in Cloudflare R2 (a hash of model, voice, style and text), so every line renders once; it survived a move from AI Studio&rsquo;s 100-a-day cap to Vertex AI&rsquo;s gemini-2.5-pro-tts with service-account auth and fallback.</li>
+            <li>Cast every figure from the roster (base voice, gender, dialect, character) into a style prompt, with per-line stage directions for multi-voice audio productions; chose the model in a blind A/B/C/D listening test.</li>
+            <li>Measured delivery instead of guessing: pitch analysis showed descriptive directions barely moved a shouted line (about 144 Hz against a real 262 Hz), while writing the text for the voice reached about 178 Hz.</li>
+          </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Hear a figure speak</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_The_Voice_That_Carries.html" target="_blank" rel="noopener"><span class="k">brief</span>The Voice That Carries</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/AMENTI-SPEECH-DOCTRINE.html" target="_blank" rel="noopener"><span class="k">brief</span>The Speech Doctrine</a></div>
+        </div>
+      </article>
+
+      <article class="job">
         <div class="when">Data integrity</div>
         <div>
           <h3>Primary-source library and citation audit</h3>
@@ -295,20 +309,8 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
         </div>
       </article>
 
-      <article class="job">
-        <div class="when">Architecture</div>
-        <div>
-          <h3>Conversation and voice engine</h3>
-          <ul>
-            <li>Separated thinking from speaking: Claude composes the in-character reply, Gemini renders the voice, and a Cloudflare Worker routes between them, so either vendor can change without retuning the other.</li>
-            <li>Bounded each conversation to a 14-message window, so a three-hour conversation costs the same per turn as the first.</li>
-            <li>Archived rendered audio instead of caching it briefly, so audio cost scales with distinct content rather than audience size.</li>
-          </ul>
-          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Talk to a figure</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Conversation_Matrix.html" target="_blank" rel="noopener"><span class="k">brief</span>Conversation Matrix</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Studios.html" target="_blank" rel="noopener"><span class="k">brief</span>Audio archive plan</a></div>
-        </div>
-      </article>
 
-      <article class="job">
+      <article class="job web-only">
         <div class="when">Cost analysis</div>
         <div>
           <h3>Measured AI unit economics</h3>
@@ -368,6 +370,8 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
       <dd>Implementation and go-live management, UAT, requirements and functional documentation, data migration, QA and test planning</dd>
       <dt>AI &amp; technical</dt>
       <dd>LLM and text-to-speech APIs, JavaScript, HTML/CSS, Python, Cloudflare Workers, GitHub</dd>
+      <dt>Speech</dt>
+      <dd>Gemini TTS on Vertex AI, voice casting and style prompting, streaming Web Audio playback, content-addressed audio caching (Cloudflare R2), pitch and pacing analysis</dd>
       <dt>Domain</dt>
       <dd>Financial services (FX, operational risk, trading platforms), healthcare technology, media data</dd>
     </dl>
