@@ -113,7 +113,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
   .featured{margin-inline:-12px; padding:16px 12px}
 }
 @media print{
-  @page{size:letter; margin:0.5in 0.55in}
+  @page{size:letter; margin:0.42in 0.55in}
   :root{--ink:#000; --muted:#444; --accent:#1d6660; --rule:#bbb; color-scheme:light}
   body{background:#fff; color:#000; padding:0; font-size:9.6pt; line-height:1.35}
   .sheet{border:0; padding:0; max-width:none; gap:11px; background:#fff}
@@ -260,7 +260,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
           <ul>
             <li>Built Amenti.live, an AI platform on a roster of 2,000+ historical figures and a growing primary-source library, on Claude and Gemini APIs behind a Cloudflare Workers layer.</li>
             <li>Own the product end to end: scoping, architecture, cost control, QA and documentation in 100+ public technical briefs.</li>
-            <li>Shipped Ask Amenti, a self-generating quiz library, Amenti Studios audio productions of classic novels, a Living Map of the ancient world and Three.js browser games.</li>
+            <li>Shipped Ask Amenti, Amenti Studios, a self-generating quiz library, a Living Map of the ancient world and Three.js browser games.</li>
             <li>Run GannLab, a pre-registered market research lab; a 117-event screen from 8,320 SEC filings showed a −38.7% median six-month return across five walk-forward windows.</li>
           </ul>
           <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page1.html" target="_blank" rel="noopener"><span class="k">live</span>Amenti.live</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/Page2.html" target="_blank" rel="noopener"><span class="k">live</span>Chat, voice &amp; quizzes</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Ask Amenti</a><a class="chip chip-live" href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener"><span class="k">live</span>Amenti Studios</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/" target="_blank" rel="noopener"><span class="k">brief</span>100+ technical briefs</a></div>
@@ -370,6 +370,19 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
       </article>
 
       <article class="job">
+        <div class="when">Audio production</div>
+        <div>
+          <h3>Amenti Studios <span class="title">· staged audio readings</span></h3>
+          <ul>
+            <li>Produced six full-cast audio adaptations of public-domain classics, from Dracula to Quo Vadis: 181 episodes and nearly 14,000 cues, every line attributed to a role and checked by hand.</li>
+            <li>Cast 137 roles from 99 historical figures, each with a recorded reason: Oliver Cromwell, whose Parliament banned Christmas, plays Scrooge; Vlad the Impaler plays the Count.</li>
+            <li>Scored every production with room tones, effects placed on specific words and musical themes per setting, all voiced through the speech engine.</li>
+          </ul>
+          <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti-Studios/" target="_blank" rel="noopener"><span class="k">live</span>Listen to Amenti Studios</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/Amenti_Studios.html" target="_blank" rel="noopener"><span class="k">brief</span>Amenti Studios</a></div>
+        </div>
+      </article>
+
+      <article class="job">
         <div class="when">Data integrity</div>
         <div>
           <h3>Primary-source library and citation audit</h3>
@@ -388,7 +401,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
           <ul>
             <li>Search-first by design: names and fragments resolve against local indexes with no model call; only a real question spends money.</li>
             <li>Every quotation is checked against the text fetched that turn and marked verified, from a librarian's note, or unmatched; a tally prints even on clean answers so readers can see the check ran.</li>
-            <li>Answers only from shared registers (roster, library, events), so a wrong answer exposes a wrong record; this caught and fixed a figure misdated by more than a century.</li>
+            <li class="web-only">Answers only from shared registers (roster, library, events), so a wrong answer exposes a wrong record; this caught and fixed a figure misdated by more than a century.</li>
           </ul>
           <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/Amenti.live/hall.html" target="_blank" rel="noopener"><span class="k">live</span>Try it</a><a class="chip chip-brief" href="https://ianingram.github.io/Amenti-Technical-Briefs/BRIEF-ASK-AMENTI.html" target="_blank" rel="noopener"><span class="k">brief</span>Ask Amenti brief</a></div>
         </div>
@@ -419,13 +432,13 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
         </div>
       </article>
 
-      <article class="job">
+      <article class="job web-only">
         <div class="when">Research</div>
         <div>
           <h3>GannLab <span class="title">· pre-registered market research</span></h3>
           <ul>
             <li>Each hypothesis is a numbered probe with pass rules written before results are read; failures stay on the record.</li>
-            <li>Rejected popular geometric trading signals on the evidence (r = 0.021) and kept volatility clustering as the one clear survivor; data from SEC EDGAR, Yahoo Finance, CBOE and JPL ephemerides.</li>
+            <li>Rejected popular geometric trading signals on the evidence (r = 0.021); volatility clustering was the one clear survivor.</li>
           </ul>
           <div class="links"><a class="chip chip-live" href="https://ianingram.github.io/GannLab/desk.html" target="_blank" rel="noopener"><span class="k">live</span>Research desk</a></div>
         </div>
@@ -466,6 +479,7 @@ footer{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:c
     <h2 id="h-edu">Education &amp; Certifications</h2>
     <ul class="edu">
       <li><strong>Andrews University</strong> — B.S., History / Political Science</li>
+      <li><strong>Philips University</strong> — Biomedical Engineering Technician, Level II, Healthcare Systems</li>
       <li><strong>USPTA</strong> — Certified Tennis Professional</li>
     </ul>
   </section>
