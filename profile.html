@@ -1600,9 +1600,10 @@ function planetPosition(name, date, lat, lon) {
   const rad = Math.PI / 180, deg = 180 / Math.PI;
   const d = date.getTime() / 86400000 - 10957.5;
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1.000000,
-                        e:[0.016709, -1.151e-9], M:[356.0470, 0.9856002585] }, d);
-  const pl = helio(ELEMENTS[name], d);
-  const x = pl.x - earth.x, y = pl.y - earth.y, z = pl.z - earth.z;
+                        e:[0.016709, -1.151e-9], M:[356.0470, 0.9856002585] }, d + 1.5);   // these elements count from 1999 Dec 31 0h, a day and a half before J2000.0
+  const pl = helio(ELEMENTS[name], d + 1.5);
+  /* 'earth' here is really the SUN seen from the Earth (that is what these elements give), so it is added */
+  const x = pl.x + earth.x, y = pl.y + earth.y, z = pl.z + earth.z;
   const eps = (23.4393 - 3.563e-7 * d) * rad;
   const ye = y * Math.cos(eps) - z * Math.sin(eps), ze = y * Math.sin(eps) + z * Math.cos(eps);
   const ra = Math.atan2(ye, x) * deg, dec = Math.atan2(ze, Math.hypot(x, ye));
@@ -4143,9 +4144,9 @@ function bodyRangeKm(name, date) {
   if (name === 'Moon') return moonRangeKm(date);
   const d = date.getTime() / 86400000 - 10957.5;
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
-                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
-  const pl = helio(ELEMENTS[name], d);
-  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * 149597870.7;
+                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d + 1.5);   // these elements count from 1999 Dec 31 0h, a day and a half before J2000.0
+  const pl = helio(ELEMENTS[name], d + 1.5);
+  return Math.hypot(pl.x + earth.x, pl.y + earth.y, pl.z + earth.z) * 149597870.7;
 }
 
 /* jumpCost: what the drive has to spool, in seconds */
@@ -4220,9 +4221,9 @@ function bodyRange(name, date) {
   if (name === 'Moon') return 384400;
   const d = date.getTime() / 86400000 - 10957.5;
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
-                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
-  const pl = helio(ELEMENTS[name], d);
-  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * AU;
+                        e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d + 1.5);   // these elements count from 1999 Dec 31 0h, a day and a half before J2000.0
+  const pl = helio(ELEMENTS[name], d + 1.5);
+  return Math.hypot(pl.x + earth.x, pl.y + earth.y, pl.z + earth.z) * AU;
 }
 
 /* is this body usable: up, and in the frame? */
